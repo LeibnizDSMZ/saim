@@ -1,0 +1,252 @@
+[project]
+name = "saim"
+version = "0.1.0"
+description = """A library for identifying strains."""
+readme = "README.md"
+authors = [
+  { name = "Artur Lissin", email = "artur.lissin@dsmz.de" },
+  { name = "Julius Witte", email = "julius.witte@dsmz.de" },
+]
+license = "MIT"
+keywords = [
+  "python",
+  "data",
+  "strain matching",
+  "strain linking",
+  "designations",
+]
+repository = "https://github.com/LeibnizDSMZ/saim"
+requires-python = ">=3.13,<4"
+dependencies = [
+  "pydantic >=2.10,<3",
+  "playwright >=1.49,<2",
+  "python-dateutil >=2.9,<3",
+  "python-keycloak >=5.1,<6",
+  "requests >=2.32,<3",
+  "requests-cache >=1.2,<2",
+  "knacr @ git+https://github.com/LeibnizDSMZ/knAcr.git@v0.7.0",
+]
+
+[project.scripts]
+extract_ccno = "saim.designation.main:run"
+verify_knacr = "saim.culture_link.main:run"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
+
+[tool.black]
+line-length = 90
+target-version = ["py313"]
+
+[tool.codespell]
+count = ''
+ignore-words = "configs/dev/ignore.txt"
+quiet-level = 3
+skip = '.mypy,.mypy_cache,.vscore,.tox,*~,*.cache,*.lock,venv,**/data/*.json,*ignore.txt'
+
+[tool.commitizen]
+major_version_zero = true
+name = "cz_conventional_commits"
+tag_format = "v$version"
+update_changelog_on_bump = true
+version_files = [
+  "README.md:^\\[!\\[release:",
+  "src/saim/shared/misc/constants.py:^VERSION",
+]
+version_provider = "pep621"
+version_type = "semver"
+
+[tool.mypy]
+allow_redefinition = false
+# misc
+allow_untyped_globals = false
+check_untyped_defs = false
+disallow_any_decorated = false
+disallow_any_explicit = false
+# any
+disallow_any_expr = false
+disallow_any_generics = true
+disallow_any_unimported = false
+disallow_incomplete_defs = true
+disallow_subclassing_any = false
+# functions
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+exclude = ["__pycache__", "\\.tox", "\\.mypy_cache", "venv"]
+ignore_missing_imports = true
+implicit_reexport = true
+local_partial_types = true
+# none
+no_implicit_optional = false
+strict_equality = true
+strict_optional = true
+warn_no_return = true
+# plugins
+plugins = "pydantic.mypy"
+# warn
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_ignores = true
+
+[tool.poetry]
+include = ["src/saim/data/*", "src/saim/py.typed"]
+packages = [{ include = "saim", from = "src" }]
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+commitizen = ">=4.1,<5"
+mypy = ">=1.14,<2"
+ruff = ">=0.9,<1"
+black = ">=24.10,<25"
+codespell = ">=2.3,<3"
+shellcheck-py = ">=0.10,<1"
+pre-commit-hooks = ">=5.0,<6"
+# commit hooks
+lefthook = ">=1.10,<2"
+# types
+types-python-dateutil = ">=2.9,<3"
+types-requests = ">=2.32,<3"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = ">=1.6,<2"
+mkdocs-material = ">=9.5,<10"
+mkdocstrings = ">=0.27,<1"
+mkdocstrings-python = ">=1.13,<2"
+
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.test.dependencies]
+coverage = ">= 7.6,<8"
+pytest = ">=8.3,<9"
+pytest-asyncio = ">=0.25,<1"
+tox = ">=4.23,<5"
+
+[tool.poetry.requires-plugins]
+poetry-plugin-export = ">=1.9"
+poetry-plugin-shell = ">=1.0"
+
+[tool.ruff]
+line-length = 90
+target-version = "py313"
+exclude = [
+  ".git",
+  ".mypy_cache",
+  ".ruff_cache",
+  ".tox",
+  ".venv",
+  "__pypackages__",
+  "__pycache__",
+  "build",
+  "dist",
+  "venv",
+]
+
+[tool.ruff.lint]
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+fixable = [
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "I",
+  "N",
+  "Q",
+  "S",
+  "T",
+  "W",
+  "ANN",
+  "ARG",
+  "BLE",
+  "COM",
+  "DJ",
+  "DTZ",
+  "EM",
+  "ERA",
+  "EXE",
+  "FBT",
+  "ICN",
+  "INP",
+  "ISC",
+  "NPY",
+  "PD",
+  "PGH",
+  "PIE",
+  "PL",
+  "PT",
+  "PTH",
+  "PYI",
+  "RET",
+  "RSE",
+  "RUF",
+  "SIM",
+  "SLF",
+  "TCH",
+  "TID",
+  "TRY",
+  "UP",
+  "YTT",
+]
+ignore = ["TRY003", "N818"]
+select = ["E", "F", "B", "C90", "S", "PT", "ARG", "PTH", "TRY", "RUF", "N"]
+unfixable = []
+
+[tool.ruff.lint.mccabe]
+max-complexity = 11
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/*" = ["S101"]
+
+[tool.ruff.lint.pylint]
+max-args = 8
+
+[tool.tox]
+requires = ["tox>=4.23"]
+
+[tool.tox.env_run_base]
+allowlist_externals = ["coverage"]
+commands = [
+  [
+    "coverage",
+    "erase",
+  ],
+  [
+    "coverage",
+    "run",
+    "--parallel-mode",
+    "-m",
+    "pytest",
+    "{posargs}",
+  ],
+  [
+    "coverage",
+    "combine",
+  ],
+  [
+    "coverage",
+    "report",
+  ],
+]
+
+[tool.coverage.run]
+source = ["knacr"]
+parallel = true
+
+[tool.coverage.report]
+show_missing = false
+fail_under = 10
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "session"
