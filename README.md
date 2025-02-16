@@ -4,6 +4,8 @@
 [![MIT LICENSE](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](https://choosealicense.com/licenses/mit/)
 [![Documentation Status](https://img.shields.io/badge/docs-GitHub-blue.svg?style=flat-square)](https://LeibnizDSMZ.github.io/SAIM/)
 
+[![main](https://github.com/LeibnizDSMZ/saim/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/LeibnizDSMZ/saim/actions/workflows/main.yml)
+
 [![DOI](https://zenodo.org/badge/932743748.svg)](https://doi.org/10.5281/zenodo.14879790)
 
 ---
