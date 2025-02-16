@@ -1,4 +1,4 @@
-# SAIM - Strain Authentication and Identification Methods
+# Strain Authentication and Identification Methods - saim
 
 [![release: 0.1.0](https://img.shields.io/badge/rel-0.1.0-blue.svg?style=flat-square)](https://github.com/LeibnizDSMZ/saim.git)
 [![MIT LICENSE](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](https://choosealicense.com/licenses/mit/)
