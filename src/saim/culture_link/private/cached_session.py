@@ -84,16 +84,15 @@ def _create_response(
 
 @final
 class PWContext:
-    __slots__: tuple[str, ...] = ("__cnt", "__runner", "__spw")
+    __slots__: tuple[str, ...] = ("__cnt", "__runner", "__spw", "__test")
 
-    def __init__(
-        self,
-        cnt: int,
-    ) -> None:
+    def __init__(self, cnt: int, test: bool = False) -> None:
         self.__cnt: int = cnt
         self.__spw: Playwright | None = None
+        self.__test = test
         self.__runner: asyncio.Runner | None = asyncio.Runner()
-        self.runner.run(self.ctx)
+        if not self.__test:
+            self.runner.run(self.ctx)
         super().__init__()
 
     @property
@@ -103,7 +102,13 @@ class PWContext:
         return self.__runner
 
     @property
+    def is_test(self) -> bool:
+        return self.__test
+
+    @property
     async def ctx(self) -> Playwright:
+        if self.__test:
+            raise SessionCreationEx("ctx should not be called in tests")
         if self.__spw is None:
             ctx = await async_playwright().start()
             self.__spw = ctx
@@ -141,14 +146,17 @@ class BrowserPWAdapter(BaseAdapter):
     def __init__(self, pwc: PWContext, max_retries: int = 0, /) -> None:
         self.__retries = max_retries
         self.__pwc: PWContext = pwc
-        ctx = self.__pwc.runner.run(self.__pwc.ctx)
-        self.__browser: Browser = self.__pwc.runner.run(
-            ctx.chromium.launch(
-                headless=True,
-                chromium_sandbox=True,
-                args=["--disable-gpu"],
+        if not self.__pwc.is_test:
+            ctx = self.__pwc.runner.run(self.__pwc.ctx)
+            self.__browser: Browser | None = self.__pwc.runner.run(
+                ctx.chromium.launch(
+                    headless=True,
+                    chromium_sandbox=True,
+                    args=["--disable-gpu"],
+                )
             )
-        )
+        else:
+            self.__browser = None
         super().__init__()
 
     async def __send(
@@ -159,6 +167,8 @@ class BrowserPWAdapter(BaseAdapter):
         err_str: str = "",
         /,
     ) -> RequestResponse | None:
+        if self.__browser is None:
+            raise SessionCreationEx("browser not started")
         page = await self.__browser.new_page(
             java_script_enabled=True, accept_downloads=False
         )
@@ -213,7 +223,8 @@ class BrowserPWAdapter(BaseAdapter):
 
     def finish(self) -> None:
         print("CLOSING PW")
-        self.__pwc.runner.run(self.__browser.close())
+        if self.__browser is not None:
+            self.__pwc.runner.run(self.__browser.close())
         self.__pwc.close(False)
 
 

@@ -69,4 +69,4 @@ def task_pack(search_task: SearchTask) -> TaskPackage:
 
 @pytest.fixture(scope="session")
 def browser_adapter() -> BrowserPWAdapter:
-    return BrowserPWAdapter(PWContext(2), 3)
+    return BrowserPWAdapter(PWContext(2, True), 3)

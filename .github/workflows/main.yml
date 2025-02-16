@@ -26,7 +26,6 @@ jobs:
         pip install -r configs/dev/requirements.test.txt
         pip install .
         pip install tox
-        playwright install chromium
     - name: tox test
       run: |
         tox -e py
