@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Iterator, final
 
-from knacr.container.links import CatalogueLink
+from cafi.container.links import CatalogueLink
 from saim.culture_link.private.constants import (
     CAT_DET_EXP_DAYS,
     CAT_EXP_DAYS,
@@ -9,7 +9,7 @@ from saim.culture_link.private.constants import (
     CacheNames,
     VerificationStatus,
 )
-from knacr.container.links import LinkLevel
+from cafi.container.links import LinkLevel
 from saim.shared.data_con.designation import CCNoDes
 
 

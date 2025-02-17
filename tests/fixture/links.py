@@ -6,7 +6,7 @@ from saim.culture_link.private.cool_down import CoolDownDomain
 from saim.shared.data_con.designation import CCNoDes, CCNoId
 from saim.shared.misc.ctx import get_worker_ctx
 
-from knacr.container.links import CatalogueLink, LinkLevel
+from cafi.container.links import CatalogueLink, LinkLevel
 
 
 @pytest.fixture

@@ -1,7 +1,7 @@
 from collections import defaultdict
 
-from knacr.container.acr_db import AcrDbEntry
-from knacr.library.loader import CURRENT_VER, load_acr_db
+from cafi.container.acr_db import AcrDbEntry
+from cafi.library.loader import CURRENT_VER, load_acr_db
 
 from saim.designation.private.radix_tree import AcrRadixTree, is_acr_or_code
 from saim.shared.parse.string import (

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import final
 
-from knacr.container.acr_db import AcrDbEntry
+from cafi.container.acr_db import AcrDbEntry
 from saim.designation.private.radix_tree import AcrRadixTree
 
 

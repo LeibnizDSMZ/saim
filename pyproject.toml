@@ -1,6 +1,6 @@
 [project]
 name = "saim"
-version = "0.1.0"
+version = "0.1.1"
 description = """A library for identifying strains."""
 readme = "README.md"
 authors = [
@@ -24,12 +24,12 @@ dependencies = [
   "python-keycloak >=5.1,<6",
   "requests >=2.32,<3",
   "requests-cache >=1.2,<2",
-  "knacr @ git+https://github.com/LeibnizDSMZ/knAcr.git@v0.7.0",
+  "cafi @ git+https://github.com/LeibnizDSMZ/cafi.git@v0.8.0",
 ]
 
 [project.scripts]
 extract_ccno = "saim.designation.main:run"
-verify_knacr = "saim.culture_link.main:run"
+verify_cafi = "saim.culture_link.main:run"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
@@ -241,7 +241,7 @@ commands = [
 ]
 
 [tool.coverage.run]
-source = ["knacr"]
+source = ["saim"]
 parallel = true
 
 [tool.coverage.report]

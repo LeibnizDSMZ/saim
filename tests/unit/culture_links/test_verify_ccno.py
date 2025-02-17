@@ -32,7 +32,7 @@ from saim.shared.error.exceptions import KnownException
 from saim.shared.parse.http_url import get_domain
 from saim.shared.error.warnings import ValidationWarn
 
-from knacr.container.links import LinkLevel
+from cafi.container.links import LinkLevel
 
 
 pytest_plugins = ("tests.fixture.links",)

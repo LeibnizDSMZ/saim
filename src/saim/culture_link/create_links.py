@@ -3,9 +3,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import AsyncIterable, Iterable, final
 
-from knacr.constants.versions import CURRENT_VER
-from knacr.library.catalogue import create_ccno_links
-from knacr.container.links import CatalogueLink, LinkLevel
+from cafi.constants.versions import CURRENT_VER
+from cafi.library.catalogue import create_ccno_links
+from cafi.container.links import CatalogueLink, LinkLevel
 from saim.culture_link.private.container import SearchTask
 
 
@@ -16,7 +16,7 @@ from saim.culture_link.private.manager import (
 )
 from saim.designation.manager import AcronymManager
 from saim.shared.data_con.designation import CCNoDes
-from saim.shared.knacr.adapter import get_domain_from_knacr, parse_ccno_to_cat_args
+from saim.shared.cafi.adapter import get_domain_from_knacr, parse_ccno_to_cat_args
 
 
 @final

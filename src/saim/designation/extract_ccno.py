@@ -3,7 +3,7 @@ import re
 
 from re import Pattern
 from typing import Any, Final
-from knacr.container.acr_db import AcrCoreReg
+from cafi.container.acr_db import AcrCoreReg
 from saim.designation.known_acr_db import identify_acr, rm_complex_structure
 from saim.designation.private.radix_tree import search_acr_or_code_ccno
 from saim.shared.parse.string import (

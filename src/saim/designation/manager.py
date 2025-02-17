@@ -10,7 +10,7 @@ from saim.designation.extract_ccno import (
 )
 from saim.designation.known_acr_db import create_brc_con, identify_acr
 from saim.shared.data_con.designation import CCNoDes, CCNoId, DesignationType
-from knacr.container.acr_db import AcrDbEntry
+from cafi.container.acr_db import AcrDbEntry
 from saim.shared.data_con.brc import BrcContainer
 
 

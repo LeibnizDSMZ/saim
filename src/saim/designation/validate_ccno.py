@@ -7,7 +7,7 @@ from saim.shared.parse.string import check_pattern
 from saim.shared.data_con.brc import BrcContainer
 from saim.shared.data_con.designation import DesignationType
 from saim.shared.error.exceptions import DesignationEx
-from knacr.container.acr_db import AcrDbEntry
+from cafi.container.acr_db import AcrDbEntry
 
 
 def _verify_regex(

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-verify_knacr
+verify_cafi

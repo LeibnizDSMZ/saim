@@ -3,7 +3,7 @@ from pathlib import Path
 import sys
 import warnings
 
-from knacr.constants.versions import CURRENT_VER
+from cafi.constants.versions import CURRENT_VER
 from saim.culture_link.validate_file import validate_file
 
 from saim.culture_link.validate_knacr import validate_knacr

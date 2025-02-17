@@ -13,6 +13,7 @@ async-property==0.2.2 ; python_version >= "3.13" and python_version < "4" \
 attrs==25.1.0 ; python_version >= "3.13" and python_version < "4" \
     --hash=sha256:1c97078a80c814273a76b2a298a932eb681c87415c11dee0a6921de7f1b02c3e \
     --hash=sha256:c75a69e28a550a7e93789579c22aa26b0f5b83b75dc4e08fe092980051e1090a
+cafi @ git+https://github.com/LeibnizDSMZ/cafi.git@31c1749d7a742229b5c230a1cc79860ecc25d0f9 ; python_version >= "3.13" and python_version < "4"
 cattrs==24.1.2 ; python_version >= "3.13" and python_version < "4" \
     --hash=sha256:67c7495b760168d931a10233f979b28dc04daf853b30752246f4f8471c6d68d0 \
     --hash=sha256:8028cfe1ff5382df59dd36474a86e02d817b06eaf8af84555441bac915d2ef85
@@ -304,7 +305,6 @@ idna==3.10 ; python_version >= "3.13" and python_version < "4" \
 jwcrypto==1.5.6 ; python_version >= "3.13" and python_version < "4" \
     --hash=sha256:150d2b0ebbdb8f40b77f543fb44ffd2baeff48788be71f67f03566692fd55789 \
     --hash=sha256:771a87762a0c081ae6166958a954f80848820b2ab066937dc8b8379d65b1b039
-knacr @ git+https://github.com/LeibnizDSMZ/knAcr.git@569e781905bbcb168a6519b02cd70fd6331e4ac9 ; python_version >= "3.13" and python_version < "4"
 packaging==24.2 ; python_version >= "3.13" and python_version < "4" \
     --hash=sha256:09abb1bccd265c01f4a3aa3f7a7db064b36514d2cba19a2f694fe6150451a759 \
     --hash=sha256:c228a6dc5e932d346bc5739379109d49e8853dd8223571c7c5b55260edc0b97f

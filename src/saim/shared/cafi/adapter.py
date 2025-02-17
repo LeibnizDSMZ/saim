@@ -1,5 +1,5 @@
-from knacr.container.acr_db import CatArgs
-from knacr.container.links import CatalogueLink, LinkLevel
+from cafi.container.acr_db import CatArgs
+from cafi.container.links import CatalogueLink, LinkLevel
 
 from saim.shared.data_con.designation import CCNoDes
 from saim.shared.parse.http_url import get_domain

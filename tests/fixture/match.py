@@ -7,7 +7,7 @@ from saim.shared.data_con.culture import CultureStatus
 from saim.shared.data_con.strain import StrainCultureId
 from saim.strain_matching.manager import MatchCache
 
-from knacr.constants.versions import CURRENT_VER
+from cafi.constants.versions import CURRENT_VER
 
 
 @dataclass

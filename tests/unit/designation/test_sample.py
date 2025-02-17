@@ -1,5 +1,5 @@
 from typing import ClassVar
-from knacr.container.acr_db import AcrDbEntry, AcrCoreReg
+from cafi.container.acr_db import AcrDbEntry, AcrCoreReg
 
 from saim.designation.extract_ccno import identify_ccno
 from saim.designation.private.radix_tree import AcrRadixTree, search_acr_or_code_ccno
