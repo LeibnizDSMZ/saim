@@ -6,14 +6,20 @@ import unicodedata
 _TD = TypeVar("_TD", covariant=True)
 
 
+def _is_val_empty(val: Any, /) -> bool:
+    if isinstance(val, Sized) and len(val) == 0:
+        return True
+    if isinstance(val, int) and val < 0:
+        return True
+    if val is None:
+        return True
+    return False
+
+
 def detect_empty_dict_keys(dict_con: Mapping[str, Any], /) -> set[str]:
     to_rem = set()
     for key, val in dict_con.items():
-        if isinstance(val, Sized) and len(val) == 0:
-            to_rem.add(key)
-        if isinstance(val, int) and val < 0:
-            to_rem.add(key)
-        if val is None:
+        if _is_val_empty(val):
             to_rem.add(key)
     return to_rem
 
@@ -21,15 +27,25 @@ def detect_empty_dict_keys(dict_con: Mapping[str, Any], /) -> set[str]:
 def clean_empty_values_in_dict(dict_con: dict[str, _TD], /) -> dict[str, _TD]:
     trim: dict[str, _TD] = trim_str_in_dict(dict_con)
 
-    def _rec_clean(local_d: dict[str, Any], /) -> dict[str, Any]:
-        buf = {key: val for key, val in local_d.items()}
-        for key, val in buf.items():
-            if isinstance(val, dict):
-                buf[key] = _rec_clean(val)
+    def _select_rec(val: Any, /) -> Any:
+        if isinstance(val, dict):
+            return _rec_clean_dic(val)
+        if isinstance(val, (list, tuple)):
+            return _rec_clean_ite(val)
+        return val
+
+    def _rec_clean_ite(local_l: Iterable[Any], /) -> Iterable[Any]:
+        gen = (new_v for val in local_l if not _is_val_empty(new_v := _select_rec(val)))
+        if isinstance(local_l, tuple):
+            return tuple(gen)
+        return list(gen)
+
+    def _rec_clean_dic(local_d: dict[str, Any], /) -> dict[str, Any]:
+        buf = {key: _select_rec(val) for key, val in local_d.items()}
         banned = detect_empty_dict_keys(buf)
         return {key: val for key, val in buf.items() if key not in banned}
 
-    return _rec_clean(trim)
+    return _rec_clean_dic(trim)
 
 
 def is_different_string(strict: bool, str_1: str, str_2: str, /) -> bool:
