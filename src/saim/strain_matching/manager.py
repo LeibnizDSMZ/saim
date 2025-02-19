@@ -149,7 +149,7 @@ class MatchCache:
         if upd.si_cu < 1 or upd.si_id < 1:
             warnings.warn(
                 "[CA-UPD] received malformed IDs "
-                + f"[{upd.cid}: SI-CU {upd.si_cu} - SI-ID {upd.si_id}]",
+                + f"[{upd.cid}: SI-DP {upd.si_cu} - SI-ID {upd.si_id}]",
                 StrainMatchWarn,
                 stacklevel=2,
             )

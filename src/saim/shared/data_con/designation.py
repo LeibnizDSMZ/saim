@@ -31,15 +31,15 @@ STRAIN_INFO_SI_ID_REG: Final[tuple[re.Pattern[str], ...]] = (
     re.compile(r"^SI-ID\s*(\d+)(?:\.(\d+))?$"),
     STRAIN_SI_ID_DOI,
 )
-STRAIN_INFO_SI_CU_REG: Final[tuple[re.Pattern[str], ...]] = (
-    re.compile(r"^SI-CU\s*(\d+)$"),
+STRAIN_INFO_SI_DP_REG: Final[tuple[re.Pattern[str], ...]] = (
+    re.compile(r"^SI-DP\s*(\d+)$"),
 )
 
 ALL_DES_TYPES: Final[tuple[tuple[DesignationType, tuple[re.Pattern[str], ...]], ...]] = (
     (DesignationType.wdcm_ref, WDCM_REG),
     (DesignationType.mir, MIRRI_REG),
     (DesignationType.strid, STRAIN_INFO_SI_ID_REG),
-    (DesignationType.culid, STRAIN_INFO_SI_CU_REG),
+    (DesignationType.culid, STRAIN_INFO_SI_DP_REG),
 )
 
 

@@ -18,7 +18,7 @@ from saim.shared.parse.string import (
 from saim.shared.data_con.brc import BrcContainer
 from saim.shared.data_con.designation import (
     ALL_DES_TYPES,
-    STRAIN_INFO_SI_CU_REG,
+    STRAIN_INFO_SI_DP_REG,
     STRAIN_INFO_SI_ID_REG,
     DesignationType,
     CCNoDes,
@@ -207,7 +207,7 @@ def get_si_id(designation: str, /) -> tuple[int, int] | None:
 
 def get_si_cu(designation: str, /) -> int:
     trimmed = designation.strip()
-    for reg in STRAIN_INFO_SI_CU_REG:
+    for reg in STRAIN_INFO_SI_DP_REG:
         if (mat := reg.match(trimmed)) is not None:
             return int(mat.group(1))
     return -1
