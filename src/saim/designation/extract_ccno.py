@@ -127,7 +127,7 @@ def _identify_ccno(
     acr: str,
     /,
 ) -> CCNoDes:
-    clean_ccno = clean_string(ccno, _PATTERN_PARA, PATTERN_EDGE, *_PATTERNS_DES_CL)
+    clean_ccno = clean_designation(ccno)
     if (res_no := _split_acr_id(clean_ccno, acr)) is None:
         return CCNoDes(designation=clean_ccno)
     brc_acr, fixed_id = res_no
@@ -214,7 +214,7 @@ def get_si_cu(designation: str, /) -> int:
 
 
 def get_syn_eq_struct(designation: str, /) -> tuple[str, str, str]:
-    clean_des = clean_string(designation, _PATTERN_PARA, PATTERN_EDGE, *_PATTERNS_DES_CL)
+    clean_des = clean_designation(designation)
     syn_eq = PATTERN_THREE_GROUPS.match(clean_des)
     if syn_eq is None:
         return "", "", ""
@@ -231,3 +231,7 @@ def get_syn_eq_struct(designation: str, /) -> tuple[str, str, str]:
             clean_string(suf, PATTERN_ID_EDGE, *_SUF_CLEAN).upper(),
         )
     return "", "", ""
+
+
+def clean_designation(designation: str, /) -> str:
+    return clean_string(designation, _PATTERN_PARA, PATTERN_EDGE, *_PATTERNS_DES_CL)

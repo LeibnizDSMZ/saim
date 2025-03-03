@@ -61,7 +61,7 @@ pre-commit:
             stage_fixed: true
           - name: ruff
             glob: "*.py"
-            run: test $RUFF != "" && $RUFF check {staged_files} || ruff check  {staged_files}
+            run: \[\[ test $RUFF != "" ]] && $RUFF check {staged_files} --fix || ruff check {staged_files} --fix
             stage_fixed: true
           - name: poetry-export
             run: poetry export -f requirements.txt -o requirements.txt

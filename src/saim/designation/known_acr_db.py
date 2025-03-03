@@ -89,6 +89,13 @@ def identify_acr(acr: str, brc_con: BrcContainer, /) -> set[int]:
     return brc_con.f_cc_db_acr.get(fixed, set())
 
 
+def identify_acr_or_code(acr: str, brc_con: BrcContainer, /) -> set[int]:
+    fixed = parse_acr_or_code(acr, brc_con)
+    if fixed == "":
+        return set()
+    return brc_con.f_cc_db_acr.get(fixed, set()) | brc_con.f_cc_db_code.get(fixed, set())
+
+
 def parse_acr_or_code(acr_or_code: str, brc_con: BrcContainer, /) -> str:
     if is_acr_or_code(brc_con.kn_acr, acr_or_code):
         return rm_complex_structure(acr_or_code)
