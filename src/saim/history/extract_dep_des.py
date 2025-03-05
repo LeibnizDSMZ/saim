@@ -122,10 +122,13 @@ def assign_depositor_designation(
         his_con = index.get(manager.get_syn_eq_struct(dep.designation), [])
         for his_ind, his_anc in enumerate(his_con):
             if (
-                his_anc.deposition_designation != ""
+                his_anc.deposition_designation(dep.designation, manager) != ""
                 and (
                     new_si_dp := index_si_dp.get(
-                        manager.get_syn_eq_struct(his_anc.deposition_designation), None
+                        manager.get_syn_eq_struct(
+                            his_anc.deposition_designation(dep.designation, manager)
+                        ),
+                        None,
                     )
                 )
                 is not None
@@ -138,3 +141,30 @@ def assign_depositor_designation(
                 break
         if len(dep_si_dp) == 1:
             yield si_dp, dep_si_dp.pop()
+
+
+def _walk_to_root(dest: int, graph: dict[int, int], path: set[int], /) -> bool:
+    if dest in path:
+        return True
+    if dest in graph:
+        path.add(dest)
+        next_dest = graph[dest]
+        del graph[dest]
+        return _walk_to_root(next_dest, graph, path)
+    return False
+
+
+def history_has_cycle(history: list[tuple[int, int]], /) -> bool:
+    # history tuple(target <- source)
+    graph: dict[int, int] = {}
+
+    for src, ori in history:
+        if src in graph:
+            return True
+        graph[src] = ori
+
+    while len(graph) > 0:
+        start, dest = graph.popitem()
+        if _walk_to_root(dest, graph, {start}):
+            return True
+    return False
