@@ -1,3 +1,9 @@
+## v0.2.1 (2025-03-05)
+
+### Fix
+
+- disallow cycles in history
+
 ## v0.2.0 (2025-03-05)
 
 ### Feat
