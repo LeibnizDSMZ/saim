@@ -53,7 +53,9 @@ runBuild:
 	$(POETRY) build
 
 runBump:
-	$(POETRY) run cz bump
+	cz bump --files-only --yes --changelog
+	git add .
+	cz version --project | xargs -i git commit -am "bump: release {}"
 
 runPoetry:
 	$(POETRY) run $(CMD)
