@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Self, final
+from typing import Protocol, Self, final
 
 
 @final
@@ -15,6 +15,10 @@ class HistoryDeposition:
         return len(self.cc_ids & deposition.cc_ids) > 0
 
 
+class _ManagerP(Protocol):
+    def get_syn_eq_struct(self, designation: str) -> tuple[str, str, str]: ...
+
+
 @final
 @dataclass(slots=True, kw_only=True)
 class HistoryDepositor:
@@ -27,11 +31,20 @@ class HistoryDepositor:
             return ""
         return self.second.full_designation
 
-    @property
-    def deposition_designation(self) -> str:
+    def deposition_designation(self, out_src: str, manager: _ManagerP, /) -> str:
+        results: str = ""
         if self.first is None:
-            return self.__get_fallback_designation()
-        return self.first.full_designation
+            results = self.__get_fallback_designation()
+        else:
+            results = self.first.full_designation
+        eq_res = manager.get_syn_eq_struct(results)
+        if (
+            eq_res[0] != ""
+            and eq_res[1] != ""
+            and manager.get_syn_eq_struct(out_src) == eq_res
+        ):
+            return ""
+        return results
 
     def add_depositor(self, dep: HistoryDeposition | None, /) -> bool:
         if dep is not None and self.counter < 2:
