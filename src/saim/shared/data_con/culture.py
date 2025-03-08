@@ -59,6 +59,7 @@ class CiDSrc(str, Enum):
     str = "straininfo archive"
     dbf = "external database"
     brc_s = "scraped from brc website"
+    brc_v = "found on brc website"
     brc_r = "provided by brc"
 
 
