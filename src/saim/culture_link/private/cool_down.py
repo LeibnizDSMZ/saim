@@ -34,10 +34,16 @@ class CoolDownDomain:
             if time_out_cnt >= _T_LIMIT and time_dif < _T_RESET:
                 last_req = -1
             wait_time = cool_down_sec - time.time() + last_req
+            new_req = last_req
             if wait_time > 0:
-                time.sleep(wait_time)
-            request_time, timeout = callback(last_req)
-            self.__last_request.value = request_time
+                new_req = last_req + wait_time
+                self.__last_request.value = new_req
+        if wait_time > 0:
+            time.sleep(wait_time)
+        request_time, timeout = callback(last_req)
+        with self.__lock:
+            if self.__last_request.value == new_req:
+                self.__last_request.value = request_time
             if timeout:
                 cur_add = 0 if time_out_cnt >= _T_LIMIT else 1
                 self.__timeout_cnt.value += cur_add
