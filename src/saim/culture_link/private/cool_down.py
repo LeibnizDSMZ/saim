@@ -9,6 +9,7 @@ from saim.shared.error.warnings import RequestWarn
 _COOL_DOWN: Final[float] = 1.0
 _T_RESET: Final[int] = 259200
 _T_LIMIT: Final[int] = 3
+_MAX_DELAY: Final[int] = 5
 
 
 @final
@@ -28,7 +29,7 @@ class CoolDownDomain:
     ) -> None:
         with self.__lock:
             last_req = self.__last_request.value
-            cool_down_sec = delay if delay > 0 else _COOL_DOWN
+            cool_down_sec = delay if 0 < delay < _MAX_DELAY else _COOL_DOWN
             time_dif = time.time() - last_req
             time_out_cnt = self.__timeout_cnt.value
             if time_out_cnt >= _T_LIMIT and time_dif < _T_RESET:
@@ -40,6 +41,12 @@ class CoolDownDomain:
                 self.__last_request.value = new_req
         if wait_time > 0:
             time.sleep(wait_time)
+        if delay >= _MAX_DELAY:
+            warnings.warn(
+                f"[DELAY] High delay requirement detected - {self.__domain}",
+                RequestWarn,
+                stacklevel=2,
+            )
         request_time, timeout = callback(last_req)
         with self.__lock:
             if self.__last_request.value == new_req:
