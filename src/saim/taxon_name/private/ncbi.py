@@ -139,7 +139,7 @@ def read_ncbi_tax_nodes(
         {
             tid: gid
             for tid in ranks
-            if (gid := _resolve_rank(tid, ranks, path, GBIFRanksE.sup_kin)) is not None
+            if (gid := _resolve_rank(tid, ranks, path, GBIFRanksE.dom)) is not None
         },
         {
             tid: gid

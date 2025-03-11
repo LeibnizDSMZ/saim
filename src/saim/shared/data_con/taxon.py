@@ -191,6 +191,7 @@ _NCBI_EXCLUSIVE_RANKS_MAP: Final[dict[str, GBIFRanksE]] = {
     "BIOTYPE": GBIFRanksE.oth,
     "CLADE": GBIFRanksE.oth,
     "NO RANK": GBIFRanksE.unr,
+    "REALM": GBIFRanksE.dom,
 }
 
 
