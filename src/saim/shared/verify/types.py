@@ -83,8 +83,8 @@ def ch_opt_date(to_ch: Any, /) -> bool:
     return to_ch is None or isinstance(to_ch, datetime.date)
 
 
-PATTERN_FLOAT: Final[str] = r"^\s*[-+]?(\d{1,2}(?:\.\d+))?\s*$"
-_FLOAT_RE: Final[re.Pattern[str]] = re.compile(PATTERN_FLOAT)
+_PATTERN_FLOAT: Final[str] = r"^\s*[-+]?(\d+(?:\.\d+))?\s*$"
+_FLOAT_RE: Final[re.Pattern[str]] = re.compile(_PATTERN_FLOAT)
 
 
 def ch_str_float(num: str, lim: float, msg: str, /) -> None:
