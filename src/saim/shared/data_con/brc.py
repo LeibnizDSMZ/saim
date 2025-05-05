@@ -21,3 +21,4 @@ class BrcContainer:
     f_cc_db_acr: dict[str, set[int]]
     f_cc_db_code: dict[str, set[int]]
     kn_acr: AcrRadixTree
+    kn_acr_rev: AcrRadixTree

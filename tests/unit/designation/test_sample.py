@@ -9,6 +9,7 @@ from saim.shared.data_con.designation import ccno_designation_to_dict
 
 class TestSample:
     kn_acr = AcrRadixTree("DSM")
+    kn_rev = AcrRadixTree("MSD")
     acr_db_instance = AcrDbEntry(
         acr="DSM",
         code="DSMZ",
@@ -32,6 +33,7 @@ class TestSample:
         f_cc_db_acr=cc_db_acr,
         f_cc_db_code=cc_db_code,
         kn_acr=kn_acr,
+        kn_acr_rev=kn_rev,
     )
 
     def test_valid_ccno_des(self) -> None:
