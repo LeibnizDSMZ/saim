@@ -38,11 +38,11 @@ _PATTERNS_DES_CL: Final[tuple[Pattern[str], ...]] = (
 _SET_ONE_DIG_NUMS: Final[set[str]] = {str(num) for num in range(10)}
 
 
-def get_ccno_acr(ccno: str, brc: BrcContainer, /) -> str:
-    brc_acr = search_acr_or_code_ccno(brc.kn_acr, ccno)
-    if brc_acr == "":
-        raise DesignationEx(f"[{ccno}] could not find acr")
-    return brc_acr
+def get_ccno_acr(ccno: str, brc: BrcContainer, /) -> list[str]:
+    try:
+        return search_acr_or_code_ccno(brc.kn_acr, ccno)
+    except ValueError as exc:
+        raise DesignationEx(f"[{ccno}] could not find acr") from exc
 
 
 def get_ccno_id(ccno: str, acr: str, /) -> str:
@@ -142,11 +142,8 @@ def _identify_ccno(
 
 
 def _identify_valid_ccno(ccno: str, brc: BrcContainer, /) -> Iterable[CCNoDes]:
-    mem_acr = ccno
-    ccno_des = CCNoDes(designation=ccno)
     try:
-        while len(mem_acr) > len(new_acr := get_ccno_acr(mem_acr, brc)):
-            mem_acr = new_acr
+        for mem_acr in get_ccno_acr(ccno, brc):
             ccno_des = _identify_ccno(ccno, brc, mem_acr)
             if ccno_des.acr != "":
                 yield ccno_des
