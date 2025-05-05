@@ -152,7 +152,9 @@ def _identify_valid_ccno(ccno: str, brc: BrcContainer, /) -> Iterable[CCNoDes]:
 
 
 def identify_ccno(ccno: str, brc: BrcContainer, /) -> CCNoDes:
-    for ccno_des in _identify_valid_ccno(ccno, brc):
+    for ccno_des in sorted(
+        _identify_valid_ccno(ccno, brc), key=lambda val: -len(val.acr)
+    ):
         return ccno_des
     return CCNoDes(designation=ccno)
 
