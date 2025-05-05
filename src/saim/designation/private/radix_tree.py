@@ -197,13 +197,17 @@ def is_acr_or_code(radix: AcrRadixTree, to_sea: str, /) -> bool:
     return False
 
 
-def search_acr_or_code_ccno(radix: AcrRadixTree, to_sea: str, /) -> list[str]:
+def search_acr_or_code_ccno(
+    radix: AcrRadixTree, to_sea: str, trim_right: bool = True, /
+) -> list[str]:
     radix.compact()
     f_sea = to_sea.upper()
-    f_sea_fix = replace_non_word_chars(f_sea[0:-1])
+    if trim_right:
+        f_sea = f_sea[0:-1]
+    f_sea_fix = replace_non_word_chars(f_sea)
     if f_sea_fix == "":
         return []
-    mapper = _SOMap(f_sea[0:-1], f_sea_fix)
+    mapper = _SOMap(f_sea, f_sea_fix)
     found_pos: set[int] = set()
     _search(radix, mapper, 0, found_pos)
     return [mapper.map_seq(pos) for pos in found_pos]
