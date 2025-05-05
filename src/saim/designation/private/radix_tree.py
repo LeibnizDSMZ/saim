@@ -166,24 +166,21 @@ def _search_node(
     return node.end, node
 
 
-def _search(radix: AcrRadixTree, to_find: _SOMap, start: int, /) -> int:
+def _search(
+    radix: AcrRadixTree, to_find: _SOMap, start: int, container: set[int], /
+) -> None:
     to_sea = to_find.short_seq[start : start + radix.max]
-    if not to_sea:
-        return -1
-    max_ind = len(to_sea)
-    for ind in range(0, max_ind):
-        sea_sub = to_sea[0 : max_ind - ind]
-        end_node, next_node = _search_node(radix, sea_sub)
-        if next_node:
-            next_start = start + max_ind - ind
-            mom_pos = next_start - 1
-            next_res = _search(next_node, to_find, next_start)
-            if next_res != -1:
-                return next_res
-            if end_node and to_find.is_clearly_sep(mom_pos):
-                return mom_pos
-            return -1
-    return -1
+    if to_sea != "":
+        max_ind = len(to_sea)
+        for ind in range(0, max_ind):
+            sea_sub = to_sea[0 : max_ind - ind]
+            end_node, next_node = _search_node(radix, sea_sub)
+            if next_node:
+                next_start = start + max_ind - ind
+                mom_pos = next_start - 1
+                _search(next_node, to_find, next_start, container)
+                if end_node and to_find.is_clearly_sep(mom_pos) and mom_pos > 0:
+                    container.add(mom_pos)
 
 
 def is_acr_or_code(radix: AcrRadixTree, to_sea: str, /) -> bool:
@@ -193,15 +190,20 @@ def is_acr_or_code(radix: AcrRadixTree, to_sea: str, /) -> bool:
     if f_sea_fixed == "":
         return False
     mapper = _SOMap(f_sea, f_sea_fixed)
-    return _search(radix, mapper, 0) == len(to_sea) - 1
+    found_pos: set[int] = set()
+    _search(radix, mapper, 0, found_pos)
+    if len(found_pos) > 0:
+        return max(found_pos) == len(to_sea) - 1
+    return False
 
 
-def search_acr_or_code_ccno(radix: AcrRadixTree, to_sea: str, /) -> str:
+def search_acr_or_code_ccno(radix: AcrRadixTree, to_sea: str, /) -> list[str]:
     radix.compact()
     f_sea = to_sea.upper()
     f_sea_fix = replace_non_word_chars(f_sea[0:-1])
     if f_sea_fix == "":
-        return ""
+        return []
     mapper = _SOMap(f_sea[0:-1], f_sea_fix)
-    found_pos = _search(radix, mapper, 0)
-    return mapper.map_seq(found_pos)
+    found_pos: set[int] = set()
+    _search(radix, mapper, 0, found_pos)
+    return [mapper.map_seq(pos) for pos in found_pos]

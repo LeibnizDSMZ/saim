@@ -79,6 +79,6 @@ class TestSample:
     def test_search_algo(self) -> None:
         s_kn_acr = AcrRadixTree("DSM")
         s_kn_acr.add("DSMZ")
-        assert "DSMZ" == search_acr_or_code_ccno(s_kn_acr, "DSMZ 123")
-        assert "DSM" == search_acr_or_code_ccno(s_kn_acr, "DSM 123")
-        assert "" == search_acr_or_code_ccno(s_kn_acr, "DSMT 123")
+        assert "DSMZ" == search_acr_or_code_ccno(s_kn_acr, "DSMZ 123").pop()
+        assert "DSM" == search_acr_or_code_ccno(s_kn_acr, "DSM 123").pop()
+        assert len(search_acr_or_code_ccno(s_kn_acr, "DSMT 123")) == 0
