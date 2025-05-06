@@ -1,8 +1,9 @@
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Callable, Self, final
+from typing import Callable, Iterable, Self, final
 
 from saim.designation.extract_ccno import (
+    extract_ccno_from_text,
     identify_all_valid_ccno,
     identify_ccno,
     identify_designation_type,
@@ -128,6 +129,10 @@ class AcronymManager:
             self.__check_limit()
             self._ca_req_all[trimmed] = [_cr_tuple_from_ccno_des(ide) for ide in ides]
         return ides
+
+    @_verify_date
+    def extract_all_valid_ccno_from_text(self, text: str, /) -> Iterable[CCNoDes]:
+        yield from extract_ccno_from_text(text, self._ca_brc)
 
     @_verify_date
     def identify_acr(self, acr: str, /) -> set[int]:
