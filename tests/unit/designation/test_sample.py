@@ -90,7 +90,7 @@ class TestSample:
         brc_full_test = create_brc_con()
         test_text = """
 The laboratory conducted several tests to identify microbial strains.
-Among the samples tested were DSM:123 and ATCC BAA12 andATCC BAA13.
+Among the samples tested were DSM:123 and AtcC BAA12 andATCC BAA13.
 These strains showed unique resistance patterns against common antibiotics.
 Additional testing involved DSM T12 for its distinctive properties.
 Researchers noted peculiar growth rates when exposed to varying temperatures.
@@ -121,7 +121,7 @@ Collaboration with international labs aims to enhance the understanding of genet
             CCNoDes(
                 acr="ATCC",
                 id=CCNoId(full="BAA12", core="12", pre="BAA"),
-                designation="ATCC BAA12",
+                designation="AtcC BAA12",
             ),
             CCNoDes(
                 acr="IMI",

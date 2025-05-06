@@ -159,7 +159,7 @@ def _add_suffix(full_suf: str, clean_suf: str, /) -> str:
         while search:
             suf_char = next(suf_iter)
             consumed += 1
-            if suf_char == char:
+            if suf_char.upper() == char.upper():
                 search = False
     return full_suf[:consumed]
 
@@ -213,7 +213,7 @@ def _identify_left_ccno(
         while search:
             left_char = next(left_iter)
             consumed += 1
-            if left_char == char:
+            if left_char.upper() == char.upper():
                 search = False
     return left[consumed - 1 :: -1]
 
