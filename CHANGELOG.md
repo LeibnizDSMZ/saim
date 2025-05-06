@@ -1,3 +1,25 @@
+## v0.3.0 (2025-05-06)
+
+### Feat
+
+- add extraction to manager
+- add ccno search in text
+- add max delay verification
+- add lock release on domain on request
+- add new source for data
+
+### Fix
+
+- correct ccno border detection
+- update project because of h11
+- correct float check in strings
+
+### Refactor
+
+- return longest acronym first
+- improve acronym search
+- update to newer ncbi taxonomy structure
+
 ## v0.2.1 (2025-03-05)
 
 ### Fix
