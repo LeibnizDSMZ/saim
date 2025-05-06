@@ -57,7 +57,7 @@ def _extract_date(pos_date: str, cur_year: int, /) -> str | None:
     if (
         (date := _FULL_DATE_P.match(pos_date)) is not None
         and (year := _GET_YEAR.search(par_date := str(date.group(1)))) is not None
-        and _is_reasonable_date(pos_date, int(year.group(1)), cur_year)
+        and _is_reasonable_current_date(pos_date, int(year.group(1)), cur_year)
     ):
         return par_date
     return None
@@ -69,7 +69,7 @@ def _cur_year_in_str(date: str, ext_year: int, cur_year: int, /) -> bool:
     return f"{cur_year!s}" in date
 
 
-def _is_reasonable_date(date: str, ext_year: int, cur_year: int, /) -> bool:
+def _is_reasonable_current_date(date: str, ext_year: int, cur_year: int, /) -> bool:
     return _EARLIEST_YEAR <= ext_year <= cur_year and _cur_year_in_str(
         date, ext_year, cur_year
     )
@@ -133,7 +133,7 @@ def get_date(pos_date: str, /) -> CompleteDate | None:
         return ext_date
     try:
         parsed_date = parser.parse(pos_date, fuzzy=False)
-        if _is_reasonable_date(pos_date, parsed_date.year, cur_year):
+        if _is_reasonable_current_date(pos_date, parsed_date.year, cur_year):
             return CompleteDate(date=parsed_date)
     except (ParserError, OverflowError):
         return None
