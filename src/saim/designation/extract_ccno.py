@@ -55,7 +55,7 @@ def get_ccno_id(ccno: str, acr: str, /) -> str:
     acr_cl = re.compile(r"^" + re.escape(acr), re.I)
     fixed_id = clean_string(ccno, acr_cl, _PATTERN_PARA, PATTERN_ID_EDGE)
     if acr == "" or fixed_id == "":
-        raise DesignationEx(f"[{ccno}] acr or id are empty - acr[{acr}] id[{fixed_id}]")
+        raise DesignationEx(f"[{ccno}] acr or id are empty - acr[{acr}] id [{fixed_id}]")
     id_reg = re.compile(r"^" + re.escape(acr) + r"[^A-Za-z].*$", re.I)
     if acr[-1] in _SET_ONE_DIG_NUMS:
         id_reg = re.compile(r"^" + re.escape(acr) + r"\D.*$")
@@ -151,6 +151,19 @@ def _identify_ccno(
     )
 
 
+def _add_suffix(full_suf: str, clean_suf: str, /) -> str:
+    consumed = 0
+    suf_iter = iter(full_suf)
+    for char in clean_suf:
+        search = True
+        while search:
+            suf_char = next(suf_iter)
+            consumed += 1
+            if suf_char == char:
+                search = False
+    return full_suf[:consumed]
+
+
 def _identify_ccno_fix(
     acr: str,
     ccno: str,
@@ -164,7 +177,6 @@ def _identify_ccno_fix(
     brc_acr, fixed_id = res_no
     fixed_id_cl = _cl_id(fixed_id)
     pre, core, suf = ["", "", ""]
-
     for brc_reg in [brc.cc_db[a_id].regex_id for a_id in identify_acr(brc_acr, brc)]:
         if (
             brc_reg.suf != ""
@@ -177,6 +189,10 @@ def _identify_ccno_fix(
             break
     if core == "":
         return CCNoDes(designation=clean_ccno)
+    if suf != "":
+        to_add = _add_suffix(suffix, suf)
+        clean_ccno += to_add
+        fixed_id += to_add
     return CCNoDes(
         acr=brc_acr,
         id=CCNoId(full=fixed_id, pre=pre, core=core, suf=suf),
@@ -199,7 +215,7 @@ def _identify_left_ccno(
             consumed += 1
             if left_char == char:
                 search = False
-    return left[consumed::-1]
+    return left[consumed - 1 :: -1]
 
 
 def _identify_valid_ccno(ccno: str, brc: BrcContainer, /) -> Iterable[CCNoDes]:
@@ -302,7 +318,7 @@ def _get_acronyms(
 ) -> Iterable[tuple[str, str]]:
     for acr in get_ccno_acr(left, brc.kn_acr_rev, False):
         yield acr, ""
-    new_start = clean_string(left[pre_end + 1 :], PATTERN_EDGE)
+    new_start = clean_string(left[pre_end:], PATTERN_EDGE)
     for acr in get_ccno_acr(new_start, brc.kn_acr_rev, False):
         yield acr, prefix
 
@@ -316,7 +332,7 @@ def extract_ccno_from_text(text: str, brc: BrcContainer, /) -> Iterable[CCNoDes]
         rev_pre = PATTERN_PREFIX_START.search(sub_left)
         if rev_pre is None:
             continue
-        sub_right = text[match.end(1) + 1 : match.end(1) + 9]
+        sub_right = text[match.end(1) : match.end(1) + 9]
         for rev_acr_d, rev_pre_d in _get_acronyms(
             sub_left, rev_pre.end(1), rev_pre.group(1), brc
         ):

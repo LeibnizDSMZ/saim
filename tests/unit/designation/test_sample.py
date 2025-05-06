@@ -1,10 +1,11 @@
 from typing import ClassVar
 from cafi.container.acr_db import AcrDbEntry, AcrCoreReg
 
-from saim.designation.extract_ccno import identify_ccno
+from saim.designation.extract_ccno import extract_ccno_from_text, identify_ccno
+from saim.designation.known_acr_db import create_brc_con
 from saim.designation.private.radix_tree import AcrRadixTree, search_acr_or_code_ccno
 from saim.shared.data_con.brc import BrcContainer
-from saim.shared.data_con.designation import ccno_designation_to_dict
+from saim.shared.data_con.designation import CCNoDes, CCNoId, ccno_designation_to_dict
 
 
 class TestSample:
@@ -84,3 +85,48 @@ class TestSample:
         assert "DSMZ" == search_acr_or_code_ccno(s_kn_acr, "DSMZ 123").pop()
         assert "DSM" == search_acr_or_code_ccno(s_kn_acr, "DSM 123").pop()
         assert len(search_acr_or_code_ccno(s_kn_acr, "DSMT 123")) == 0
+
+    def test_search_algo_text(self) -> None:
+        brc_full_test = create_brc_con()
+        test_text = """
+The laboratory conducted several tests to identify microbial strains.
+Among the samples tested were DSM:123 and ATCC BAA12 andATCC BAA13.
+These strains showed unique resistance patterns against common antibiotics.
+Additional testing involved DSM T12 for its distinctive properties.
+Researchers noted peculiar growth rates when exposed to varying temperatures.
+Subsequent studies focused on strain IMI12*i, known for rapid mutation capabilities.
+Data from these tests were compiled into comprehensive reports for further analysis.
+Cross-comparison with historical data provided insights into evolutionary trends.
+Further experiments are planned to explore potential applications in biotechnology.
+Collaboration with international labs aims to enhance the understanding of genetics.
+        """
+        test_res = list(extract_ccno_from_text(test_text, brc_full_test))
+        assert len(test_res) == 3
+        for ccno in [
+            CCNoDes(acr="DSM", id=CCNoId(full="123", core="123"), designation="DSM 123"),
+            CCNoDes(
+                acr="ATCC",
+                id=CCNoId(full="BAA12", core="12", pre="BAA"),
+                designation="ATCC BAA 12",
+            ),
+            CCNoDes(
+                acr="IMI",
+                id=CCNoId(full="12*i", core="12", suf="i"),
+                designation="IMI12i",
+            ),
+        ]:
+            assert ccno not in test_res
+        for ccno in [
+            CCNoDes(acr="DSM", id=CCNoId(full="123", core="123"), designation="DSM:123"),
+            CCNoDes(
+                acr="ATCC",
+                id=CCNoId(full="BAA12", core="12", pre="BAA"),
+                designation="ATCC BAA12",
+            ),
+            CCNoDes(
+                acr="IMI",
+                id=CCNoId(full="12*i", core="12", suf="*i"),
+                designation="IMI12*i",
+            ),
+        ]:
+            assert ccno in test_res
