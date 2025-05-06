@@ -1,3 +1,15 @@
+## v0.3.1 (2025-05-06)
+
+### Fix
+
+- change char to upper in comparison
+
+### Refactor
+
+- rename private reasonable date function
+- remove redundant sampling declaration
+- remove redundant container definition
+
 ## v0.3.0 (2025-05-06)
 
 ### Feat
