@@ -1,7 +1,6 @@
 from typing import Iterable, final
 from saim.designation.extract_ccno import (
-    clean_designation,
-    identify_all_valid_ccno,
+    extract_ccno_from_text,
     get_syn_eq_struct,
 )
 from saim.designation.known_acr_db import identify_acr_or_code
@@ -11,22 +10,20 @@ from saim.shared.data_con.history import HistoryDeposition
 
 def _detect_culture_collection(
     event: str, culture_collection: BrcContainer, /
-) -> HistoryDeposition | None:
-    acr, core, suf = get_syn_eq_struct(event)
-    if acr != "" and core != "":
-        return HistoryDeposition(
+) -> Iterable[HistoryDeposition]:
+    for ccno_des in extract_ccno_from_text(event, culture_collection):
+        if ccno_des.acr == "":
+            continue
+        yield HistoryDeposition(
             cc_ids=set(
-                cc_id
-                for des in identify_all_valid_ccno(event, culture_collection)
-                for cc_id in identify_acr_or_code(des.acr, culture_collection)
+                cc_id for cc_id in identify_acr_or_code(ccno_des.acr, culture_collection)
             ),
-            designation=(acr, core, suf),
-            full_designation=clean_designation(event),
+            designation=get_syn_eq_struct(ccno_des.designation),
+            full_designation=ccno_des.designation,
         )
     cc_ids = identify_acr_or_code(event, culture_collection)
-    if len(cc_ids) == 0:
-        return None
-    return HistoryDeposition(cc_ids=cc_ids, designation=None)
+    if len(cc_ids) != 0:
+        yield HistoryDeposition(cc_ids=cc_ids, designation=None)
 
 
 @final
@@ -56,24 +53,22 @@ class _CreateDesEvents:
     ) -> Iterable[HistoryDeposition]:
         seen_cc: set[int] = set()
         for ele in event:
-            detected = _detect_culture_collection(ele, culture_collection)
-            if detected is None:
-                continue
-            yield detected
-            if len(seen_cc) == 0:
-                seen_cc = detected.cc_ids
-            elif len(seen_cc & detected.cc_ids) == 0:
-                self.__unknown = True
-                return None
-            if self.__designation is None:
-                self.__designation = detected.designation
-                self.__full_designation = detected.full_designation
-            elif (
-                detected.designation is not None
-                and self.__designation != detected.designation
-            ):
-                self.__unknown = True
-                return None
+            for detected in _detect_culture_collection(ele, culture_collection):
+                yield detected
+                if len(seen_cc) == 0:
+                    seen_cc = detected.cc_ids
+                elif len(seen_cc & detected.cc_ids) == 0:
+                    self.__unknown = True
+                    return None
+                if self.__designation is None:
+                    self.__designation = detected.designation
+                    self.__full_designation = detected.full_designation
+                elif (
+                    detected.designation is not None
+                    and self.__designation != detected.designation
+                ):
+                    self.__unknown = True
+                    return None
         self.__unknown = len(seen_cc) == 0
 
 
