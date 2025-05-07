@@ -1,4 +1,3 @@
-import asyncio
 from collections.abc import Iterable
 from multiprocessing import Queue
 from multiprocessing.context import SpawnProcess
@@ -81,7 +80,6 @@ class RequestManager:
         try:
             result = self.__res.get_nowait()
         except Empty:
-            await asyncio.sleep(0.5)
             return None
         else:
             return result
@@ -90,7 +88,6 @@ class RequestManager:
         try:
             self.__req.put_nowait(request)
         except Full:
-            await asyncio.sleep(0.5)
             return False
         else:
             return True
