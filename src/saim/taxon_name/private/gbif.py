@@ -42,7 +42,7 @@ def _analyse_gbif_response(ori: str, res: requests.Response, /) -> GBIF:
 
 
 def _request_gbif(
-    name: str, session: CachedSession, last_req: Callable[[float], int], /
+    name: str, session: CachedSession, last_req: Callable[[float], float], /
 ) -> GBIF:
     if name == "":
         return GBIF()
@@ -72,23 +72,23 @@ class GbifTaxReq:
         )
         return create_simple_get_cache(self.__exp_days, backend)
 
-    def __calc_wait_time(self, time: float, /) -> int:
+    def __cwt(self, time: float, /) -> float:
         wait_time = 1 - (time - self.__last_req)
         self.__last_req = time
         if wait_time < 0:
             return 0
-        return int(wait_time)
+        if wait_time > 1:
+            return 1
+        return wait_time
 
     def get_rank(self, tax_nam: str, /) -> GBIFRanksE:
         if tax_nam == "":
             return GBIFRanksE.oth
         return _request_gbif(
-            tax_nam, self.__session, lambda call: self.__calc_wait_time(call)
+            tax_nam, self.__session, lambda call: self.__cwt(call)
         ).rank_marker
 
     def get_name(self, tax_nam: str, /) -> str:
         if tax_nam == "":
             return tax_nam
-        return _request_gbif(
-            tax_nam, self.__session, lambda call: self.__calc_wait_time(call)
-        ).name
+        return _request_gbif(tax_nam, self.__session, lambda call: self.__cwt(call)).name
