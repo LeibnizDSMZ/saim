@@ -67,7 +67,7 @@ def _request_lpsn_ad(
     name: str,
     session: CachedSession,
     lpsn_cred: JWTCred,
-    last_req: Callable[[float], int],
+    last_req: Callable[[float], float],
     /,
 ) -> list[tuple[str, int]]:
     if name == "":
@@ -87,7 +87,7 @@ def _request_lpsn_org_pure(
     lpsn_id: int,
     session: CachedSession,
     lpsn_cred: JWTCred,
-    last_req: Callable[[float], int],
+    last_req: Callable[[float], float],
     /,
 ) -> list[LpsnOrgC]:
     req_url = f"{LPSN_ORG}{lpsn_id}"
@@ -106,7 +106,7 @@ def _request_lpsn_org(
     lpsn_id: int,
     session: CachedSession,
     lpsn_cred: JWTCred,
-    last_req: Callable[[float], int],
+    last_req: Callable[[float], float],
     /,
 ) -> list[LpsnOrgC]:
     if lpsn_id < 1:
@@ -118,7 +118,7 @@ def _get_lpsn_correct_name(
     con: LpsnOrgC,
     session: CachedSession,
     lpsn_cred: JWTCred,
-    last_req: Callable[[float], int],
+    last_req: Callable[[float], float],
     /,
 ) -> list[tuple[str, int]]:
     if (
@@ -159,17 +159,19 @@ class LpsnTaxReq:
         kcl = JWTCred(user, upw, "api.lpsn.public", url)
         return create_simple_get_cache(self.__exp_days, backend), kcl
 
-    def __calc_wait_time(self, time: float, /) -> int:
+    def __cwt(self, time: float, /) -> float:
         wait_time = 1 - (time - self.__last_req)
         self.__last_req = time
         if wait_time < 0:
             return 0
-        return int(wait_time)
+        if wait_time > 1:
+            return 1
+        return wait_time
 
     def get_name(self, names: list[str], /) -> list[tuple[str, int]]:
         for name in names:
             name_id = _request_lpsn_ad(
-                name, self.__session, self.__kcl, lambda call: self.__calc_wait_time(call)
+                name, self.__session, self.__kcl, lambda call: self.__cwt(call)
             )
             if len(name_id) > 0:
                 return [
@@ -180,7 +182,7 @@ class LpsnTaxReq:
                         lid,
                         self.__session,
                         self.__kcl,
-                        lambda call: self.__calc_wait_time(call),
+                        lambda call: self.__cwt(call),
                     )
                     if res.full_name == name
                 ]
@@ -191,7 +193,7 @@ class LpsnTaxReq:
             lpsn_id,
             self.__session,
             self.__kcl,
-            lambda call: self.__calc_wait_time(call),
+            lambda call: self.__cwt(call),
         ):
             if self.get_rank(lpsn_id) == rank and lpsn_id > 0:
                 return res.full_name.upper()
@@ -231,10 +233,10 @@ class LpsnTaxReq:
             for _, lid in name_id
             if lid > 0
             for res in _request_lpsn_org(
-                lid, self.__session, self.__kcl, lambda call: self.__calc_wait_time(call)
+                lid, self.__session, self.__kcl, lambda call: self.__cwt(call)
             )
             for name_id_c in _get_lpsn_correct_name(
-                res, self.__session, self.__kcl, lambda call: self.__calc_wait_time(call)
+                res, self.__session, self.__kcl, lambda call: self.__cwt(call)
             )
             if name_id_c[1] > 0
         ]
@@ -243,7 +245,7 @@ class LpsnTaxReq:
         if lpsn_id < 1:
             return GBIFRanksE.oth
         for res in _request_lpsn_org(
-            lpsn_id, self.__session, self.__kcl, lambda call: self.__calc_wait_time(call)
+            lpsn_id, self.__session, self.__kcl, lambda call: self.__cwt(call)
         ):
             rank = res.category.upper()
             if is_rank(rank):
@@ -254,7 +256,7 @@ class LpsnTaxReq:
         if lpsn_id is None or lpsn_id < 1:
             return None
         for res in _request_lpsn_org(
-            lpsn_id, self.__session, self.__kcl, lambda call: self.__calc_wait_time(call)
+            lpsn_id, self.__session, self.__kcl, lambda call: self.__cwt(call)
         ):
             cid = res.lpsn_correct_name_id
             if cid is not None and cid > 0:
@@ -269,7 +271,7 @@ class LpsnTaxReq:
             lpsn_id,
             self.__session,
             self.__kcl,
-            lambda call: self.__calc_wait_time(call),
+            lambda call: self.__cwt(call),
         ):
             typ_str.update(res.type_strain_names)
         return typ_str
