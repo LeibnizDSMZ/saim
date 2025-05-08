@@ -5,7 +5,7 @@ from pathlib import Path
 from re import Pattern
 import re
 import tarfile
-from typing import IO, Callable, Final, final
+from typing import IO, Callable, Final, Iterable, final
 import warnings
 
 
@@ -109,6 +109,28 @@ def _resolve_rank(
     if ranks.get(cur_id) == limit:
         return cur_id
     return _resolve_rank(path[cur_id], ranks, path, limit)
+
+
+def _create_all_correct_species_names(
+    species: dict[int, int], id_2_name: dict[int, str], /
+) -> dict[int, list[str]]:
+    cor_spe: dict[int, list[str]] = defaultdict(list)
+    for spe_id in species.values():
+        cor_name = id_2_name.get(spe_id, "")
+        if cor_name != "":
+            cor_spe[spe_id].append(cor_name)
+    return cor_spe
+
+
+def _add_synonyms_to_names(
+    all_names: dict[int, list[str]], synonyms: dict[str, set[int]], /
+) -> None:
+    for name, ids in synonyms.items():
+        if name == "":
+            continue
+        for nid in ids:
+            if nid in all_names:
+                all_names[nid].append(name)
 
 
 _NODE_REG: Final[Pattern[str]] = re.compile(
@@ -346,6 +368,15 @@ class NcbiTaxReq:
         if species_id is None:
             return ""
         return self.__con.id_2_name.get(species_id, "").upper()
+
+    def get_all_species(self) -> Iterable[tuple[str, ...]]:
+        all_spe = _create_all_correct_species_names(
+            self.__con.species, self.__con.id_2_name
+        )
+        _add_synonyms_to_names(all_spe, self.__con.synonyms)
+        _add_synonyms_to_names(all_spe, self.__con.eq_name)
+        for names in all_spe.values():
+            yield tuple(names)
 
     def is_deleted(self, ncbi_id: int, /) -> bool:
         return ncbi_id in self.__con.rm_ids
