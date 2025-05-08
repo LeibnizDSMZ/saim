@@ -1,3 +1,14 @@
+## v0.4.0 (2025-05-08)
+
+### Feat
+
+- add all species method
+- remove asyncio sleep
+
+### Fix
+
+- correct cooldown for gbif and lpsn
+
 ## v0.3.1 (2025-05-06)
 
 ### Fix
