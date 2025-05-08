@@ -111,11 +111,11 @@ def _resolve_rank(
     return _resolve_rank(path[cur_id], ranks, path, limit)
 
 
-def _create_all_correct_species_names(
-    species: dict[int, int], id_2_name: dict[int, str], /
+def _create_all_correct_names(
+    con: dict[int, int], id_2_name: dict[int, str], /
 ) -> dict[int, list[str]]:
     cor_spe: dict[int, list[str]] = defaultdict(list)
-    for spe_id in species.values():
+    for spe_id in con.values():
         cor_name = id_2_name.get(spe_id, "")
         if cor_name != "":
             cor_spe[spe_id].append(cor_name)
@@ -370,9 +370,14 @@ class NcbiTaxReq:
         return self.__con.id_2_name.get(species_id, "").upper()
 
     def get_all_species(self) -> Iterable[tuple[str, ...]]:
-        all_spe = _create_all_correct_species_names(
-            self.__con.species, self.__con.id_2_name
-        )
+        all_spe = _create_all_correct_names(self.__con.species, self.__con.id_2_name)
+        _add_synonyms_to_names(all_spe, self.__con.synonyms)
+        _add_synonyms_to_names(all_spe, self.__con.eq_name)
+        for names in all_spe.values():
+            yield tuple(names)
+
+    def get_all_genera(self) -> Iterable[tuple[str, ...]]:
+        all_spe = _create_all_correct_names(self.__con.genus, self.__con.id_2_name)
         _add_synonyms_to_names(all_spe, self.__con.synonyms)
         _add_synonyms_to_names(all_spe, self.__con.eq_name)
         for names in all_spe.values():
