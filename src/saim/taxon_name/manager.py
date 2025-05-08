@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from re import Pattern
 import re
-from typing import Callable, Concatenate, Final, Protocol, Self, final
+from typing import Callable, Concatenate, Final, Iterable, Protocol, Self, final
 import warnings
 
 from pydantic import ValidationError
@@ -313,6 +313,12 @@ class TaxonManager:
         if len(species) > 0:
             return [spe for spe in species.values() if _filter_ids(ncbi_id, lpsn_id, spe)]
         return []
+
+    @_verify_date
+    def get_all_species_names(self) -> Iterable[tuple[str, ...]]:
+        for species_names in self._ncbi.get_all_species():
+            yield species_names
+        # TODO add lpsn support
 
     @_verify_date
     def get_ncbi_id(self, name: str, /) -> list[int]:
