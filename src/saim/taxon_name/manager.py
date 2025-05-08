@@ -321,6 +321,12 @@ class TaxonManager:
         # TODO add lpsn support
 
     @_verify_date
+    def get_all_genus_names(self) -> Iterable[tuple[str, ...]]:
+        for species_names in self._ncbi.get_all_genera():
+            yield species_names
+        # TODO add lpsn support
+
+    @_verify_date
     def get_ncbi_id(self, name: str, /) -> list[int]:
         return list(set(nid for _, nid in self._ncbi.get_name([name])))
 
