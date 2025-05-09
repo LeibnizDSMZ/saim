@@ -344,14 +344,15 @@ class TaxonManager:
             yield species_names
         # TODO add lpsn support
 
-    def __init_search_tree(self) -> None:
+    @_verify_date
+    def _init_search_tree(
+        self, gen: list[Callable[[], Iterable[tuple[int, list[str]]]]]
+    ) -> tuple[int, dict[int, str], RadixTree[int]]:
         if self._nid_sg is None or self._radix_sg is None:
             self._nid_sg = dict()
             radix: None | RadixTree[int] = None
             jump = 0
-            for nid, names in itertools.chain(
-                self._ncbi.get_all_genera(), self._ncbi.get_all_species()
-            ):
+            for nid, names in itertools.chain(*[name() for name in gen]):
                 for name in names:
                     if nid not in self._nid_sg:
                         self._nid_sg[nid] = name
@@ -362,10 +363,13 @@ class TaxonManager:
                         radix_add(radix, name, (nid,))
             self._radix_sg = radix
             self.__jump = jump
+        if self._radix_sg is None:
+            raise GlobalManagerEx("Could not initialize taxon radix tree")
+        return self.__jump, self._nid_sg, self._radix_sg
 
     @_verify_date
     def extract_taxa_from_text(self, text: str, /) -> Iterable[str]:
-        self.__init_search_tree()
+        self._init_search_tree([self._ncbi.get_all_genera, self._ncbi.get_all_species])
         if self._radix_sg is not None and self._nid_sg is not None:
             for rid in extract_taxa_from_text(text, self._radix_sg, self.__jump):
                 name = self._nid_sg.get(rid, "")
@@ -447,3 +451,20 @@ class TaxonManager:
             self._ncbi.get_type_strain(pa_int(ncbi_id))
             | self.__lpsn.get_type_strain(pa_int(lpsn_id))
         )
+
+
+def slim_init_extractor(
+    tax_man: TaxonManager, /
+) -> tuple[int, dict[int, str], RadixTree[int]]:
+    return tax_man._init_search_tree([tax_man._ncbi.get_all_genera])
+
+
+def slim_extract_taxa_from_text(
+    text: str, jump: int, tax_id: dict[int, str], radix: RadixTree[int], /
+) -> Iterable[str]:
+    if radix is not None and tax_id is not None:
+        for rid in extract_taxa_from_text(text, radix, jump):
+            name = tax_id.get(rid, "")
+            if name == "":
+                continue
+            yield name
