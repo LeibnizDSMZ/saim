@@ -1,4 +1,3 @@
-from collections import defaultdict
 import re
 
 from re import Pattern
@@ -8,6 +7,7 @@ from saim.shared.parse.string import (
     PATTERN_SINGLE_WORD_CHAR_R,
     STR_DEFINED_SEP,
     replace_non_word_chars,
+    replace_non_word_chars_iter,
 )
 
 
@@ -185,14 +185,18 @@ class _SOMap:
         # but not extra chars of any kind
         return self.__origin[0 : mapped_pos + 1]
 
-    def is_clearly_sep(self, char_index: int, /) -> bool:
-        if self.__org_len > char_index + 1:
-            two_chars = self.__origin[char_index : char_index + 2]
-            if _PATTERN_TWO_CHAR.match(two_chars) is not None:
-                return False
-            if _PATTERN_TWO_NUM.match(two_chars) is not None:
-                return False
-        return True
+    def is_clearly_sep(self, pos: int, /) -> bool:
+        return _is_clearly_sep(pos, self.__origin)
+
+
+def _is_clearly_sep(pos: int, text: str, /) -> bool:
+    if len(text) > pos + 1:
+        two_chars = text[pos : pos + 2]
+        if _PATTERN_TWO_CHAR.match(two_chars) is not None:
+            return False
+        if _PATTERN_TWO_NUM.match(two_chars) is not None:
+            return False
+    return True
 
 
 def _search_node[
@@ -212,7 +216,7 @@ def _search[
     radix: RadixTree[T],
     to_find: _SOMap,
     start: int,
-    container: defaultdict[int, set[T]],
+    container: dict[int, tuple[T, ...]],
     /,
 ) -> None:
     to_sea = to_find.short_seq[start : start + radix.max]
@@ -226,27 +230,27 @@ def _search[
                 mom_pos = next_start - 1
                 _search(next_node, to_find, next_start, container)
                 if end_node and to_find.is_clearly_sep(mom_pos) and mom_pos > 0:
-                    container[mom_pos].update(end_index)
+                    container[mom_pos] = end_index
 
 
-def is_full_match[T](radix: RadixTree[T], to_sea: str, /) -> tuple[bool, set[T]]:
+def is_full_match[T](radix: RadixTree[T], to_sea: str, /) -> tuple[bool, tuple[T, ...]]:
     radix_compact(radix)
     f_sea = to_sea.upper()
     f_sea_fixed = replace_non_word_chars(f_sea)
     if f_sea_fixed == "":
-        return False, set()
+        return False, tuple()
     mapper = _SOMap(f_sea, f_sea_fixed)
-    found_pos: defaultdict[int, set[T]] = defaultdict(set)
+    found_pos: dict[int, tuple[T, ...]] = dict()
     _search(radix, mapper, 0, found_pos)
     if len(found_pos) > 0 and (last_id := max(found_pos)) == len(to_sea) - 1:
-        return True, found_pos.get(last_id, set())
-    return False, set()
+        return True, found_pos.get(last_id, tuple())
+    return False, tuple()
 
 
-def find_first_match[
+def find_first_match_with_fix[
     T
 ](radix: RadixTree[T], to_sea: str, trim_right: bool = True, /) -> list[
-    tuple[str, set[T]]
+    tuple[str, tuple[T, ...]]
 ]:
     radix_compact(radix)
     f_sea = to_sea.upper()
@@ -256,6 +260,45 @@ def find_first_match[
     if f_sea_fix == "":
         return []
     mapper = _SOMap(f_sea, f_sea_fix)
-    found_pos: defaultdict[int, set[T]] = defaultdict(set)
+    found_pos: dict[int, tuple[T, ...]] = dict()
     _search(radix, mapper, 0, found_pos)
     return [(mapper.map_seq(pos), index) for pos, index in found_pos.items()]
+
+
+def _create_sea[
+    T
+](radix: RadixTree[T], full_txt: str, start: int, /) -> Iterable[tuple[str, int]]:
+    to_find = iter(replace_non_word_chars_iter(full_txt, start))
+    to_sea = 0
+    while to_sea < radix.max:
+        try:
+            iter_char, iter_pos = next(to_find)
+            to_sea += 1
+            yield iter_char.upper(), iter_pos
+        except StopIteration:
+            break
+
+
+def _search_simple[
+    T
+](radix: RadixTree[T], full_txt: str, start: int, /) -> Iterable[tuple[T, ...]]:
+    to_sea_con = tuple(_create_sea(radix, full_txt, start))
+    max_ind = len(to_sea_con)
+    if max_ind > 0:
+        for ind in range(0, max_ind):
+            sea_sub = "".join(txt for txt, *_ in to_sea_con[0 : max_ind - ind])
+            end_node, end_index, next_node = _search_node(radix, sea_sub)
+            if next_node:
+                *_, mom_pos = to_sea_con[max_ind - ind - 1]
+                next_start = mom_pos + 1
+                for next_node_res in _search_simple(next_node, full_txt, next_start):
+                    yield next_node_res
+                if end_node and _is_clearly_sep(mom_pos, full_txt) and mom_pos > 0:
+                    yield end_index
+
+
+def find_first_match_simple[
+    T
+](radix: RadixTree[T], to_sea: str, pos: int, /) -> Iterable[tuple[T, ...]]:
+    radix_compact(radix)
+    yield from _search_simple(radix, to_sea, pos)
