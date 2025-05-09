@@ -1,11 +1,11 @@
-from saim.designation.private.radix_tree import AcrRadixTree
+from saim.shared.search.radix_tree import RadixTree
 
 
 class TestRadixTree:
     @staticmethod
     def _check_node_keys(
-        tree_node: AcrRadixTree | None, keys: list[str], next_key: str, /
-    ) -> AcrRadixTree | None:
+        tree_node: RadixTree[None] | None, keys: list[str], next_key: str, /
+    ) -> RadixTree[None] | None:
         assert tree_node is not None
         assert tree_node.keys == keys
         last_node = len(keys) == 0
@@ -15,16 +15,16 @@ class TestRadixTree:
         return tree_node.get_next(next_key)
 
     def test_create_node(self) -> None:
-        tree = AcrRadixTree("DSMZ")
-        assert isinstance(tree, AcrRadixTree)
+        tree: RadixTree[None] = RadixTree("DSMZ")
+        assert isinstance(tree, RadixTree)
 
     def test_create_node_and_compact(self) -> None:
-        tree = AcrRadixTree("DSMZ")
+        tree: RadixTree[None] = RadixTree("DSMZ")
         tree.compact()
         assert tree.keys == ["DSMZ"]
 
     def test_create_multiple_nodes(self) -> None:
-        tree = AcrRadixTree("DSMZ")
+        tree: RadixTree[None] = RadixTree("DSMZ")
         tree.add("KCTC")
         tree.add("JCC")
         tree.add("TCC")
@@ -32,7 +32,7 @@ class TestRadixTree:
         assert tree.keys == ["D", "K", "J", "T"]
 
     def test_create_multiple_nodes_and_compact(self) -> None:
-        tree = AcrRadixTree("DSMZ")
+        tree: RadixTree[None] = RadixTree("DSMZ")
         tree.add("DSM")
         tree.add("TCC")
         tree.add("JCC")
@@ -45,7 +45,7 @@ class TestRadixTree:
 
     def test_end(self) -> None:
         test_string = "ABC"
-        tree_node: AcrRadixTree | None = AcrRadixTree(test_string)
+        tree_node: RadixTree[None] | None = RadixTree(test_string)
         for key_v in test_string:
             assert tree_node is not None
             tree_node = TestRadixTree._check_node_keys(tree_node, [key_v], key_v)

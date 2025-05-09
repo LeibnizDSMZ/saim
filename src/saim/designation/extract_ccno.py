@@ -8,7 +8,6 @@ from saim.designation.known_acr_db import (
     identify_acr,
     rm_complex_structure,
 )
-from saim.designation.private.radix_tree import AcrRadixTree, search_acr_or_code_ccno
 from saim.shared.parse.string import (
     PATTERN_CORE_ID,
     PATTERN_CORE_ID_EDGE,
@@ -31,6 +30,7 @@ from saim.shared.data_con.designation import (
     CCNoId,
 )
 from saim.shared.error.exceptions import DesignationEx
+from saim.shared.search.radix_tree import RadixTree, find_first_match
 
 DEF_SUF_RM: Final[tuple[str, ...]] = (r"T", r"\s")
 _SUF_CLEAN: Final[tuple[Pattern[str], ...]] = (re.compile(r"T$"),)
@@ -44,9 +44,12 @@ _PATTERNS_DES_CL: Final[tuple[Pattern[str], ...]] = (
 _SET_ONE_DIG_NUMS: Final[set[str]] = {str(num) for num in range(10)}
 
 
-def get_ccno_acr(ccno: str, radix: AcrRadixTree, trim_right: bool = True, /) -> list[str]:
+def get_ccno_acr(
+    ccno: str, radix: RadixTree[None], trim_right: bool = True, /
+) -> Iterable[str]:
     try:
-        return search_acr_or_code_ccno(radix, ccno, trim_right)
+        for mat, _ in find_first_match(radix, ccno, trim_right):
+            yield mat
     except ValueError as exc:
         raise DesignationEx(f"[{ccno}] could not find acr") from exc
 

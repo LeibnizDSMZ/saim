@@ -1,10 +1,8 @@
 from collections import defaultdict
-import re
 
 from cafi.container.acr_db import AcrDbEntry
 from cafi.library.loader import CURRENT_VER, load_acr_db
 
-from saim.designation.private.radix_tree import AcrRadixTree, is_acr_or_code
 from saim.shared.parse.string import (
     PATTERN_BRC_SEP_CR_NEW,
     PATTERN_EDGE,
@@ -12,6 +10,7 @@ from saim.shared.parse.string import (
     replace_non_word_chars,
 )
 from saim.shared.data_con.brc import AcrDbEntryFixed, BrcContainer
+from saim.shared.search.radix_tree import RadixTree, is_full_match
 
 
 def rm_complex_structure(acr: str, /) -> str:
@@ -40,16 +39,6 @@ def _create_all_valid_acr(cc_db: dict[int, AcrDbEntry]) -> set[str]:
     return all_acr
 
 
-def _create_all_prefix_regex(
-    cc_db: dict[int, AcrDbEntry]
-) -> list[tuple[re.Pattern[str], list[int]]]:
-    all_pre = defaultdict(list)
-    for dbi, dbe in cc_db.items():
-        if dbe.regex_id.pre != "":
-            all_pre[dbe.regex_id.pre].append(dbi)
-    return [(re.compile(pre), ids) for pre, ids in all_pre.items()]
-
-
 def _create_acr_code_index(
     cc_db: dict[int, AcrDbEntryFixed], /
 ) -> tuple[dict[str, set[int]], dict[str, set[int]]]:
@@ -74,8 +63,8 @@ def create_brc_con(
     all_acr = _create_all_valid_acr(acr_db)
 
     first_acr = all_acr.pop()
-    kn_acr = AcrRadixTree(first_acr)
-    kn_acr_rev = AcrRadixTree(first_acr[::-1])
+    kn_acr: RadixTree[None] = RadixTree(first_acr)
+    kn_acr_rev: RadixTree[None] = RadixTree(first_acr[::-1])
     for acr in all_acr:
         kn_acr.add(acr)
         kn_acr_rev.add(acr[::-1])
@@ -114,6 +103,7 @@ def identify_acr_or_code(acr: str, brc_con: BrcContainer, /) -> set[int]:
 
 
 def parse_acr_or_code(acr_or_code: str, brc_con: BrcContainer, /) -> str:
-    if is_acr_or_code(brc_con.kn_acr, acr_or_code):
+    mat, *_ = is_full_match(brc_con.kn_acr, acr_or_code)
+    if mat:
         return rm_complex_structure(acr_or_code)
     return ""
