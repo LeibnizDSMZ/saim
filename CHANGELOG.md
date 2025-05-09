@@ -1,3 +1,9 @@
+## v0.7.0 (2025-05-09)
+
+### Feat
+
+- add slim version to taxa radix
+
 ## v0.6.0 (2025-05-09)
 
 ### Feat
