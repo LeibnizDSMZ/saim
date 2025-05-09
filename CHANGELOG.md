@@ -1,3 +1,9 @@
+## v0.7.1 (2025-05-09)
+
+### Fix
+
+- improve simple search
+
 ## v0.7.0 (2025-05-09)
 
 ### Feat
