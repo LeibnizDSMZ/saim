@@ -1,7 +1,7 @@
 import re
 
 from re import Pattern
-from typing import Final, Any
+from typing import Final, Any, Iterable
 
 from saim.shared.error.exceptions import DesignationEx
 
@@ -44,6 +44,22 @@ def replace_non_word_chars(input_str: str, /) -> str:
         for char in input_str
     )
     return PATTERN_SEPARATOR_MULTI_R.sub(STR_DEFINED_SEP, output_str)
+
+
+def replace_non_word_chars_iter(
+    input_str: str, start_pos: int, /
+) -> Iterable[tuple[str, int]]:
+    last_sep = False
+    for char_p in range(start_pos, len(input_str)):
+        new_char = input_str[char_p]
+        if PATTERN_SINGLE_WORD_CHAR_R.match(new_char) is None:
+            new_char = STR_DEFINED_SEP
+            if last_sep:
+                continue
+            last_sep = True
+        else:
+            last_sep = False
+        yield new_char, char_p
 
 
 def check_pattern(input_str: str, pattern: Pattern[str], /) -> None:

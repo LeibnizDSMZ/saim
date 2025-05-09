@@ -30,7 +30,7 @@ from saim.shared.data_con.designation import (
     CCNoId,
 )
 from saim.shared.error.exceptions import DesignationEx
-from saim.shared.search.radix_tree import RadixTree, find_first_match
+from saim.shared.search.radix_tree import RadixTree, find_first_match_with_fix
 
 DEF_SUF_RM: Final[tuple[str, ...]] = (r"T", r"\s")
 _SUF_CLEAN: Final[tuple[Pattern[str], ...]] = (re.compile(r"T$"),)
@@ -48,7 +48,7 @@ def get_ccno_acr(
     ccno: str, radix: RadixTree[Never], trim_right: bool = True, /
 ) -> Iterable[str]:
     try:
-        for mat, _ in find_first_match(radix, ccno, trim_right):
+        for mat, _ in find_first_match_with_fix(radix, ccno, trim_right):
             yield mat
     except ValueError as exc:
         raise DesignationEx(f"[{ccno}] could not find acr") from exc

@@ -5,7 +5,7 @@ from saim.designation.extract_ccno import extract_ccno_from_text, identify_ccno
 from saim.designation.known_acr_db import create_brc_con
 from saim.shared.data_con.brc import BrcContainer
 from saim.shared.data_con.designation import CCNoDes, CCNoId, ccno_designation_to_dict
-from saim.shared.search.radix_tree import RadixTree, find_first_match, radix_add
+from saim.shared.search.radix_tree import RadixTree, find_first_match_with_fix, radix_add
 
 
 class TestSample:
@@ -81,9 +81,9 @@ class TestSample:
     def test_search_algo(self) -> None:
         s_kn_acr: RadixTree[Never] = RadixTree("DSM", tuple())
         radix_add(s_kn_acr, "DSMZ", tuple())
-        assert "DSMZ" == find_first_match(s_kn_acr, "DSMZ 123").pop()[0]
-        assert "DSM" == find_first_match(s_kn_acr, "DSM 123").pop()[0]
-        assert len(find_first_match(s_kn_acr, "DSMT 123")) == 0
+        assert "DSMZ" == find_first_match_with_fix(s_kn_acr, "DSMZ 123").pop()[0]
+        assert "DSM" == find_first_match_with_fix(s_kn_acr, "DSM 123").pop()[0]
+        assert len(find_first_match_with_fix(s_kn_acr, "DSMT 123")) == 0
 
     def test_search_algo_text(self) -> None:
         brc_full_test = create_brc_con()
