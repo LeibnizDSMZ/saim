@@ -2,10 +2,10 @@ from collections import defaultdict
 import re
 
 from re import Pattern
-from typing import final, Final, Self
+from typing import final, Final
 
 from saim.shared.parse.string import (
-    PATTERN_SINGLE_WORD_CHAR,
+    PATTERN_SINGLE_WORD_CHAR_R,
     STR_DEFINED_SEP,
     replace_non_word_chars,
 )
@@ -18,11 +18,11 @@ _PATTERN_TWO_NUM: Final[Pattern[str]] = re.compile(r"^[0-9]{2}$")
 
 def _merge_lead_string_sep(string: str, /) -> str:
     # string is empty or starts with valid char
-    if string == "" or PATTERN_SINGLE_WORD_CHAR.match(string[0]) is not None:
+    if string == "" or PATTERN_SINGLE_WORD_CHAR_R.match(string[0]) is not None:
         return string
     found = 1
     for pos in range(1, len(string)):
-        if PATTERN_SINGLE_WORD_CHAR.match(string[pos]) is not None:
+        if PATTERN_SINGLE_WORD_CHAR_R.match(string[pos]) is not None:
             found = pos
             break
     if string[found:] == "":
@@ -40,85 +40,74 @@ class RadixTree[T]:
     AcrRT (#$)      -> __con = { ':' : Acr($)}
     AcrRT ($)       -> __con = { ':' : Acr()} __end == True"""
 
-    __slots__ = ("__con", "__end", "__index", "__max", "__ready")
+    __slots__ = ("con", "end", "index", "max", "ready")
 
-    def __init__(self, init: str, index: tuple[T] | None = None, /) -> None:
+    def __init__(self, init: str, index: tuple[T, ...], /) -> None:
         mer_init = _merge_lead_string_sep(init)
-        self.__end: bool = len(mer_init) == 0
-        self.__index: set[T] = set()
-        if index is not None and self.__end:
-            self.__index.update(index)
-        self.__ready: bool = False
-        self.__con: dict[str, RadixTree[T]] = {}
-        self.__max = 1
+        self.end: bool = len(mer_init) == 0
+        self.index: tuple[T, ...] = tuple()
+        if index is not None and self.end:
+            self.index = index
+        self.ready: bool = False
+        self.con: dict[str, RadixTree[T]] = {}
+        self.max = 1
         if mer_init:
-            self.__con = {mer_init[0].upper(): RadixTree[T](mer_init[1:], index)}
+            self.con = {mer_init[0].upper(): RadixTree[T](mer_init[1:], index)}
         super().__init__()
 
-    @property
-    def end(self) -> bool:
-        return self.__end
 
-    @property
-    def index(self) -> set[T]:
-        return self.__index
+def _compact_able[T](radix: RadixTree[T], /) -> tuple[str, RadixTree[T]] | None:
+    if len(radix.con) == 1 and not (radix.end or STR_DEFINED_SEP in radix.con):
+        return radix.con.popitem()
+    return None
 
-    @property
-    def max(self) -> int:
-        return self.__max
 
-    @property
-    def len(self) -> int:
-        return len(self.__con)
+def _compact[T](radix: RadixTree[T], /) -> None:
+    com_nodes: dict[str, RadixTree[T]] = {}
+    rm_keys: set[str] = set()
+    for key, node in radix.con.items():
+        radix_compact(node)
+        if key != STR_DEFINED_SEP and (to_merge := _compact_able(node)) is not None:
+            rm_keys.add(key)
+            new_k = f"{key}{to_merge[0]}"
+            com_nodes[new_k] = to_merge[1]
+    for to_rm in rm_keys:
+        del radix.con[to_rm]
+    for key, node in com_nodes.items():
+        radix.con[key] = node
+        if len(key) > radix.max:
+            radix.max = len(key)
 
-    def get_next(self, ind: str, /) -> Self | None:
-        return self.__con.get(ind, None)
 
-    def add(self, to_add: str, index: tuple[T] | None = None, /) -> None:
-        if self.__ready:
-            return None
-        mer_to_add = _merge_lead_string_sep(to_add)
-        if not mer_to_add:
-            self.__end = True
-            if index is not None:
-                self.index.update(index)
-            return None
+def radix_get_next[T](radix: RadixTree[T], ind: str, /) -> RadixTree[T] | None:
+    return radix.con.get(ind, None)
 
-        to_add_k = mer_to_add[0].upper()
-        if to_add_k in self.__con:
-            self.__con[to_add_k].add(mer_to_add[1:], index)
-        else:
-            self.__con[to_add_k] = RadixTree[T](mer_to_add[1:], index)
 
-    def compact_able(self) -> tuple[str, Self] | None:
-        if len(self.__con) == 1 and not (self.__end or STR_DEFINED_SEP in self.__con):
-            return self.__con.popitem()
+def radix_add[T](radix: RadixTree[T], to_add: str, index: tuple[T, ...], /) -> None:
+    if radix.ready:
+        return None
+    mer_to_add = _merge_lead_string_sep(to_add)
+    if not mer_to_add:
+        radix.end = True
+        if len(index) > 0:
+            radix.index = tuple(set(radix.index) | set(index))
         return None
 
-    def _compact(self) -> None:
-        com_nodes: dict[str, RadixTree[T]] = {}
-        rm_keys: set[str] = set()
-        for key, node in self.__con.items():
-            node.compact()
-            if key != STR_DEFINED_SEP and (to_merge := node.compact_able()) is not None:
-                rm_keys.add(key)
-                new_k = f"{key}{to_merge[0]}"
-                com_nodes[new_k] = to_merge[1]
-        for to_rm in rm_keys:
-            del self.__con[to_rm]
-        for key, node in com_nodes.items():
-            self.__con[key] = node
-            if len(key) > self.__max:
-                self.__max = len(key)
+    to_add_k = mer_to_add[0].upper()
+    if to_add_k in radix.con:
+        radix_add(radix.con[to_add_k], mer_to_add[1:], index)
+    else:
+        radix.con[to_add_k] = RadixTree[T](mer_to_add[1:], index)
 
-    def compact(self) -> None:
-        if not self.__ready:
-            self._compact()
-            self.__ready = True
 
-    @property
-    def keys(self) -> list[str]:
-        return list(self.__con.keys())
+def radix_compact[T](radix: RadixTree[T], /) -> None:
+    if not radix.ready:
+        _compact(radix)
+        radix.ready = True
+
+
+def radix_keys[T](radix: RadixTree[T], /) -> list[str]:
+    return list(radix.con.keys())
 
 
 @final
@@ -169,10 +158,12 @@ class _SOMap:
 
 def _search_node[
     T
-](radix: RadixTree[T], to_find: str, /) -> tuple[bool, set[T], RadixTree[T] | None]:
-    node = radix.get_next(to_find)
+](radix: RadixTree[T], to_find: str, /) -> tuple[
+    bool, tuple[T, ...], RadixTree[T] | None
+]:
+    node = radix_get_next(radix, to_find)
     if node is None:
-        return False, set(), node
+        return False, tuple(), node
     return node.end, node.index, node
 
 
@@ -200,7 +191,7 @@ def _search[
 
 
 def is_full_match[T](radix: RadixTree[T], to_sea: str, /) -> tuple[bool, set[T]]:
-    radix.compact()
+    radix_compact(radix)
     f_sea = to_sea.upper()
     f_sea_fixed = replace_non_word_chars(f_sea)
     if f_sea_fixed == "":
@@ -218,7 +209,7 @@ def find_first_match[
 ](radix: RadixTree[T], to_sea: str, trim_right: bool = True, /) -> list[
     tuple[str, set[T]]
 ]:
-    radix.compact()
+    radix_compact(radix)
     f_sea = to_sea.upper()
     if trim_right:
         f_sea = f_sea[0:-1]

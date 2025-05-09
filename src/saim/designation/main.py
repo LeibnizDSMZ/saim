@@ -10,6 +10,7 @@ from saim.designation.known_acr_db import create_brc_con
 from saim.designation.extract_ccno import identify_designation
 from saim import data
 from saim.shared.data_con.designation import ccno_designation_to_dict
+from saim.shared.search.radix_tree import radix_compact
 
 
 def _parse_args(argv: list[str], /) -> argparse.Namespace:
@@ -63,7 +64,8 @@ def _get_file_content(filename: str, /) -> list[str]:
 def run() -> None:
     args = _parse_args(sys.argv[1:])
     brc = create_brc_con()
-    brc.kn_acr.compact()
+    radix_compact(brc.kn_acr)
+    radix_compact(brc.kn_acr_rev)
     file_content = _get_file_content(args.filename)
 
     for ccno in file_content:

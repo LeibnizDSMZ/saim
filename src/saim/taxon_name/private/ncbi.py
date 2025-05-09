@@ -369,19 +369,23 @@ class NcbiTaxReq:
             return ""
         return self.__con.id_2_name.get(species_id, "").upper()
 
-    def get_all_species(self) -> Iterable[tuple[str, ...]]:
+    def get_all_species(self) -> Iterable[tuple[int, list[str]]]:
         all_spe = _create_all_correct_names(self.__con.species, self.__con.id_2_name)
         _add_synonyms_to_names(all_spe, self.__con.synonyms)
         _add_synonyms_to_names(all_spe, self.__con.eq_name)
-        for names in all_spe.values():
-            yield tuple(names)
+        for nid, names in all_spe.items():
+            if len(names) == 0:
+                continue
+            yield nid, names
 
-    def get_all_genera(self) -> Iterable[tuple[str, ...]]:
+    def get_all_genera(self) -> Iterable[tuple[int, list[str]]]:
         all_spe = _create_all_correct_names(self.__con.genus, self.__con.id_2_name)
         _add_synonyms_to_names(all_spe, self.__con.synonyms)
         _add_synonyms_to_names(all_spe, self.__con.eq_name)
-        for names in all_spe.values():
-            yield tuple(names)
+        for nid, names in all_spe.items():
+            if len(names) == 0:
+                continue
+            yield nid, names
 
     def is_deleted(self, ncbi_id: int, /) -> bool:
         return ncbi_id in self.__con.rm_ids

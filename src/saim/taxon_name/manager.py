@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 from datetime import datetime, timedelta
+import itertools
 from pathlib import Path
 from re import Pattern
 import re
@@ -17,6 +18,8 @@ from saim.shared.data_con.taxon import (
 from saim.shared.error.exceptions import GlobalManagerEx, RequestURIEx, ValidationEx
 from saim.shared.error.warnings import ManagerWarn
 from saim.shared.parse.general import pa_int
+from saim.shared.search.radix_tree import RadixTree, radix_add
+from saim.taxon_name.extract_taxa import extract_taxa_from_text
 from saim.taxon_name.private.container import (
     CorTaxonNameId,
     DomainId,
@@ -44,6 +47,8 @@ def _verify_date[
     def wrap(self: "TaxonManager", *args: P.args, **kwargs: P.kwargs) -> T:
         if datetime.now() - timedelta(days=self._exp_days) > self._start:
             self._ncbi = NcbiTaxReq(self.working_directory, self._exp_days, True)
+            self._nid_sg = None
+            self._radix_sg = None
         return func(self, *args, **kwargs)
 
     return wrap
@@ -111,7 +116,17 @@ def _filter_ids(ncbi: int, lpsn: int, id_con: _IdP, /) -> bool:
 @final
 class TaxonManager:
 
-    __slots__ = ("__gbif", "__lpsn", "__wir", "_exp_days", "_ncbi", "_start")
+    __slots__ = (
+        "__gbif",
+        "__jump",
+        "__lpsn",
+        "__wir",
+        "_exp_days",
+        "_ncbi",
+        "_nid_sg",
+        "_radix_sg",
+        "_start",
+    )
     __instance: Self | None = None
 
     def __init__(self, work_dir: Path, lpsn_conf: LPSNConf, /) -> None:
@@ -119,6 +134,9 @@ class TaxonManager:
         self._exp_days = 14
         self._start = datetime.now()
         self.__gbif, self._ncbi, self.__lpsn = self.__create_session(lpsn_conf)
+        self._radix_sg: None | RadixTree[int] = None
+        self._nid_sg: None | dict[int, str] = None
+        self.__jump = 0
         super().__init__()
 
     def __new__(cls, *_args: Path | str) -> Self:
@@ -315,16 +333,45 @@ class TaxonManager:
         return []
 
     @_verify_date
-    def get_all_species_names(self) -> Iterable[tuple[str, ...]]:
-        for species_names in self._ncbi.get_all_species():
+    def get_all_species_names(self) -> Iterable[list[str]]:
+        for _, species_names in self._ncbi.get_all_species():
             yield species_names
         # TODO add lpsn support
 
     @_verify_date
-    def get_all_genus_names(self) -> Iterable[tuple[str, ...]]:
-        for species_names in self._ncbi.get_all_genera():
+    def get_all_genus_names(self) -> Iterable[list[str]]:
+        for _, species_names in self._ncbi.get_all_genera():
             yield species_names
         # TODO add lpsn support
+
+    def __init_search_tree(self) -> None:
+        if self._nid_sg is None or self._radix_sg is None:
+            self._nid_sg = dict()
+            radix: None | RadixTree[int] = None
+            jump = 0
+            for nid, names in itertools.chain(
+                self._ncbi.get_all_genera(), self._ncbi.get_all_species()
+            ):
+                for name in names:
+                    if nid not in self._nid_sg:
+                        self._nid_sg[nid] = name
+                    jump = jump if len(name) < jump else len(name)
+                    if radix is None:
+                        radix = RadixTree(name, (nid,))
+                    else:
+                        radix_add(radix, name, (nid,))
+            self._radix_sg = radix
+            self.__jump = jump
+
+    @_verify_date
+    def extract_taxa_from_text(self, text: str, /) -> Iterable[str]:
+        self.__init_search_tree()
+        if self._radix_sg is not None and self._nid_sg is not None:
+            for rid in extract_taxa_from_text(text, self._radix_sg, self.__jump):
+                name = self._nid_sg.get(rid, "")
+                if name == "":
+                    continue
+                yield name
 
     @_verify_date
     def get_ncbi_id(self, name: str, /) -> list[int]:
