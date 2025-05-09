@@ -1,21 +1,27 @@
 from collections import defaultdict
+from typing import Never
 
 from cafi.container.acr_db import AcrDbEntry
 from cafi.library.loader import CURRENT_VER, load_acr_db
 
 from saim.shared.parse.string import (
-    PATTERN_BRC_SEP_CR_NEW,
-    PATTERN_EDGE,
+    PATTERN_SEP_R,
+    PATTERN_EDGE_R,
     clean_string,
     replace_non_word_chars,
 )
 from saim.shared.data_con.brc import AcrDbEntryFixed, BrcContainer
-from saim.shared.search.radix_tree import RadixTree, is_full_match
+from saim.shared.search.radix_tree import (
+    RadixTree,
+    is_full_match,
+    radix_add,
+    radix_compact,
+)
 
 
 def rm_complex_structure(acr: str, /) -> str:
     slim_acr = replace_non_word_chars(acr)
-    return clean_string(slim_acr, PATTERN_BRC_SEP_CR_NEW, PATTERN_EDGE).upper()
+    return clean_string(slim_acr, PATTERN_SEP_R, PATTERN_EDGE_R).upper()
 
 
 def _add_fixed_acr(cc_db: dict[int, AcrDbEntry], /) -> dict[int, AcrDbEntryFixed]:
@@ -63,13 +69,13 @@ def create_brc_con(
     all_acr = _create_all_valid_acr(acr_db)
 
     first_acr = all_acr.pop()
-    kn_acr: RadixTree[None] = RadixTree(first_acr)
-    kn_acr_rev: RadixTree[None] = RadixTree(first_acr[::-1])
+    kn_acr: RadixTree[Never] = RadixTree(first_acr, tuple())
+    kn_acr_rev: RadixTree[Never] = RadixTree(first_acr[::-1], tuple())
     for acr in all_acr:
-        kn_acr.add(acr)
-        kn_acr_rev.add(acr[::-1])
-    kn_acr.compact()
-    kn_acr_rev.compact()
+        radix_add(kn_acr, acr, tuple())
+        radix_add(kn_acr_rev, acr[::-1], tuple())
+    radix_compact(kn_acr)
+    radix_compact(kn_acr_rev)
 
     return BrcContainer(
         cc_db=acr_db,

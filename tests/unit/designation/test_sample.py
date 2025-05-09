@@ -1,16 +1,16 @@
-from typing import ClassVar
+from typing import ClassVar, Never
 from cafi.container.acr_db import AcrDbEntry, AcrCoreReg
 
 from saim.designation.extract_ccno import extract_ccno_from_text, identify_ccno
 from saim.designation.known_acr_db import create_brc_con
 from saim.shared.data_con.brc import BrcContainer
 from saim.shared.data_con.designation import CCNoDes, CCNoId, ccno_designation_to_dict
-from saim.shared.search.radix_tree import RadixTree, find_first_match
+from saim.shared.search.radix_tree import RadixTree, find_first_match, radix_add
 
 
 class TestSample:
-    kn_acr: RadixTree[None] = RadixTree("DSM")
-    kn_rev: RadixTree[None] = RadixTree("MSD")
+    kn_acr: RadixTree[Never] = RadixTree("DSM", tuple())
+    kn_rev: RadixTree[Never] = RadixTree("MSD", tuple())
     acr_db_instance = AcrDbEntry(
         acr="DSM",
         code="DSMZ",
@@ -79,8 +79,8 @@ class TestSample:
             assert ccno_des_test.designation in test
 
     def test_search_algo(self) -> None:
-        s_kn_acr: RadixTree[None] = RadixTree("DSM")
-        s_kn_acr.add("DSMZ")
+        s_kn_acr: RadixTree[Never] = RadixTree("DSM", tuple())
+        radix_add(s_kn_acr, "DSMZ", tuple())
         assert "DSMZ" == find_first_match(s_kn_acr, "DSMZ 123").pop()[0]
         assert "DSM" == find_first_match(s_kn_acr, "DSM 123").pop()[0]
         assert len(find_first_match(s_kn_acr, "DSMT 123")) == 0

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import final
+from typing import Never, final
 
 from cafi.container.acr_db import AcrDbEntry
 from saim.shared.search.radix_tree import RadixTree
@@ -20,5 +20,5 @@ class BrcContainer:
     f_cc_db: dict[int, AcrDbEntryFixed]
     f_cc_db_acr: dict[str, set[int]]
     f_cc_db_code: dict[str, set[int]]
-    kn_acr: RadixTree[None]
-    kn_acr_rev: RadixTree[None]
+    kn_acr: RadixTree[Never]
+    kn_acr_rev: RadixTree[Never]

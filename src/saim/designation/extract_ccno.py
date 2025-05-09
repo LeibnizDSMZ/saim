@@ -2,22 +2,22 @@ from collections.abc import Iterable
 import re
 
 from re import Pattern
-from typing import Any, Final
+from typing import Any, Final, Never
 from cafi.container.acr_db import AcrCoreReg
 from saim.designation.known_acr_db import (
     identify_acr,
     rm_complex_structure,
 )
 from saim.shared.parse.string import (
-    PATTERN_CORE_ID,
-    PATTERN_CORE_ID_EDGE,
-    PATTERN_CORE_ID_TXT,
-    PATTERN_EDGE,
-    PATTERN_ID_EDGE,
-    PATTERN_LEAD_ZERO,
+    PATTERN_CORE_ID_R,
+    PATTERN_CORE_ID_EDGE_R,
+    PATTERN_CORE_ID_TXT_R,
+    PATTERN_EDGE_R,
+    PATTERN_ID_EDGE_R,
+    PATTERN_LEAD_ZERO_R,
     PATTERN_SEP,
-    PATTERN_THREE_GROUPS,
-    PATTERN_PREFIX_START,
+    PATTERN_THREE_GROUPS_R,
+    PATTERN_PREFIX_START_R,
     clean_string,
 )
 from saim.shared.data_con.brc import BrcContainer
@@ -45,7 +45,7 @@ _SET_ONE_DIG_NUMS: Final[set[str]] = {str(num) for num in range(10)}
 
 
 def get_ccno_acr(
-    ccno: str, radix: RadixTree[None], trim_right: bool = True, /
+    ccno: str, radix: RadixTree[Never], trim_right: bool = True, /
 ) -> Iterable[str]:
     try:
         for mat, _ in find_first_match(radix, ccno, trim_right):
@@ -56,7 +56,7 @@ def get_ccno_acr(
 
 def get_ccno_id(ccno: str, acr: str, /) -> str:
     acr_cl = re.compile(r"^" + re.escape(acr), re.I)
-    fixed_id = clean_string(ccno, acr_cl, _PATTERN_PARA, PATTERN_ID_EDGE)
+    fixed_id = clean_string(ccno, acr_cl, _PATTERN_PARA, PATTERN_ID_EDGE_R)
     if acr == "" or fixed_id == "":
         raise DesignationEx(f"[{ccno}] acr or id are empty - acr[{acr}] id [{fixed_id}]")
     id_reg = re.compile(r"^" + re.escape(acr) + r"[^A-Za-z].*$", re.I)
@@ -70,11 +70,11 @@ def get_ccno_id(ccno: str, acr: str, /) -> str:
 
 
 def _cl_core(core: str, /) -> str:
-    return clean_string(core, PATTERN_CORE_ID_EDGE, PATTERN_LEAD_ZERO)
+    return clean_string(core, PATTERN_CORE_ID_EDGE_R, PATTERN_LEAD_ZERO_R)
 
 
 def _cl_id(cid: str, /) -> str:
-    return clean_string(cid, PATTERN_ID_EDGE)
+    return clean_string(cid, PATTERN_ID_EDGE_R)
 
 
 def _extract_suf_pre(to_check: str, allowed: str, /) -> str:
@@ -91,7 +91,7 @@ def _is_reasonable_suf(suf: Any, brc_reg: AcrCoreReg, /) -> tuple[bool, str]:
     if not isinstance(suf, str):
         return False, ""
     suf_e = _extract_suf_pre(suf, brc_reg.suf)
-    suf_cl = clean_string(suf, PATTERN_ID_EDGE)
+    suf_cl = clean_string(suf, PATTERN_ID_EDGE_R)
     if suf_cl != "" and suf_cl != suf_e and clean_string(suf_cl, *_SUF_CLEAN) != suf_e:
         return False, ""
     return True, suf_e
@@ -101,7 +101,7 @@ def _is_reasonable_pre(pre: Any, brc_reg: AcrCoreReg, /) -> tuple[bool, str]:
     if not isinstance(pre, str):
         return False, ""
     pre_e = _extract_suf_pre(pre, brc_reg.pre)
-    pre_cl = clean_string(pre, PATTERN_ID_EDGE)
+    pre_cl = clean_string(pre, PATTERN_ID_EDGE_R)
     if pre_cl != "" and pre_e != pre_cl:
         return False, ""
     return True, pre_e
@@ -115,7 +115,7 @@ def _get_id_parts_known(
         if mat is None or (core := mat.group(2)) is None:
             continue
         pre, core, *_, suf = mat.groups()
-        if PATTERN_CORE_ID.match(core) is None:
+        if PATTERN_CORE_ID_R.match(core) is None:
             continue
         rea_p, pre = _is_reasonable_pre(pre, brc_reg)
         rea_s, suf = _is_reasonable_suf(suf, brc_reg)
@@ -247,7 +247,7 @@ def _identify_designation_types(designation: CCNoDes, /) -> Iterable[Designation
     if designation.acr != "" and designation.id.core != "":
         yield DesignationType.ccno
     des_clean = clean_string(
-        designation.designation, _PATTERN_PARA, PATTERN_EDGE, *_PATTERNS_DES_CL
+        designation.designation, _PATTERN_PARA, PATTERN_EDGE_R, *_PATTERNS_DES_CL
     )
     for typ, pats in ALL_DES_TYPES:
         for reg in pats:
@@ -294,7 +294,7 @@ def get_si_cu(designation: str, /) -> int:
 
 def get_syn_eq_struct(designation: str, /) -> tuple[str, str, str]:
     clean_des = clean_designation(designation)
-    syn_eq = PATTERN_THREE_GROUPS.match(clean_des)
+    syn_eq = PATTERN_THREE_GROUPS_R.match(clean_des)
     if syn_eq is None:
         return "", "", ""
     pre, core, suf, *_ = syn_eq.groups()
@@ -306,14 +306,14 @@ def get_syn_eq_struct(designation: str, /) -> tuple[str, str, str]:
     ):
         return (
             rm_complex_structure(pre),
-            clean_string(core, PATTERN_CORE_ID_EDGE),
-            clean_string(suf, PATTERN_ID_EDGE, *_SUF_CLEAN).upper(),
+            clean_string(core, PATTERN_CORE_ID_EDGE_R),
+            clean_string(suf, PATTERN_ID_EDGE_R, *_SUF_CLEAN).upper(),
         )
     return "", "", ""
 
 
 def clean_designation(designation: str, /) -> str:
-    return clean_string(designation, _PATTERN_PARA, PATTERN_EDGE, *_PATTERNS_DES_CL)
+    return clean_string(designation, _PATTERN_PARA, PATTERN_EDGE_R, *_PATTERNS_DES_CL)
 
 
 def _get_acronyms(
@@ -321,18 +321,18 @@ def _get_acronyms(
 ) -> Iterable[tuple[str, str]]:
     for acr in get_ccno_acr(left, brc.kn_acr_rev, False):
         yield acr, ""
-    new_start = clean_string(left[pre_end:], PATTERN_EDGE)
+    new_start = clean_string(left[pre_end:], PATTERN_EDGE_R)
     for acr in get_ccno_acr(new_start, brc.kn_acr_rev, False):
         yield acr, prefix
 
 
 def extract_ccno_from_text(text: str, brc: BrcContainer, /) -> Iterable[CCNoDes]:
     last_end = 0
-    for match in PATTERN_CORE_ID_TXT.finditer(text):
+    for match in PATTERN_CORE_ID_TXT_R.finditer(text):
         last_end = max(last_end, match.start(1) - 64)
         left_full = text[last_end : match.start(1)][::-1]
-        sub_left = clean_string(left_full, PATTERN_EDGE)
-        rev_pre = PATTERN_PREFIX_START.search(sub_left)
+        sub_left = clean_string(left_full, PATTERN_EDGE_R)
+        rev_pre = PATTERN_PREFIX_START_R.search(sub_left)
         if rev_pre is None:
             continue
         sub_right = text[match.end(1) : match.end(1) + 9]
