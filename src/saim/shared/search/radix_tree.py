@@ -1,3 +1,4 @@
+from collections import defaultdict
 import re
 
 from re import Pattern
@@ -15,22 +16,22 @@ _PATTERN_TWO_CHAR: Final[Pattern[str]] = re.compile(r"^[A-Za-z]{2}$")
 _PATTERN_TWO_NUM: Final[Pattern[str]] = re.compile(r"^[0-9]{2}$")
 
 
-def _merge_lead_acr_sep(acr: str, /) -> str:
-    # acr is empty or starts with valid char
-    if acr == "" or PATTERN_SINGLE_WORD_CHAR.match(acr[0]) is not None:
-        return acr
+def _merge_lead_string_sep(string: str, /) -> str:
+    # string is empty or starts with valid char
+    if string == "" or PATTERN_SINGLE_WORD_CHAR.match(string[0]) is not None:
+        return string
     found = 1
-    for pos in range(1, len(acr)):
-        if PATTERN_SINGLE_WORD_CHAR.match(acr[pos]) is not None:
+    for pos in range(1, len(string)):
+        if PATTERN_SINGLE_WORD_CHAR.match(string[pos]) is not None:
             found = pos
             break
-    if acr[found:] == "":
+    if string[found:] == "":
         return ""
-    return f"{STR_DEFINED_SEP}{acr[found:]}"
+    return f"{STR_DEFINED_SEP}{string[found:]}"
 
 
 @final
-class AcrRadixTree:
+class RadixTree[T]:
     """Builds a dictionary hierarchy structure where a word (str) gets split
     like this:
     AcrRT ('ABC#$') -> __con = { 'A' : Acr(BC#$)}
@@ -39,21 +40,28 @@ class AcrRadixTree:
     AcrRT (#$)      -> __con = { ':' : Acr($)}
     AcrRT ($)       -> __con = { ':' : Acr()} __end == True"""
 
-    __slots__ = ("__con", "__end", "__max", "__ready")
+    __slots__ = ("__con", "__end", "__index", "__max", "__ready")
 
-    def __init__(self, init: str, /) -> None:
-        mer_init = _merge_lead_acr_sep(init)
+    def __init__(self, init: str, index: tuple[T] | None = None, /) -> None:
+        mer_init = _merge_lead_string_sep(init)
         self.__end: bool = len(mer_init) == 0
+        self.__index: set[T] = set()
+        if index is not None and self.__end:
+            self.__index.update(index)
         self.__ready: bool = False
-        self.__con: dict[str, AcrRadixTree] = {}
+        self.__con: dict[str, RadixTree[T]] = {}
         self.__max = 1
         if mer_init:
-            self.__con = {mer_init[0].upper(): AcrRadixTree(mer_init[1:])}
+            self.__con = {mer_init[0].upper(): RadixTree[T](mer_init[1:], index)}
         super().__init__()
 
     @property
     def end(self) -> bool:
         return self.__end
+
+    @property
+    def index(self) -> set[T]:
+        return self.__index
 
     @property
     def max(self) -> int:
@@ -66,19 +74,21 @@ class AcrRadixTree:
     def get_next(self, ind: str, /) -> Self | None:
         return self.__con.get(ind, None)
 
-    def add(self, to_add: str, /) -> None:
+    def add(self, to_add: str, index: tuple[T] | None = None, /) -> None:
         if self.__ready:
             return None
-        mer_to_add = _merge_lead_acr_sep(to_add)
+        mer_to_add = _merge_lead_string_sep(to_add)
         if not mer_to_add:
             self.__end = True
+            if index is not None:
+                self.index.update(index)
             return None
 
         to_add_k = mer_to_add[0].upper()
         if to_add_k in self.__con:
-            self.__con[to_add_k].add(mer_to_add[1:])
+            self.__con[to_add_k].add(mer_to_add[1:], index)
         else:
-            self.__con[to_add_k] = AcrRadixTree(mer_to_add[1:])
+            self.__con[to_add_k] = RadixTree[T](mer_to_add[1:], index)
 
     def compact_able(self) -> tuple[str, Self] | None:
         if len(self.__con) == 1 and not (self.__end or STR_DEFINED_SEP in self.__con):
@@ -86,7 +96,7 @@ class AcrRadixTree:
         return None
 
     def _compact(self) -> None:
-        com_nodes: dict[str, AcrRadixTree] = {}
+        com_nodes: dict[str, RadixTree[T]] = {}
         rm_keys: set[str] = set()
         for key, node in self.__con.items():
             node.compact()
@@ -143,8 +153,8 @@ class _SOMap:
         ):
             mapped_pos += 1
         # return the full original until the end of short,
-        #  with clean cutoff at the end, including brackets
-        #  but not extra chars of any kind
+        # with clean cutoff at the end, including brackets
+        # but not extra chars of any kind
         return self.__origin[0 : mapped_pos + 1]
 
     def is_clearly_sep(self, char_index: int, /) -> bool:
@@ -157,49 +167,57 @@ class _SOMap:
         return True
 
 
-def _search_node(
-    radix: AcrRadixTree, to_find: str, /
-) -> tuple[bool, AcrRadixTree | None]:
+def _search_node[
+    T
+](radix: RadixTree[T], to_find: str, /) -> tuple[bool, set[T], RadixTree[T] | None]:
     node = radix.get_next(to_find)
     if node is None:
-        return False, node
-    return node.end, node
+        return False, set(), node
+    return node.end, node.index, node
 
 
-def _search(
-    radix: AcrRadixTree, to_find: _SOMap, start: int, container: set[int], /
+def _search[
+    T
+](
+    radix: RadixTree[T],
+    to_find: _SOMap,
+    start: int,
+    container: defaultdict[int, set[T]],
+    /,
 ) -> None:
     to_sea = to_find.short_seq[start : start + radix.max]
     if to_sea != "":
         max_ind = len(to_sea)
         for ind in range(0, max_ind):
             sea_sub = to_sea[0 : max_ind - ind]
-            end_node, next_node = _search_node(radix, sea_sub)
+            end_node, end_index, next_node = _search_node(radix, sea_sub)
             if next_node:
                 next_start = start + max_ind - ind
                 mom_pos = next_start - 1
                 _search(next_node, to_find, next_start, container)
                 if end_node and to_find.is_clearly_sep(mom_pos) and mom_pos > 0:
-                    container.add(mom_pos)
+                    container[mom_pos].update(end_index)
 
 
-def is_acr_or_code(radix: AcrRadixTree, to_sea: str, /) -> bool:
+def is_full_match[T](radix: RadixTree[T], to_sea: str, /) -> tuple[bool, set[T]]:
     radix.compact()
     f_sea = to_sea.upper()
     f_sea_fixed = replace_non_word_chars(f_sea)
     if f_sea_fixed == "":
-        return False
+        return False, set()
     mapper = _SOMap(f_sea, f_sea_fixed)
-    found_pos: set[int] = set()
+    found_pos: defaultdict[int, set[T]] = defaultdict(set)
     _search(radix, mapper, 0, found_pos)
-    if len(found_pos) > 0:
-        return max(found_pos) == len(to_sea) - 1
-    return False
+    if len(found_pos) > 0 and (last_id := max(found_pos)) == len(to_sea) - 1:
+        return True, found_pos.get(last_id, set())
+    return False, set()
 
 
-def search_acr_or_code_ccno(
-    radix: AcrRadixTree, to_sea: str, trim_right: bool = True, /
-) -> list[str]:
+def find_first_match[
+    T
+](radix: RadixTree[T], to_sea: str, trim_right: bool = True, /) -> list[
+    tuple[str, set[T]]
+]:
     radix.compact()
     f_sea = to_sea.upper()
     if trim_right:
@@ -208,6 +226,6 @@ def search_acr_or_code_ccno(
     if f_sea_fix == "":
         return []
     mapper = _SOMap(f_sea, f_sea_fix)
-    found_pos: set[int] = set()
+    found_pos: defaultdict[int, set[T]] = defaultdict(set)
     _search(radix, mapper, 0, found_pos)
-    return [mapper.map_seq(pos) for pos in found_pos]
+    return [(mapper.map_seq(pos), index) for pos, index in found_pos.items()]

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import final
 
 from cafi.container.acr_db import AcrDbEntry
-from saim.designation.private.radix_tree import AcrRadixTree
+from saim.shared.search.radix_tree import RadixTree
 
 
 @final
@@ -20,5 +20,5 @@ class BrcContainer:
     f_cc_db: dict[int, AcrDbEntryFixed]
     f_cc_db_acr: dict[str, set[int]]
     f_cc_db_code: dict[str, set[int]]
-    kn_acr: AcrRadixTree
-    kn_acr_rev: AcrRadixTree
+    kn_acr: RadixTree[None]
+    kn_acr_rev: RadixTree[None]

@@ -3,14 +3,14 @@ from cafi.container.acr_db import AcrDbEntry, AcrCoreReg
 
 from saim.designation.extract_ccno import extract_ccno_from_text, identify_ccno
 from saim.designation.known_acr_db import create_brc_con
-from saim.designation.private.radix_tree import AcrRadixTree, search_acr_or_code_ccno
 from saim.shared.data_con.brc import BrcContainer
 from saim.shared.data_con.designation import CCNoDes, CCNoId, ccno_designation_to_dict
+from saim.shared.search.radix_tree import RadixTree, find_first_match
 
 
 class TestSample:
-    kn_acr = AcrRadixTree("DSM")
-    kn_rev = AcrRadixTree("MSD")
+    kn_acr: RadixTree[None] = RadixTree("DSM")
+    kn_rev: RadixTree[None] = RadixTree("MSD")
     acr_db_instance = AcrDbEntry(
         acr="DSM",
         code="DSMZ",
@@ -51,7 +51,6 @@ class TestSample:
             "DSM : 003",
             "DSM:3",
         ]
-
         for ccno in valid_ccnos:
             ccno_des_test = identify_ccno(ccno, self.brc_test)
             assert len(ccno_designation_to_dict(ccno_des_test)) == 3
@@ -80,11 +79,11 @@ class TestSample:
             assert ccno_des_test.designation in test
 
     def test_search_algo(self) -> None:
-        s_kn_acr = AcrRadixTree("DSM")
+        s_kn_acr: RadixTree[None] = RadixTree("DSM")
         s_kn_acr.add("DSMZ")
-        assert "DSMZ" == search_acr_or_code_ccno(s_kn_acr, "DSMZ 123").pop()
-        assert "DSM" == search_acr_or_code_ccno(s_kn_acr, "DSM 123").pop()
-        assert len(search_acr_or_code_ccno(s_kn_acr, "DSMT 123")) == 0
+        assert "DSMZ" == find_first_match(s_kn_acr, "DSMZ 123").pop()[0]
+        assert "DSM" == find_first_match(s_kn_acr, "DSM 123").pop()[0]
+        assert len(find_first_match(s_kn_acr, "DSMT 123")) == 0
 
     def test_search_algo_text(self) -> None:
         brc_full_test = create_brc_con()
