@@ -2,7 +2,7 @@ from collections import defaultdict
 import re
 
 from re import Pattern
-from typing import final, Final
+from typing import Iterable, final, Final
 
 from saim.shared.parse.string import (
     PATTERN_SINGLE_WORD_CHAR_R,
@@ -30,6 +30,9 @@ def _merge_lead_string_sep(string: str, /) -> str:
     return f"{STR_DEFINED_SEP}{string[found:]}"
 
 
+type _RQP[T] = tuple[str, RadixTree[T]]
+
+
 @final
 class RadixTree[T]:
     """Builds a dictionary hierarchy structure where a word (str) gets split
@@ -49,38 +52,78 @@ class RadixTree[T]:
         if index is not None and self.end:
             self.index = index
         self.ready: bool = False
-        self.con: dict[str, RadixTree[T]] = {}
+        self.con: tuple[_RQP[T], ...] = tuple()
         self.max = 1
         if mer_init:
-            self.con = {mer_init[0].upper(): RadixTree[T](mer_init[1:], index)}
+            self.con = ((mer_init[0].upper(), RadixTree[T](mer_init[1:], index)),)
         super().__init__()
 
 
+def _sep_in_con[T](radix: RadixTree[T], /) -> bool:
+    for ite in radix.con:
+        if ite[0] == STR_DEFINED_SEP:
+            return True
+    return False
+
+
 def _compact_able[T](radix: RadixTree[T], /) -> tuple[str, RadixTree[T]] | None:
-    if len(radix.con) == 1 and not (radix.end or STR_DEFINED_SEP in radix.con):
-        return radix.con.popitem()
+    if len(radix.con) == 1 and not (radix.end or _sep_in_con(radix)):
+        last_item = radix.con[0]
+        radix.con = tuple()
+        return last_item
     return None
 
 
-def _compact[T](radix: RadixTree[T], /) -> None:
-    com_nodes: dict[str, RadixTree[T]] = {}
-    rm_keys: set[str] = set()
-    for key, node in radix.con.items():
+def _iter_com_nodes[T](radix: RadixTree[T], rm_keys: list[str], /) -> Iterable[_RQP[T]]:
+    for key, node in radix.con:
         radix_compact(node)
         if key != STR_DEFINED_SEP and (to_merge := _compact_able(node)) is not None:
-            rm_keys.add(key)
+            rm_keys.append(key)
             new_k = f"{key}{to_merge[0]}"
-            com_nodes[new_k] = to_merge[1]
-    for to_rm in rm_keys:
-        del radix.con[to_rm]
-    for key, node in com_nodes.items():
-        radix.con[key] = node
-        if len(key) > radix.max:
-            radix.max = len(key)
+            yield new_k, to_merge[1]
+
+
+def _iter_merge_nodes[
+    T
+](radix: RadixTree[T], com_nodes: tuple[_RQP[T], ...], rm_keys: list[str], /) -> Iterable[
+    _RQP[T]
+]:
+    for ite in radix.con:
+        if ite[0] not in rm_keys:
+            yield ite
+    for ite in com_nodes:
+        if len(ite[0]) > radix.max:
+            radix.max = len(ite[0])
+        yield ite
+
+
+def _compact[T](radix: RadixTree[T], /) -> None:
+    rm_keys: list[str] = []
+    com_nodes: tuple[_RQP[T], ...] = tuple(_iter_com_nodes(radix, rm_keys))
+    radix.con = tuple(_iter_merge_nodes(radix, com_nodes, rm_keys))
 
 
 def radix_get_next[T](radix: RadixTree[T], ind: str, /) -> RadixTree[T] | None:
-    return radix.con.get(ind, None)
+    for ite in radix.con:
+        if ite[0] == ind:
+            return ite[1]
+    return None
+
+
+def _append_2_tuple_iter[
+    T
+](
+    data: tuple[_RQP[T], ...], to_add_k: str, to_add_v: str, index: tuple[T, ...], /
+) -> Iterable[_RQP[T]]:
+
+    append = True
+    for ite in data:
+        if ite[0] == to_add_k:
+            radix_add(ite[1], to_add_v, index)
+            append = False
+        yield ite
+    if append:
+        yield to_add_k, RadixTree[T](to_add_v, index)
 
 
 def radix_add[T](radix: RadixTree[T], to_add: str, index: tuple[T, ...], /) -> None:
@@ -92,12 +135,8 @@ def radix_add[T](radix: RadixTree[T], to_add: str, index: tuple[T, ...], /) -> N
         if len(index) > 0:
             radix.index = tuple(set(radix.index) | set(index))
         return None
-
     to_add_k = mer_to_add[0].upper()
-    if to_add_k in radix.con:
-        radix_add(radix.con[to_add_k], mer_to_add[1:], index)
-    else:
-        radix.con[to_add_k] = RadixTree[T](mer_to_add[1:], index)
+    radix.con = tuple(_append_2_tuple_iter(radix.con, to_add_k, mer_to_add[1:], index))
 
 
 def radix_compact[T](radix: RadixTree[T], /) -> None:
@@ -107,7 +146,7 @@ def radix_compact[T](radix: RadixTree[T], /) -> None:
 
 
 def radix_keys[T](radix: RadixTree[T], /) -> list[str]:
-    return list(radix.con.keys())
+    return list(key for key, _ in radix.con)
 
 
 @final
