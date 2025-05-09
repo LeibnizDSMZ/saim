@@ -1,3 +1,15 @@
+## v0.6.0 (2025-05-09)
+
+### Feat
+
+- add two ranks to ncbi
+- reduce radix size
+- add taxa search
+
+### Refactor
+
+- generalize the radix tree
+
 ## v0.5.0 (2025-05-08)
 
 ### Feat
