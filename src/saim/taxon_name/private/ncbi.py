@@ -41,7 +41,7 @@ _NAMES_REG: Final[Pattern[str]] = re.compile(
 )
 _MERGED_REG: Final[Pattern[str]] = re.compile(r"^\s*\d+\s*\|\s*\d+\s*(\|.*)?$")
 _DEL_REG: Final[Pattern[str]] = re.compile(r"^\s*\d+\s*(\|.*)?$")
-_SPE_FL = re.compile(r"sp\.")
+_SPE_FL = re.compile(r"sp\.|^unidentified|^unknown|^uncultured|^test|^collection|^[a-z]")
 
 _NCBI_NAMES = tuple[
     dict[str, set[int]],
@@ -113,12 +113,20 @@ def _resolve_rank(
 
 
 def _create_all_correct_names(
-    con: dict[int, int], id_2_name: dict[int, str], /
+    con: dict[int, int],
+    id_2_name: dict[int, str],
+    resolve_domain: Callable[[int], DomainE],
+    /,
 ) -> dict[int, tuple[str, ...]]:
     cor_spe: dict[int, tuple[str, ...]] = {}
     for spe_id in con.values():
         cor_name = id_2_name.get(spe_id, "")
-        if cor_name == "" or _SPE_FL.search(cor_name) is not None:
+        domain = resolve_domain(spe_id)
+        if (
+            cor_name == ""
+            or domain == DomainE.ukn
+            or _SPE_FL.search(cor_name) is not None
+        ):
             continue
         cor_spe[spe_id] = (cor_name, *cor_spe.get(spe_id, tuple()))
     return cor_spe
@@ -373,7 +381,9 @@ class NcbiTaxReq:
         return self.__con.id_2_name.get(species_id, "").upper()
 
     def get_all_species(self) -> Iterable[tuple[int, tuple[str, ...]]]:
-        all_spe = _create_all_correct_names(self.__con.species, self.__con.id_2_name)
+        all_spe = _create_all_correct_names(
+            self.__con.species, self.__con.id_2_name, lambda nid: self.get_domain(nid)
+        )
         _add_synonyms_to_names(all_spe, self.__con.synonyms)
         _add_synonyms_to_names(all_spe, self.__con.eq_name)
         for nid, names in all_spe.items():
@@ -382,7 +392,9 @@ class NcbiTaxReq:
             yield nid, names
 
     def get_all_genera(self) -> Iterable[tuple[int, tuple[str, ...]]]:
-        all_spe = _create_all_correct_names(self.__con.genus, self.__con.id_2_name)
+        all_spe = _create_all_correct_names(
+            self.__con.genus, self.__con.id_2_name, lambda nid: self.get_domain(nid)
+        )
         _add_synonyms_to_names(all_spe, self.__con.synonyms)
         _add_synonyms_to_names(all_spe, self.__con.eq_name)
         for nid, names in all_spe.items():
