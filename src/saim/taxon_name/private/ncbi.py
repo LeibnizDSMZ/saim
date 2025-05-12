@@ -41,9 +41,7 @@ _NAMES_REG: Final[Pattern[str]] = re.compile(
 )
 _MERGED_REG: Final[Pattern[str]] = re.compile(r"^\s*\d+\s*\|\s*\d+\s*(\|.*)?$")
 _DEL_REG: Final[Pattern[str]] = re.compile(r"^\s*\d+\s*(\|.*)?$")
-_NAME_FILTER = re.compile(
-    r"sp\.|^unidentified|^unknown|^uncultured|^test|^collection|^[a-z]"
-)
+_NAME_FILTER = re.compile(r"sp\.|^[a-z]")
 
 _NCBI_NAMES = tuple[
     dict[str, set[int]],
