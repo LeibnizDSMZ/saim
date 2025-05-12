@@ -41,6 +41,7 @@ _NAMES_REG: Final[Pattern[str]] = re.compile(
 )
 _MERGED_REG: Final[Pattern[str]] = re.compile(r"^\s*\d+\s*\|\s*\d+\s*(\|.*)?$")
 _DEL_REG: Final[Pattern[str]] = re.compile(r"^\s*\d+\s*(\|.*)?$")
+_SPE_FL = re.compile(r"sp\.")
 
 _NCBI_NAMES = tuple[
     dict[str, set[int]],
@@ -113,24 +114,26 @@ def _resolve_rank(
 
 def _create_all_correct_names(
     con: dict[int, int], id_2_name: dict[int, str], /
-) -> dict[int, list[str]]:
-    cor_spe: dict[int, list[str]] = defaultdict(list)
+) -> dict[int, tuple[str, ...]]:
+    cor_spe: dict[int, tuple[str, ...]] = {}
     for spe_id in con.values():
         cor_name = id_2_name.get(spe_id, "")
-        if cor_name != "":
-            cor_spe[spe_id].append(cor_name)
+        if cor_name == "" or _SPE_FL.search(cor_name) is not None:
+            continue
+        cor_spe[spe_id] = (cor_name, *cor_spe.get(spe_id, tuple()))
     return cor_spe
 
 
 def _add_synonyms_to_names(
-    all_names: dict[int, list[str]], synonyms: dict[str, set[int]], /
+    all_names: dict[int, tuple[str, ...]], synonyms: dict[str, set[int]], /
 ) -> None:
     for name, ids in synonyms.items():
-        if name == "":
+        if name == "" or _SPE_FL.search(name) is not None:
             continue
         for nid in ids:
-            if nid in all_names:
-                all_names[nid].append(name)
+            if nid not in all_names:
+                continue
+            all_names[nid] = (*all_names.get(nid, tuple()), name)
 
 
 _NODE_REG: Final[Pattern[str]] = re.compile(
@@ -369,7 +372,7 @@ class NcbiTaxReq:
             return ""
         return self.__con.id_2_name.get(species_id, "").upper()
 
-    def get_all_species(self) -> Iterable[tuple[int, list[str]]]:
+    def get_all_species(self) -> Iterable[tuple[int, tuple[str, ...]]]:
         all_spe = _create_all_correct_names(self.__con.species, self.__con.id_2_name)
         _add_synonyms_to_names(all_spe, self.__con.synonyms)
         _add_synonyms_to_names(all_spe, self.__con.eq_name)
@@ -378,7 +381,7 @@ class NcbiTaxReq:
                 continue
             yield nid, names
 
-    def get_all_genera(self) -> Iterable[tuple[int, list[str]]]:
+    def get_all_genera(self) -> Iterable[tuple[int, tuple[str, ...]]]:
         all_spe = _create_all_correct_names(self.__con.genus, self.__con.id_2_name)
         _add_synonyms_to_names(all_spe, self.__con.synonyms)
         _add_synonyms_to_names(all_spe, self.__con.eq_name)
