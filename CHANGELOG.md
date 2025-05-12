@@ -1,3 +1,9 @@
+## v0.7.3 (2025-05-12)
+
+### Fix
+
+- move to species in the slim version
+
 ## v0.7.2 (2025-05-12)
 
 ### Fix
