@@ -456,7 +456,7 @@ class TaxonManager:
 def slim_init_extractor(
     tax_man: TaxonManager, /
 ) -> tuple[int, dict[int, str], RadixTree[int]]:
-    return tax_man._init_search_tree([tax_man._ncbi.get_all_genera])
+    return tax_man._init_search_tree([tax_man._ncbi.get_all_species])
 
 
 def slim_extract_taxa_from_text(
