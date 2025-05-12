@@ -333,20 +333,20 @@ class TaxonManager:
         return []
 
     @_verify_date
-    def get_all_species_names(self) -> Iterable[list[str]]:
+    def get_all_species_names(self) -> Iterable[tuple[str, ...]]:
         for _, species_names in self._ncbi.get_all_species():
             yield species_names
         # TODO add lpsn support
 
     @_verify_date
-    def get_all_genus_names(self) -> Iterable[list[str]]:
+    def get_all_genus_names(self) -> Iterable[tuple[str, ...]]:
         for _, species_names in self._ncbi.get_all_genera():
             yield species_names
         # TODO add lpsn support
 
     @_verify_date
     def _init_search_tree(
-        self, gen: list[Callable[[], Iterable[tuple[int, list[str]]]]]
+        self, gen: list[Callable[[], Iterable[tuple[int, tuple[str, ...]]]]]
     ) -> tuple[int, dict[int, str], RadixTree[int]]:
         if self._nid_sg is None or self._radix_sg is None:
             self._nid_sg = dict()
