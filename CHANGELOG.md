@@ -1,3 +1,9 @@
+## v0.7.2 (2025-05-12)
+
+### Fix
+
+- slim down species search trees
+
 ## v0.7.1 (2025-05-09)
 
 ### Fix
