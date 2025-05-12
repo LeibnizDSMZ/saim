@@ -41,7 +41,9 @@ _NAMES_REG: Final[Pattern[str]] = re.compile(
 )
 _MERGED_REG: Final[Pattern[str]] = re.compile(r"^\s*\d+\s*\|\s*\d+\s*(\|.*)?$")
 _DEL_REG: Final[Pattern[str]] = re.compile(r"^\s*\d+\s*(\|.*)?$")
-_SPE_FL = re.compile(r"sp\.|^unidentified|^unknown|^uncultured|^test|^collection|^[a-z]")
+_NAME_FILTER = re.compile(
+    r"sp\.|^unidentified|^unknown|^uncultured|^test|^collection|^[a-z]"
+)
 
 _NCBI_NAMES = tuple[
     dict[str, set[int]],
@@ -125,7 +127,7 @@ def _create_all_correct_names(
         if (
             cor_name == ""
             or domain == DomainE.ukn
-            or _SPE_FL.search(cor_name) is not None
+            or _NAME_FILTER.search(cor_name) is not None
         ):
             continue
         cor_spe[spe_id] = (cor_name, *cor_spe.get(spe_id, tuple()))
@@ -136,7 +138,7 @@ def _add_synonyms_to_names(
     all_names: dict[int, tuple[str, ...]], synonyms: dict[str, set[int]], /
 ) -> None:
     for name, ids in synonyms.items():
-        if name == "" or _SPE_FL.search(name) is not None:
+        if name == "" or _NAME_FILTER.search(name) is not None:
             continue
         for nid in ids:
             if nid not in all_names:
@@ -211,9 +213,12 @@ def find_ncbi_name(name: str, names: NcbiTaxCon, /) -> tuple[set[int], str] | No
 
 
 def _create_all_names(names: list[str], /) -> list[str]:
-    new_names = [name for name in names if name != ""]
-    if not any(has_virus_in_name(name) for name in names):
-        new_names.extend(f"{name} virus" for name in names)
+    filtered_names = tuple(
+        name for name in names if name != "" and _NAME_FILTER.search(name) is None
+    )
+    new_names = list(filtered_names)
+    if not any(has_virus_in_name(name) for name in filtered_names):
+        new_names.extend(f"{name} virus" for name in filtered_names)
     return new_names
 
 
