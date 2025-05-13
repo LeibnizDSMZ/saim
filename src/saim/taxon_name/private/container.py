@@ -76,6 +76,7 @@ class NcbiTaxCon(BaseModel):
     type_str: dict[int, set[Annotated[str, Field(min_length=1)]]]
     rank: dict[int, GBIFRanksE]
     domain: dict[int, int]
+    kingdom: dict[int, int]
     genus: dict[int, int]
     species: dict[int, int]
     map_ids: dict[int, int]
