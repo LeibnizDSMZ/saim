@@ -202,11 +202,7 @@ class TaxonManager:
         lpsn = self.__lpsn.get_correct_name(cl_name, lpsn_id)
         _fill_con(cor_names, ncbi, lambda con, nid: con.ncbi.add(nid), fun)
         _fill_con(cor_names, lpsn, lambda con, lid: con.lpsn.add(lid), fun)
-        return [
-            cor_nam
-            for cor_nam in cor_names.values()
-            if _filter_ids(ncbi_id, lpsn_id, cor_nam)
-        ]
+        return [cor_nam for cor_nam in cor_names.values()]
 
     def __cr_lpsn_id[
         T
@@ -402,21 +398,20 @@ class TaxonManager:
         main_genus: set[str] = set()
         main_species: set[str] = set()
         for ov_tax in ov_names:
-            for cr_name in self.get_correct_name(ov_tax.name, ov_tax.ncbi, ov_tax.lpsn):
-                patched_lpsn = self.patch_lpsn_id(ov_tax.lpsn)
-                if patched_lpsn is None:
-                    patched_lpsn = -1
+            patched_lpsn = pa_int(self.patch_lpsn_id(ov_tax.lpsn))
+            patched_ncbi = pa_int(self.patch_ncbi_id(ov_tax.ncbi))
+            for cr_name in self.get_correct_name(ov_tax.name, patched_ncbi, patched_lpsn):
                 main_genus.update(
                     gen.genus
-                    for gen in self.get_genus(cr_name.name, ov_tax.ncbi, patched_lpsn)
+                    for gen in self.get_genus(cr_name.name, patched_ncbi, patched_lpsn)
                 )
                 main_species.update(
                     spe.species
-                    for spe in self.get_species(cr_name.name, ov_tax.ncbi, patched_lpsn)
+                    for spe in self.get_species(cr_name.name, patched_ncbi, patched_lpsn)
                 )
                 main_domain.update(
                     dom.domain
-                    for dom in self.get_domain(cr_name.name, ov_tax.ncbi, patched_lpsn)
+                    for dom in self.get_domain(cr_name.name, patched_ncbi, patched_lpsn)
                 )
         return main_species, main_genus, main_domain
 
