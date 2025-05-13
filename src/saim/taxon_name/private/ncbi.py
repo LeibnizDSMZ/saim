@@ -148,10 +148,23 @@ _NODE_REG: Final[Pattern[str]] = re.compile(
     r"^" + r"\s*\|\s*".join(["1", "1", "no rank"]) + r"\s*\|.*$"
 )
 
+type _NCBI_TAR = tuple[
+    tarfile.TarInfo | None,
+    dict[int, GBIFRanksE],
+    dict[int, int],
+    dict[int, int],
+    dict[int, int],
+    dict[int, int],
+    dict[int, int],
+    set[int],
+]
 
-def read_ncbi_tax_nodes(
-    tax_csv: IO[bytes], /
-) -> tuple[dict[int, GBIFRanksE], dict[int, int], dict[int, int], dict[int, int]]:
+type _NCBI_NODES = tuple[
+    dict[int, GBIFRanksE], dict[int, int], dict[int, int], dict[int, int], dict[int, int]
+]
+
+
+def read_ncbi_tax_nodes(tax_csv: IO[bytes], /) -> _NCBI_NODES:
     ranks: dict[int, GBIFRanksE] = {}
     path: dict[int, int] = {}
     for ind, line in enumerate(tax_csv):
@@ -173,6 +186,11 @@ def read_ncbi_tax_nodes(
             tid: gid
             for tid in ranks
             if (gid := _resolve_rank(tid, ranks, path, GBIFRanksE.dom)) is not None
+        },
+        {
+            tid: gid
+            for tid in ranks
+            if (gid := _resolve_rank(tid, ranks, path, GBIFRanksE.kin)) is not None
         },
         {
             tid: gid
@@ -230,17 +248,6 @@ def _first_correct_name(
     return []
 
 
-_NCBI_TAR = tuple[
-    tarfile.TarInfo | None,
-    dict[int, GBIFRanksE],
-    dict[int, int],
-    dict[int, int],
-    dict[int, int],
-    dict[int, int],
-    set[int],
-]
-
-
 def _extract_from_file(tar: tarfile.TarFile, /) -> _NCBI_TAR:
     to_read_main: None | tarfile.TarInfo = None
     ranks: dict[int, GBIFRanksE] = {}
@@ -254,12 +261,12 @@ def _extract_from_file(tar: tarfile.TarFile, /) -> _NCBI_TAR:
             case "names.dmp":
                 to_read_main = member
             case "nodes.dmp" if (ext_res := tar.extractfile(member)) is not None:
-                ranks, domain, genus, species = read_ncbi_tax_nodes(ext_res)
+                ranks, domain, kingdom, genus, species = read_ncbi_tax_nodes(ext_res)
             case "merged.dmp" if (ext_res := tar.extractfile(member)) is not None:
                 merged = read_ncbi_tax_merged(ext_res)
             case "delnodes.dmp" if (ext_res := tar.extractfile(member)) is not None:
                 del_nodes = read_ncbi_tax_deleted(ext_res)
-    return to_read_main, ranks, domain, genus, species, merged, del_nodes
+    return to_read_main, ranks, domain, kingdom, genus, species, merged, del_nodes
 
 
 def _create_ncbi_container(res_down: bytes, /) -> NcbiTaxCon | None:
@@ -271,7 +278,7 @@ def _create_ncbi_container(res_down: bytes, /) -> NcbiTaxCon | None:
     rm_nod: set[int] = set()
     main, ro_main = None, None
     with tarfile.open(fileobj=BytesIO(res_down), mode="r:gz") as tar:
-        ro_main, ran, dom, gen, spec, mer, rm_nod = _extract_from_file(tar)
+        ro_main, ran, dom, kin, gen, spec, mer, rm_nod = _extract_from_file(tar)
         if not (ro_main is None or (ext_res := tar.extractfile(ro_main)) is None):
             names, eqn, syns, t_str, id2n = read_ncbi_tax_names(ext_res, ran)
             main = NcbiTaxCon(
@@ -282,6 +289,7 @@ def _create_ncbi_container(res_down: bytes, /) -> NcbiTaxCon | None:
                 id_2_name=id2n,
                 rank=ran,
                 domain=dom,
+                kingdom=kin,
                 genus=gen,
                 species=spec,
                 map_ids=mer,
@@ -355,15 +363,18 @@ class NcbiTaxReq:
 
     @_patch_ncbi_id
     def get_domain(self, ncbi_id: int, /) -> DomainE:
-        if ncbi_id < 1:
-            return DomainE.ukn
-        domain_id = self.__con.domain.get(ncbi_id, None)
-        if domain_id is None:
+        if ncbi_id < 1 or (domain_id := self.__con.domain.get(ncbi_id, None)) is None:
             return DomainE.ukn
         domain_name = self.__con.id_2_name.get(domain_id, "").upper()
         if not is_domain(domain_name):
             return DomainE.ukn
         return parse_domain(domain_name)
+
+    @_patch_ncbi_id
+    def get_kingdom(self, ncbi_id: int, /) -> str:
+        if ncbi_id < 1 or (kin_id := self.__con.kingdom.get(ncbi_id, None)) is None:
+            return ""
+        return self.__con.id_2_name.get(kin_id, "").upper()
 
     @_patch_ncbi_id
     def get_genus(self, ncbi_id: int, /) -> str:
