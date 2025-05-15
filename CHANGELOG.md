@@ -1,3 +1,14 @@
+## v0.8.0 (2025-05-15)
+
+### Feat
+
+- add kingdom to ncbi
+
+### Fix
+
+- patch lpsn id and ncbi id before requesting the correct name
+- remove redundant regex filter for ncbi names
+
 ## v0.7.4 (2025-05-12)
 
 ### Fix
