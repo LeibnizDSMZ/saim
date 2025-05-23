@@ -20,14 +20,9 @@ def _clean_cache(
         raise SessionCreationEx(f"{exp_days!s} should be at least 1 day")
     if (db_path.stat().st_size / 1000**3) <= size_gb:
         return cache
-    for exp_time in [
-        timedelta(days=exp_days),
-        timedelta(hours=exp_days),
-        timedelta(seconds=exp_days),
-    ]:
-        cache.remove_expired_responses(exp_time)
-        if (db_path.stat().st_size / 1000**3) <= size_gb:
-            return cache
+    cache.delete(expired=True)
+    if (db_path.stat().st_size / 1000**3) <= size_gb:
+        return cache
     cache.clear()  # type: ignore
     return cache
 
