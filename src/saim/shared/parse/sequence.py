@@ -12,7 +12,7 @@ _ASSE_CORE: Final[str] = (
     r"(?:GCA_|GCF_)\d+"
     +
     # WGS + TSA + TLS
-    r"|[A-Z]{4}\d{2}\d{6,}|[A-Z]{6}\d{2}\d{7,}"
+    r"|[A-Z]{4}\d{8,}|[A-Z]{6}\d{9,}"
     +
     # MGA - Mass sequence for Genome Annotation
     # (DDBJ terminated accepting new submission of MGA data)
