@@ -1,8 +1,10 @@
 FROM docker.io/rockylinux:9 AS appbuilder
 
+ARG UV
+
 ENV HOME="/root"
-ENV PYENV_ROOT="${HOME}/.pyenv"
-ENV PATH="${PYENV_ROOT}/shims:${PYENV_ROOT}/bin:${HOME}/.local/bin:${PATH}"
+ENV PATH="${HOME}/.local/bin:/tmp/app/${UV}:${PATH}"
+ARG CONTAINER="container"
 
 COPY . /tmp/app
 

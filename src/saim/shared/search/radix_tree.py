@@ -83,11 +83,9 @@ def _iter_com_nodes[T](radix: RadixTree[T], rm_keys: list[str], /) -> Iterable[_
             yield new_k, to_merge[1]
 
 
-def _iter_merge_nodes[
-    T
-](radix: RadixTree[T], com_nodes: tuple[_RQP[T], ...], rm_keys: list[str], /) -> Iterable[
-    _RQP[T]
-]:
+def _iter_merge_nodes[T](
+    radix: RadixTree[T], com_nodes: tuple[_RQP[T], ...], rm_keys: list[str], /
+) -> Iterable[_RQP[T]]:
     for ite in radix.con:
         if ite[0] not in rm_keys:
             yield ite
@@ -110,9 +108,7 @@ def radix_get_next[T](radix: RadixTree[T], ind: str, /) -> RadixTree[T] | None:
     return None
 
 
-def _append_2_tuple_iter[
-    T
-](
+def _append_2_tuple_iter[T](
     data: tuple[_RQP[T], ...], to_add_k: str, to_add_v: str, index: tuple[T, ...], /
 ) -> Iterable[_RQP[T]]:
 
@@ -199,20 +195,16 @@ def _is_clearly_sep(pos: int, text: str, /) -> bool:
     return True
 
 
-def _search_node[
-    T
-](radix: RadixTree[T], to_find: str, /) -> tuple[
-    bool, tuple[T, ...], RadixTree[T] | None
-]:
+def _search_node[T](
+    radix: RadixTree[T], to_find: str, /
+) -> tuple[bool, tuple[T, ...], RadixTree[T] | None]:
     node = radix_get_next(radix, to_find)
     if node is None:
         return False, tuple(), node
     return node.end, node.index, node
 
 
-def _search[
-    T
-](
+def _search[T](
     radix: RadixTree[T],
     to_find: _SOMap,
     start: int,
@@ -247,11 +239,9 @@ def is_full_match[T](radix: RadixTree[T], to_sea: str, /) -> tuple[bool, tuple[T
     return False, tuple()
 
 
-def find_first_match_with_fix[
-    T
-](radix: RadixTree[T], to_sea: str, trim_right: bool = True, /) -> list[
-    tuple[str, tuple[T, ...]]
-]:
+def find_first_match_with_fix[T](
+    radix: RadixTree[T], to_sea: str, trim_right: bool = True, /
+) -> list[tuple[str, tuple[T, ...]]]:
     radix_compact(radix)
     f_sea = to_sea.upper()
     if trim_right:
@@ -265,9 +255,9 @@ def find_first_match_with_fix[
     return [(mapper.map_seq(pos), index) for pos, index in found_pos.items()]
 
 
-def _create_sea[
-    T
-](radix: RadixTree[T], full_txt: str, start: int, /) -> Iterable[tuple[str, int]]:
+def _create_sea[T](
+    radix: RadixTree[T], full_txt: str, start: int, /
+) -> Iterable[tuple[str, int]]:
     to_find = iter(replace_non_word_chars_iter(full_txt, start))
     to_sea = 0
     while to_sea < radix.max:
@@ -279,9 +269,9 @@ def _create_sea[
             break
 
 
-def _search_simple[
-    T
-](radix: RadixTree[T], full_txt: str, start: int, /) -> Iterable[tuple[T, ...]]:
+def _search_simple[T](
+    radix: RadixTree[T], full_txt: str, start: int, /
+) -> Iterable[tuple[T, ...]]:
     to_sea_con = tuple(_create_sea(radix, full_txt, start))
     max_ind = len(to_sea_con)
     if max_ind > 0:
@@ -297,8 +287,8 @@ def _search_simple[
                     yield end_index
 
 
-def find_first_match_simple[
-    T
-](radix: RadixTree[T], to_sea: str, pos: int, /) -> Iterable[tuple[T, ...]]:
+def find_first_match_simple[T](
+    radix: RadixTree[T], to_sea: str, pos: int, /
+) -> Iterable[tuple[T, ...]]:
     radix_compact(radix)
     yield from _search_simple(radix, to_sea, pos)

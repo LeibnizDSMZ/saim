@@ -15,25 +15,44 @@ keywords = [
   "strain linking",
   "designations",
 ]
-repository = "https://github.com/LeibnizDSMZ/saim"
 requires-python = ">=3.13,<4"
 dependencies = [
-  "pydantic >=2.10,<3",
-  "playwright >=1.49,<2",
-  "python-dateutil >=2.9,<3",
-  "python-keycloak >=5.1,<6",
-  "requests >=2.32,<3",
-  "requests-cache >=1.2,<2",
+  "pydantic ==2.11.9",
+  "playwright ==1.55.0",
+  "python-dateutil ==2.9.0.post0",
+  "python-keycloak ==5.8.1",
+  "requests ==2.32.5",
+  "requests-cache ==1.2.1",
   "cafi @ git+https://github.com/LeibnizDSMZ/cafi.git@v0.8.0",
 ]
 
-[project.scripts]
-extract_ccno = "saim.designation.main:run"
-verify_cafi = "saim.culture_link.main:run"
+[tool.uv]
+package = true
+default-groups = []
 
-[build-system]
-build-backend = "poetry.core.masonry.api"
-requires = ["poetry-core"]
+[dependency-groups]
+dev = [
+  "commitizen ==4.9.1",
+  "mypy ==1.18.2",
+  "ruff ==0.13.1",
+  "black ==25.9.0",
+  "codespell ==2.4.1",
+  "shellcheck-py ==0.11.0.1",
+  "pre-commit-hooks ==6.0.0",
+  "vulture ==2.14",
+  # commit hooks
+  "lefthook ==1.13.3",
+  # types
+  "types-python-dateutil ==2.9.0.20250822",
+  "types-requests ==2.32.4.20250913",
+]
+test = ["coverage ==7.10.7", "pytest ==8.4.2", "tox ==4.30.2"]
+docs = [
+  "mkdocs ==1.6.1",
+  "mkdocs-material ==9.6.20",
+  "mkdocstrings ==0.30.1",
+  "mkdocstrings-python ==1.18.2",
+]
 
 [tool.black]
 line-length = 90
@@ -54,7 +73,7 @@ version_files = [
   "README.md:^\\[!\\[release:",
   "src/saim/shared/misc/constants.py:^VERSION",
 ]
-version_provider = "pep621"
+version_provider = "uv"
 version_type = "semver"
 
 [tool.mypy]
@@ -74,7 +93,13 @@ disallow_subclassing_any = false
 disallow_untyped_calls = true
 disallow_untyped_decorators = true
 disallow_untyped_defs = true
-exclude = ["__pycache__", "\\.tox", "\\.mypy_cache", "venv"]
+exclude = [
+  "__pycache__",
+  "\\.tox/.*",
+  "\\.mypy_cache/.*",
+  "\\.venv/.*",
+  "configs/.*",
+]
 ignore_missing_imports = true
 implicit_reexport = true
 local_partial_types = true
@@ -90,49 +115,6 @@ warn_redundant_casts = true
 warn_return_any = true
 warn_unreachable = true
 warn_unused_ignores = true
-
-[tool.poetry]
-include = ["src/saim/data/*", "src/saim/py.typed"]
-packages = [{ include = "saim", from = "src" }]
-
-[tool.poetry.group.dev]
-optional = true
-
-[tool.poetry.group.dev.dependencies]
-commitizen = ">=4.1,<5"
-mypy = ">=1.14,<2"
-ruff = ">=0.9,<1"
-black = ">=24.10,<25"
-codespell = ">=2.3,<3"
-shellcheck-py = ">=0.10,<1"
-pre-commit-hooks = ">=5.0,<6"
-# commit hooks
-lefthook = ">=1.10,<2"
-# types
-types-python-dateutil = ">=2.9,<3"
-types-requests = ">=2.32,<3"
-
-[tool.poetry.group.docs]
-optional = true
-
-[tool.poetry.group.docs.dependencies]
-mkdocs = ">=1.6,<2"
-mkdocs-material = ">=9.5,<10"
-mkdocstrings = ">=0.27,<1"
-mkdocstrings-python = ">=1.13,<2"
-
-[tool.poetry.group.test]
-optional = true
-
-[tool.poetry.group.test.dependencies]
-coverage = ">= 7.6,<8"
-pytest = ">=8.3,<9"
-pytest-asyncio = ">=0.25,<1"
-tox = ">=4.23,<5"
-
-[tool.poetry.requires-plugins]
-poetry-plugin-export = ">=1.9"
-poetry-plugin-shell = ">=1.0"
 
 [tool.ruff]
 line-length = 90
@@ -241,12 +223,17 @@ commands = [
 ]
 
 [tool.coverage.run]
-source = ["saim"]
+source = ["src"]
 parallel = true
 
 [tool.coverage.report]
 show_missing = false
-fail_under = 10
+fail_under = 50
 
-[tool.pytest.ini_options]
-asyncio_default_fixture_loop_scope = "session"
+[tool.vulture]
+paths = ["configs/dev/whitelist.py", "src"]
+ignore_decorators = ["@*"]
+make_whitelist = true
+min_confidence = 60
+sort_by_size = true
+verbose = false

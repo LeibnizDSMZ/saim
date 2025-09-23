@@ -56,9 +56,7 @@ def _create_relation(
     ]
 
 
-def create_update_results[
-    CT: CultureMatch
-](
+def create_update_results[CT: CultureMatch](
     old_cul: CT | None,
     new_cul: CT | None,
     si_id: int,
@@ -83,11 +81,9 @@ type MatchF[CT] = Callable[
 ]
 
 
-def match_factory[
-    CT: CultureMatch
-](con_type: type[CT], dry_run: bool, skip: bool = True, /) -> Callable[
-    [AcronymManager, MatchCache], tuple[MatchF[CT], MatchStrain]
-]:
+def match_factory[CT: CultureMatch](
+    con_type: type[CT], dry_run: bool, skip: bool = True, /
+) -> Callable[[AcronymManager, MatchCache], tuple[MatchF[CT], MatchStrain]]:
     print(f"creating matcher for type - {con_type!s}")
     to_update = not dry_run
 

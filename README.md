@@ -17,10 +17,9 @@ culture collection number matching.
 
 ### Default
 
--   pyenv: ~2.5
--   GNU/Linux
+- GNU/Linux
 
 ### Dev Container
 
--   Docker
--   Docker - Compose
+- Docker
+- Docker - Compose

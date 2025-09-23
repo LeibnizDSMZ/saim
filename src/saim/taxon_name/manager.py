@@ -39,11 +39,9 @@ from saim.taxon_name.private.ncbi import (
 )
 
 
-def _verify_date[
-    **P, T
-](func: Callable[Concatenate["TaxonManager", P], T]) -> Callable[
-    Concatenate["TaxonManager", P], T
-]:
+def _verify_date[**P, T](
+    func: Callable[Concatenate["TaxonManager", P], T],
+) -> Callable[Concatenate["TaxonManager", P], T]:
     def wrap(self: "TaxonManager", *args: P.args, **kwargs: P.kwargs) -> T:
         if datetime.now() - timedelta(days=self._exp_days) > self._start:
             self._ncbi = NcbiTaxReq(self.working_directory, self._exp_days, True)
@@ -54,9 +52,7 @@ def _verify_date[
     return wrap
 
 
-def _fill_con[
-    K, T, V
-](
+def _fill_con[K, T, V](
     container: dict[K, T],
     results: list[tuple[K, V]],
     fill: Callable[[T, V], None],
@@ -204,9 +200,7 @@ class TaxonManager:
         _fill_con(cor_names, lpsn, lambda con, lid: con.lpsn.add(lid), fun)
         return [cor_nam for cor_nam in cor_names.values()]
 
-    def __cr_lpsn_id[
-        T
-    ](
+    def __cr_lpsn_id[T](
         self,
         name: str,
         lpsn_id: int,
@@ -222,9 +216,7 @@ class TaxonManager:
             if eval(lpsn_val := get_lpsn(lid))
         ]
 
-    def __cr_ncbi_id[
-        T
-    ](
+    def __cr_ncbi_id[T](
         self,
         name: list[str],
         ncbi_id: int,

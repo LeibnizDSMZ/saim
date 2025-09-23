@@ -15,9 +15,9 @@ from cafi.container.acr_db import AcrDbEntry
 from saim.shared.data_con.brc import BrcContainer
 
 
-def _verify_date[
-    T, V
-](func: Callable[["AcronymManager", V], T]) -> Callable[["AcronymManager", V], T]:
+def _verify_date[T, V](
+    func: Callable[["AcronymManager", V], T],
+) -> Callable[["AcronymManager", V], T]:
     def wrap(self: "AcronymManager", arg: V) -> T:
         if datetime.now() - timedelta(days=self._exp_days) > self._start:
             self._ca_req = {}
