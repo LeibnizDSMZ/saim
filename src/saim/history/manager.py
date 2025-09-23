@@ -17,9 +17,9 @@ def _is_not_duplicate(event: HistoryDeposition, cc_id: int, /) -> bool:
     return len(event.cc_ids) > 0
 
 
-def _verify_date[
-    T, V
-](func: Callable[["HistoryManager", V], T]) -> Callable[["HistoryManager", V], T]:
+def _verify_date[T, V](
+    func: Callable[["HistoryManager", V], T],
+) -> Callable[["HistoryManager", V], T]:
     def wrap(self: "HistoryManager", arg: V) -> T:
         if datetime.now() - timedelta(days=self._exp_days) > self._start:
             self._ca_req = {}

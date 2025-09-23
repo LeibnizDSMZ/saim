@@ -3,9 +3,7 @@ from collections.abc import Iterable
 from collections.abc import Iterator
 
 
-def _pack_iter[
-    T
-](
+def _pack_iter[T](
     data_iter: Iterator[T],
     pkg_count: int,
     current_size: int,
@@ -24,9 +22,7 @@ def _pack_iter[
         yield data_el
 
 
-def package_data[
-    T
-](
+def package_data[T](
     data: Iterable[T], pkg_count: int, pkg_size: int, get_pkg_size: Callable[[T], int], /
 ) -> Iterable[list[T]]:
     data_iter = iter(data)

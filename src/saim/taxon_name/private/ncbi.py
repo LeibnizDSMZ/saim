@@ -298,9 +298,9 @@ def _create_ncbi_container(res_down: bytes, /) -> NcbiTaxCon | None:
     return main
 
 
-def _patch_ncbi_id[
-    T
-](func: Callable[["NcbiTaxReq", int], T]) -> Callable[["NcbiTaxReq", int | None], T]:
+def _patch_ncbi_id[T](
+    func: Callable[["NcbiTaxReq", int], T],
+) -> Callable[["NcbiTaxReq", int | None], T]:
     def wrap(self: "NcbiTaxReq", ncbi_id: int | None) -> T:
         ncbi_p = self.get_correct_id(ncbi_id)
         if ncbi_p is None:

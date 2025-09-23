@@ -36,9 +36,7 @@ def check_bool_int(to_check: Any, truth: int, default: bool, /) -> bool:
     return default
 
 
-def check_value_or[
-    U
-](
+def check_value_or[U](
     to_check: Any, checkers: list[Callable[[Any], bool]], parse: Callable[[Any], U], /
 ) -> U:
     for check in checkers:

@@ -54,13 +54,13 @@ def test_mis_match(
     cache_mis_match: MatchCache,
     ccno_dsmz_no_re1: CultureMatch,
 ) -> None:
+    matcher, *_ = match_factory(type(ccno_dsmz_no_re1), False)(
+        acronym_manager,
+        cache_mis_match,
+    )
     with pytest.warns(StrainMatchWarn):
-        matcher, *_ = match_factory(type(ccno_dsmz_no_re1), False)(
-            acronym_manager,
-            cache_mis_match,
-        )
         res = matcher(ccno_dsmz_no_re1, _verify_mis_match)
-        assert res is None
+    assert res is None
 
 
 def test_ccno_err_match(
@@ -81,13 +81,13 @@ def test_strain_match(
     cache_strain_match: MatchCache,
     ccno_dsmz_no_re1: CultureMatch,
 ) -> None:
+    matcher, *_ = match_factory(type(ccno_dsmz_no_re1), False)(
+        acronym_manager,
+        cache_strain_match,
+    )
     with pytest.warns(StrainMatchWarn):
-        matcher, *_ = match_factory(type(ccno_dsmz_no_re1), False)(
-            acronym_manager,
-            cache_strain_match,
-        )
         res = matcher(ccno_dsmz_no_re1, _verify_strain_match)
-        assert res is None
+    assert res is None
 
 
 def test_strain_rel_si_id_match(
@@ -95,16 +95,16 @@ def test_strain_rel_si_id_match(
     cache_strain_match: MatchCache,
     ccno_dsmz_si_id_re1: CultureMatch,
 ) -> None:
+    matcher, *_ = match_factory(
+        type(ccno_dsmz_si_id_re1),
+        False,
+    )(
+        acronym_manager,
+        cache_strain_match,
+    )
     with pytest.warns(StrainMatchWarn):
-        matcher, *_ = match_factory(
-            type(ccno_dsmz_si_id_re1),
-            False,
-        )(
-            acronym_manager,
-            cache_strain_match,
-        )
         res = matcher(ccno_dsmz_si_id_re1, _verify_strain_si_id_match)
-        assert res is None
+    assert res is None
 
 
 def test_strain_rel_ccno_match(
@@ -112,10 +112,10 @@ def test_strain_rel_ccno_match(
     cache_strain_match: MatchCache,
     ccno_dsmz_ccno_re1: CultureMatch,
 ) -> None:
+    matcher, *_ = match_factory(type(ccno_dsmz_ccno_re1), False)(
+        acronym_manager,
+        cache_strain_match,
+    )
     with pytest.warns(StrainMatchWarn):
-        matcher, *_ = match_factory(type(ccno_dsmz_ccno_re1), False)(
-            acronym_manager,
-            cache_strain_match,
-        )
         res = matcher(ccno_dsmz_ccno_re1, _verify_strain_match)
-        assert res is None
+    assert res is None
