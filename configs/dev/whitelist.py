@@ -1,6 +1,5 @@
 # type: ignore
 # ruff: noqa
-_.formatwarning  # unused attribute (src/saim/culture_link/main.py:72)
 _.encoding  # unused attribute (src/saim/culture_link/private/cached_session.py:76)
 _.raw  # unused attribute (src/saim/culture_link/private/cached_session.py:77)
 _._content  # unused attribute (src/saim/culture_link/private/cached_session.py:78)
@@ -15,7 +14,6 @@ dbf  # unused variable (src/saim/shared/data_con/culture.py:60)
 brc_s  # unused variable (src/saim/shared/data_con/culture.py:61)
 brc_v  # unused variable (src/saim/shared/data_con/culture.py:62)
 brc_r  # unused variable (src/saim/shared/data_con/culture.py:63)
-model_config  # unused variable (src/saim/shared/data_con/culture.py:108)
 type_strain  # unused variable (src/saim/shared/data_con/culture.py:119)
 cul_id  # unused variable (src/saim/shared/data_con/culture.py:125)
 _._strict  # unused attribute (src/saim/shared/data_con/culture.py:147)

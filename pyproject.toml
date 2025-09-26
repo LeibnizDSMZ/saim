@@ -23,8 +23,20 @@ dependencies = [
   "python-keycloak ==5.8.1",
   "requests ==2.32.5",
   "requests-cache ==1.2.1",
-  "cafi @ git+https://github.com/LeibnizDSMZ/cafi.git@v0.8.0",
+  "cafi @ git+https://github.com/LeibnizDSMZ/cafi.git@v0.9.0",
 ]
+
+[project.scripts]
+extract_ccno = "saim.designation.main:run"
+verify_cafi = "saim.culture_link.main:run"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["saim"]
+
+[build-system]
+requires = ["uv_build>=0.8.22,<0.9.0"]
+build-backend = "uv_build"
 
 [tool.uv]
 package = true
@@ -199,6 +211,7 @@ requires = ["tox>=4.23"]
 
 [tool.tox.env_run_base]
 allowlist_externals = ["coverage"]
+set_env = { PYTHONPATH = "src" }
 commands = [
   [
     "coverage",
@@ -223,7 +236,7 @@ commands = [
 ]
 
 [tool.coverage.run]
-source = ["src"]
+source = ["src/saim"]
 parallel = true
 
 [tool.coverage.report]
@@ -233,6 +246,7 @@ fail_under = 50
 [tool.vulture]
 paths = ["configs/dev/whitelist.py", "src"]
 ignore_decorators = ["@*"]
+ignore_names = ["model_config", "formatwarning"]
 make_whitelist = true
 min_confidence = 60
 sort_by_size = true
