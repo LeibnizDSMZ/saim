@@ -15,7 +15,7 @@ def parse_ccno_to_cat_args(ccno: CCNoDes, /) -> CatArgs:
     )
 
 
-def get_domain_from_knacr(links: CatalogueLink, fallback: str, /) -> str:
+def get_domain_from_cafi(links: CatalogueLink, fallback: str, /) -> str:
     match (links.level):
         case LinkLevel.cat if len(links.catalogue) > 0:
             return get_domain(links.catalogue[0])

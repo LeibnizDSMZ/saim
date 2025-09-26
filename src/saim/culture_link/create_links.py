@@ -16,7 +16,7 @@ from saim.culture_link.private.manager import (
 )
 from saim.designation.manager import AcronymManager
 from saim.shared.data_con.designation import CCNoDes
-from saim.shared.cafi.adapter import get_domain_from_knacr, parse_ccno_to_cat_args
+from saim.shared.cafi.adapter import get_domain_from_cafi, parse_ccno_to_cat_args
 
 
 @final
@@ -115,7 +115,7 @@ class CcnoLinkGenerator:
         task = self.create_ccno_link_task(search_request)
         if task is None:
             return None
-        domain = get_domain_from_knacr(task.template_links, search_request.fallback_link)
+        domain = get_domain_from_cafi(task.template_links, search_request.fallback_link)
         if domain == "":
             return None
         return (domain, task)
