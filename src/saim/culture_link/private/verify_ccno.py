@@ -53,7 +53,7 @@ def _wrap_status(
     if timeout:
         return VerificationStatus.timeout
     match status_code:
-        case 200:
+        case code if 200 <= code < 400:
             if missing:
                 return VerificationStatus.mis_ele
             return VerificationStatus.ok
@@ -136,10 +136,12 @@ def _serialize_results(
     resp: Response, sea_task: SearchTask, skip_search: bool, /
 ) -> Response:
     c_resp: Response = copy.copy(resp)
-    if c_resp.status_code == 200 and skip_search:
+    if 200 <= c_resp.status_code < 400 and skip_search:
         c_resp._content = "ONLY PINGED".encode(ENCODING)
         return c_resp
-    if c_resp.status_code == 200 and _find_elements_in_content(c_resp.content, sea_task):
+    if 200 <= c_resp.status_code < 400 and _find_elements_in_content(
+        c_resp.content, sea_task
+    ):
         extra = " - ".join(sea_task.extra_key)
         sea_res = f"{sea_task.ccno_key} - {extra}"
         c_resp._content = sea_res.encode(ENCODING)
@@ -151,7 +153,7 @@ def _serialize_results(
 def _prepare_result_cached(
     link: str, resp: CachedPageResp, sea_task: SearchTask, skip_search: bool, /
 ) -> LinkResult | None:
-    if resp.status != 200 or resp.response == b"":
+    if resp.status < 200 or resp.status >= 400:
         return None
     if not skip_search:
         content = resp.response.decode(ENCODING)
@@ -166,7 +168,7 @@ def _prepare_result_cached(
 def _prepare_result_raw(
     link: str, resp: CachedPageResp, sea_task: SearchTask, skip_search: bool, /
 ) -> LinkResult | None:
-    if resp.status != 200 or resp.response == b"":
+    if resp.status < 200 or resp.status >= 400:
         return None
     warnings.warn(
         f"[SERIALIZATION] {link} - was parsed without removing its content!",
