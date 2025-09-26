@@ -16,6 +16,7 @@ class Location(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", validate_default=False)
 
     code: Annotated[str, AfterValidator(check_country_code)] = ""
+    country: Annotated[str, Field(min_length=2)] = ""
     place: list[Annotated[str, AfterValidator(trim_edges), Field(min_length=2)]] = Field(
         default_factory=list
     )
@@ -31,7 +32,9 @@ class Location(BaseModel):
             mode="python", exclude={"place"}, by_alias=True
         )
         dict_res["place"] = [
-            pla for pla in filter_duplicates(self.place) if len(pla) >= 2
+            pla
+            for pla in filter_duplicates(self.place)
+            if len(pla) >= 2 and pla.lower() != self.country.lower()
         ]
         if trim:
             for key in detect_empty_dict_keys(dict_res):

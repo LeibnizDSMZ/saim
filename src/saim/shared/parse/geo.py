@@ -1,5 +1,7 @@
 from typing import Any, Callable
 
+from cafi.container.country import CountryCodes
+
 from saim.shared.verify.types import ch_str_float
 
 
@@ -24,4 +26,4 @@ def check_country_code(code: Any, /) -> str:
         return ""
     if len(code) != 2:
         raise ValueError(f"malformed country code {code}")
-    return code.upper()
+    return CountryCodes().is_code(code.upper())
