@@ -1,3 +1,16 @@
+## v0.9.0 (2025-09-26)
+
+### Feat
+
+- add country to location
+
+### Refactor
+
+- update project
+- simplify wgs sequence regex
+- correct version number
+- remove deprecated
+
 ## v0.8.0 (2025-05-15)
 
 ### Feat
