@@ -29,12 +29,12 @@ docs: setup
 	$(UVE) sync --frozen --group docs
 
 setup:
-	git lfs install || echo '[FAIL] git-lfs could not be installed'
 	which uv || [ -d "${UV_INSTALL_DIR}" ] || (curl -LsSf https://astral.sh/uv/install.sh | sh -s - --quiet)
 	$(UVE) python install $(PYV)
 	rm -rf .venv
 	$(UVE) venv --python=$(PYV) --relocatable --link-mode=copy --seed
 	$(UVE) pip install --upgrade pip
+	playwright install chromium || echo "failed to install playwright"
 
 
 RAN := $(shell awk 'BEGIN{srand();printf("%d", 65536*rand())}')
@@ -56,9 +56,7 @@ runTests:
 	$(UVE) run tox
 
 runBuild:
-# add all packages rquired to be build
-	$(UVE) build --package pkg1
-	$(UVE) build --package shared_utils
+	$(UVE) build
 
 runBump:
 	$(UVE) run cz bump --files-only --yes --changelog
