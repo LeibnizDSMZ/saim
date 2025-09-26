@@ -34,7 +34,7 @@ setup:
 	rm -rf .venv
 	$(UVE) venv --python=$(PYV) --relocatable --link-mode=copy --seed
 	$(UVE) pip install --upgrade pip
-	playwright install chromium || echo "failed to install playwright"
+	$(UVE) run playwright install chromium || echo "failed to install playwright"
 
 
 RAN := $(shell awk 'BEGIN{srand();printf("%d", 65536*rand())}')
