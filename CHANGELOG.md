@@ -1,3 +1,15 @@
+## v0.9.1 (2025-09-26)
+
+### Fix
+
+- correctly handle non-200 status responses
+
+### Refactor
+
+- update cafi for new links
+- rename knacr to cafi
+- wrap playwright in uv
+
 ## v0.9.0 (2025-09-26)
 
 ### Feat
