@@ -73,7 +73,7 @@ def create_simple_get_cache(
             cache_control=False,
             stale_if_error=False,
             always_revalidate=False,
-            allowable_codes=[200, 404, 403],
+            allowable_codes=[*range(200, 400), 404, 403],
             allowable_methods=("GET",),
         )
         adapter = HTTPAdapter(

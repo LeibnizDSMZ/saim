@@ -252,7 +252,7 @@ def create_get_cache(
             cache_control=False,
             stale_if_error=False,
             always_revalidate=False,
-            allowable_codes=[200, 404, 403],
+            allowable_codes=[*range(200, 400), 404, 403],
             allowable_methods=(
                 "GET",
                 "HEAD",
@@ -295,7 +295,7 @@ def _browser_fallback_wrap(
         else:
             raise
     else:
-        if not response.from_cache and response.status_code == 404 and not browser:
+        if 400 <= response.status_code < 500 and not browser:
             response = session.get(url, **params)
     return response
 
