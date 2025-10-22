@@ -41,17 +41,20 @@ class RadixTree[T]:
     representing the next character in the string. The splitting continues
     until the end of the string, indicated by `end == True`.
     For example, the string 'ABC#$' is stored as:
+        ```
         RadixTree('ABC#$') -> con = { 'A': RadixTree('BC#$') }
         RadixTree('BC#$')  -> con = { 'B': RadixTree('C#$') }
         RadixTree('C#$')   -> con = { 'C': RadixTree('#$') }
         RadixTree('#$')    -> con = { ':': RadixTree('$') }
         RadixTree('$')     -> con = { ':': RadixTree() }, end == True
+        ```
 
     Attributes:
         con (tuple[_RQP[T], ...]): Child nodes keyed by character.
         end (bool): True if this node represents the end of a word.
         index (tuple[T, ...]): Associated index or data for this node.
-        max (int): Maximum number of children nodes (default 1).
+        max (int): The maximum length of a substring key among this
+            node's immediate children..
         ready (bool): Flag indicating if the node is ready
             (compact implementation of a prefix tree).
 
