@@ -63,11 +63,14 @@ def _wrap_playwright_response(
 def _create_response(
     req: PreparedRequest, resp: Response, content: str, /
 ) -> RequestResponse:
-    """Creates a cache key and is based on requests.adapters.HTTPAdapter
+    """Creates a cache key and is based on requests.adapters.HTTPAdapter.
 
-    LICENSE BSD 2-Clause "Simplified" License
-    Copyright (c) 2019, Roman Haritonov
-    Copyright (c) 2023, Jordan Cook
+    License:
+        BSD 2-Clause "Simplified" License
+
+    Copyright:
+        (c) 2019, Roman Haritonov
+        (c) 2023, Jordan Cook
     """
     # based on requests.adapters.HTTPAdapter
     response = RequestResponse()

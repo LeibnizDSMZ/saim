@@ -1,4 +1,4 @@
-FROM docker.io/rockylinux:9 AS appbuilder
+FROM docker.io/almalinux:9 AS appbuilder
 
 ARG UV
 
@@ -12,7 +12,7 @@ WORKDIR /tmp/app
 
 RUN mkdir -p "${HOME}/.local/bin" && bash ./bin/deploy.sh
 
-FROM docker.io/rockylinux:9 AS main
+FROM docker.io/almalinux:9 AS main
 
 ARG USERNAME=devu
 ARG USER_UID=1000

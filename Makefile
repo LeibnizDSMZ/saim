@@ -10,6 +10,7 @@ include $(ROOT_MAKEFILE)/.env
 
 export
 export PATH := $(PATH):$(shell pwd)/$(UV_INSTALL_DIR)
+OLLAMA_MODEL?=gpt-oss:20b
 
 $(eval UVEL := $(shell which uv && echo "true" || echo ""))
 UVE = $(if ${UVEL},'uv',$(UV_INSTALL_DIR)/uv)
@@ -80,7 +81,57 @@ export_runUpdate:
 	$(UVE) lock -U
 
 com commit:
-	$(UVE) run cz commit
+	echo "" > .commit_msg
+	@if curl -sf http://ollama:11434; then \
+		$(MAKE) message; \
+	else \
+		$(UVE) run cz commit; \
+	fi
+	echo "" > .commit_msg
 
 recom recommit:
-	$(UVE) run cz commit --retry
+	@if curl -sf http://ollama:11434; then \
+		[ ! -s .commit_msg ] || (echo "Missing commit message!" && exit 1); \
+		git commit -F .commit_msg; \
+	else \
+		$(UVE) run cz commit; \
+	fi
+	echo "" > .commit_msg
+
+PROMPT=Generate a commit message in the Conventional Commits 1.0.0 format based on the following git diff. The commit message must: \n\
+- Follow this structure: \n\
+1. Commit type (e.g., feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert) \n\
+2. Optional scope in parentheses (e.g., feat(auth):) \n\
+3. A brief, lowercase description in present tense on the first line \n\
+4. Optional body with detailed explanation (can use uppercase) \n\
+5. Optional footer(s) with breaking changes, issue references (e.g., Closes \#123), or co-authors (e.g., Co-authored-by: Name) \n\
+- Formatting rules: \n\
+1. The first line must be entirely lowercase \n\
+2. Body and footer may use uppercase letters \n\
+3. Follow Conventional Commits 1.0.0 strictly \n\
+4. Return only the commit message as plain text (no extra formatting, no markdown) \n\
+5. Do NOT mention - no breaking changes \n\
+6. Body lines must not be longer than 100 characters \n\
+- Example: \n\
+feat(auth): add user login API\n\
+\n\
+Added support for user login via OAuth2. This allows users to authenticate\n\
+using their Google account.\n\
+\n\
+Closes \#42\n\
+
+
+message:
+	git diff --staged -- . ':(exclude)*requirements*.txt' | \
+		jq -Rs --arg prompt "$(PROMPT)" '{"stream": false, "model": "$(OLLAMA_MODEL)", "prompt": (" <GIT_DIFF> " + . + " </GIT_DIFF> " + $$prompt)}' | \
+		curl -s -X POST http://ollama:11434/api/generate \
+			-H "Content-Type: application/json" \
+			-d @- | \
+		jq -r 'select(.done == true) | .response' > .commit_msg
+	vim .commit_msg
+	@if ! $(UVE) run cz check --commit-msg-file .commit_msg; then \
+		echo "Commit message failed cz check. Aborting."; \
+		echo "" > .commit_msg; \
+		exit 1; \
+	fi
+	git commit -F .commit_msg
