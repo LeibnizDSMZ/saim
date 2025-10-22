@@ -193,8 +193,19 @@ fixable = [
   "UP",
   "YTT",
 ]
-ignore = ["TRY003", "N818"]
-select = ["E", "F", "B", "C90", "S", "PT", "ARG", "PTH", "TRY", "RUF", "N"]
+ignore = [
+  "TRY003",
+  "N818",
+  "D100",
+  "D101",
+  "D102",
+  "D103",
+  "D104",
+  "D105",
+  "D106",
+  "D107",
+]
+select = ["E", "F", "B", "C90", "S", "PT", "ARG", "PTH", "TRY", "RUF", "N", "D"]
 unfixable = []
 
 [tool.ruff.lint.mccabe]
@@ -205,6 +216,9 @@ max-complexity = 11
 
 [tool.ruff.lint.pylint]
 max-args = 8
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.tox]
 requires = ["tox>=4.23"]

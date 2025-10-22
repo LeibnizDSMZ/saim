@@ -35,13 +35,30 @@ type _RQP[T] = tuple[str, RadixTree[T]]
 
 @final
 class RadixTree[T]:
-    """Builds a dictionary hierarchy structure where a word (str) gets split
-    like this:
-    AcrRT ('ABC#$') -> __con = { 'A' : Acr(BC#$)}
-    AcrRT (BC#$)    -> __con = { 'B' : Acr(C#$)}
-    AcrRT (C#$)     -> __con = { 'C' : Acr(#$)}
-    AcrRT (#$)      -> __con = { ':' : Acr($)}
-    AcrRT ($)       -> __con = { ':' : Acr()} __end == True"""
+    """Creates a radix tree by splitting a string into nodes forming a prefix hierarchy.
+
+    Each node contains a mapping (`con`) of characters to child RadixTree nodes,
+    representing the next character in the string. The splitting continues
+    until the end of the string, indicated by `end == True`.
+    For example, the string 'ABC#$' is stored as:
+        RadixTree('ABC#$') -> con = { 'A': RadixTree('BC#$') }
+        RadixTree('BC#$')  -> con = { 'B': RadixTree('C#$') }
+        RadixTree('C#$')   -> con = { 'C': RadixTree('#$') }
+        RadixTree('#$')    -> con = { ':': RadixTree('$') }
+        RadixTree('$')     -> con = { ':': RadixTree() }, end == True
+
+    Attributes:
+        con (tuple[_RQP[T], ...]): Child nodes keyed by character.
+        end (bool): True if this node represents the end of a word.
+        index (tuple[T, ...]): Associated index or data for this node.
+        max (int): Maximum number of children nodes (default 1).
+        ready (bool): Flag indicating if the node is ready
+            (compact implementation of a prefix tree).
+
+    Args:
+        init (str): The initial string to build the radix tree node from.
+        index (tuple[T, ...]): Tuple of associated data or index values.
+    """
 
     __slots__ = ("con", "end", "index", "max", "ready")
 

@@ -1,4 +1,4 @@
-FROM docker.io/rockylinux:9
+FROM docker.io/almalinux:9
 
 ARG UV
 ARG USERNAME=devu

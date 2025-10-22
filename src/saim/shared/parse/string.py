@@ -30,8 +30,17 @@ PATTERN_REDUNDANT_SPACE_R: Final[Pattern[str]] = re.compile(r"\s+(?=[\s,.:])")
 
 # new version of all the old functions:
 def clean_string(text: str, /, *pattern_args: Pattern[str]) -> str:
-    """Takes a string and one or multiple regex patterns,
-    returns the string with all occurrences of the patterns replaced by ''"""
+    """Removes all occurrences of one or multiple regex patterns from a string.
+
+    Args:
+        text (str): The input string to clean.
+        *pattern_args (Pattern[str]): One or more compiled regex patterns
+            to remove from the string.
+
+    Returns:
+        str: The cleaned string with all occurrences of the given patterns
+            replaced by an empty string.
+    """
     clean_string = text
     for pattern in pattern_args:
         clean_string = pattern.sub("", clean_string)

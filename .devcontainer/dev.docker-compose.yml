@@ -17,5 +17,10 @@ services:
       - ${SSH_AUTH_SOCK:-/dev/null}:/ssh-agent
       - .:/workspace
       - ~/.config/git/config:/etc/gitconfig
-    cap_add:
-    - SYS_ADMIN
+    networks:
+      - ollama
+
+networks:
+    ollama:
+        name: ollama
+        driver: bridge
