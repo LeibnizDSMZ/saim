@@ -10,16 +10,59 @@
 
 ---
 
-A library designed for strain authentication and
-culture collection number matching.
+**saim** (Strain Authentication and Identification Methods) is a Python toolkit for reproducible identification, authentication, and metadata handling of microbial strains. It provides utilities for validating strain metadata, harmonizing identifiers, running identification workflows, and exporting results for downstream analysis.
 
-## Requirements (development)
+---
 
-### Default
+## Installation - Development
 
-- GNU/Linux
+### Prerequisites
 
-### Dev Container
+- **GNU/Linux**
+- **Docker (optional)**
+- **Docker Compose (optional)**
+- **Dev Container CLI (optional)**
 
-- Docker
-- Docker - Compose
+### Steps
+
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/LeibnizDSMZ/cafi.git
+   cd cafi
+   ```
+
+#### Docker
+
+2. If using Docker, start the development container manually or use VSCode:
+   ```sh
+   devcontainer up --workspace-folder .
+   devcontainer exec --workspace-folder . bash
+   ```
+
+3. Create and activate a virtual environment (inside docker the container):
+   ```sh
+   make dev
+   make runAct
+   ```
+
+#### Local
+
+2. Create and activate a virtual environment:
+   ```sh
+   python -m venv .venv
+   source .venv/bin/activate
+   ```
+3. Install the dependencies:
+   ```sh
+   pip install .
+   pip install -r configs/dev/requirements.dev.txt
+   pip install -r configs/dev/requirements.test.txt
+   pip install -r configs/dev/requirements.docs.txt
+   ```
+
+---
+
+## Contributors
+
+- Artur Lissin
+- Julius Witte
