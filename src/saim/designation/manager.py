@@ -108,23 +108,24 @@ class AcronymManager:
             return _cr_ccno_des(self._ca_req_all[trimmed][0])
         if trimmed in self._ca_req:
             return _cr_ccno_des(self._ca_req[trimmed])
-        ide = identify_ccno(designation, self._ca_brc)
+        ide = identify_ccno(trimmed, self._ca_brc)
         self.__check_limit()
         self._ca_req[trimmed] = _cr_tuple_from_ccno_des(ide)
         return ide
 
     def identify_ccno_by_brc(self, designation: str, brc_id: int, /) -> CCNoDes:
-        for ccno in self.identify_ccno_all_valid(designation):
+        trimmed = designation.strip()
+        for ccno in self.identify_ccno_all_valid(trimmed):
             if ccno.acr != "" and brc_id in self.identify_acr(ccno.acr):
                 return ccno
-        return CCNoDes(designation=designation)
+        return CCNoDes(designation=trimmed)
 
     @_verify_date
     def identify_ccno_all_valid(self, designation: str, /) -> list[CCNoDes]:
         trimmed = designation.strip()
         if trimmed in self._ca_req_all:
             return [_cr_ccno_des(val) for val in self._ca_req_all[trimmed]]
-        ides = identify_all_valid_ccno(designation, self._ca_brc)
+        ides = identify_all_valid_ccno(trimmed, self._ca_brc)
         if len(ides) > 0:
             self.__check_limit()
             self._ca_req_all[trimmed] = [_cr_tuple_from_ccno_des(ide) for ide in ides]
