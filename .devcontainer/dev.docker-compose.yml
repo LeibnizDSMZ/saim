@@ -13,10 +13,11 @@ services:
         WORK_DIR: "/workspace"
         UV: ${UV_INSTALL_DIR}
         SSH_AUTH_SOCK: /ssh-agent
+        GITCONFIG_PATH: ${GITCONFIG_PATH}
     volumes:
       - ${SSH_AUTH_SOCK:-/dev/null}:/ssh-agent
       - .:/workspace
-      - ~/.config/git/config:/etc/gitconfig
+      - ${GITCONFIG_PATH:-${HOME}/.gitconfig}:/etc/gitconfig:ro
     networks:
       - ollama
 
