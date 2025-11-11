@@ -275,9 +275,9 @@ def run_request(browser: bool, session: CachedSession, /) -> Callable[..., AnyRe
 
 
 def _cr_request_params(browser: bool, /) -> dict[str, Any]:
-    timeout_val = 100
+    timeout_val = 60
     if browser:
-        timeout_val *= 5
+        timeout_val += 40
     return {
         "timeout": timeout_val,
         "allow_redirects": True,
