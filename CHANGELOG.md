@@ -1,3 +1,13 @@
+## v0.9.2 (2025-11-11)
+
+### Fix
+
+- **AcronymManager**: identify ccnos in trimmed designations
+
+### Refactor
+
+- adjust request timeout logic
+
 ## v0.9.1 (2025-09-26)
 
 ### Fix
