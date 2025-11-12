@@ -2,7 +2,7 @@ import re
 from saim.shared.data_con.designation import STRAIN_SI_ID_DOI
 
 
-_REG_DOI = re.compile(r"^10\.\d{4,9}\/[-._;()/:A-Z0-9]+$")
+_REG_DOI = re.compile(r"(?i)^10\.\d{4,9}/\S+$")
 
 
 def check_si_id_doi(doi: str, /) -> str:
