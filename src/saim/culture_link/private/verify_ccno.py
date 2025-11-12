@@ -68,7 +68,7 @@ def _wrap_status(
 _REQ: TypeAlias = dict[str, tuple[CoolDownDomain, RobotsTxt]]
 _ARGS_T: TypeAlias = tuple[TaskPackage, _REQ]
 _ARGS_ST: TypeAlias = tuple[
-    TaskPackage, _REQ, int, Path, BrowserPWAdapter | None, SimpleHTTPAdapter | None
+    TaskPackage, _REQ, int, Path, BrowserPWAdapter | None, SimpleHTTPAdapter | None, str
 ]
 _WSP: Final[Pattern[str]] = re.compile(r"\s+")
 
@@ -83,6 +83,7 @@ class SessionSettings:
     exp_days: int
     db_size_gb: int
     work_dir: Path
+    contact: str
 
 
 def _is_string_in_text(text: str, to_find: list[str], /) -> bool:
@@ -236,7 +237,7 @@ def _get_result(
         main_adapter, settings.exp_days, backend, wrap_key_f
     ) as session:
         resp = make_get_request(
-            browser, settings.pw_adapter, settings.url, session, domain
+            browser, settings.pw_adapter, settings.url, session, domain, settings.contact
         )
     if not resp.cached and closure:
         resp = CachedPageResp.change_to_cached_content(resp, buffered)
@@ -259,14 +260,16 @@ def _create_req_adapter(adapter: SimpleHTTPAdapter | None, /) -> SimpleHTTPAdapt
     )
 
 
-def _create_pw_adapter(adapter: BrowserPWAdapter | None, /) -> BrowserPWAdapter:
+def _create_pw_adapter(
+    adapter: BrowserPWAdapter | None, contact: str, /
+) -> BrowserPWAdapter:
     if adapter is not None:
         return adapter
-    return BrowserPWAdapter(PWContext(2), 3)
+    return BrowserPWAdapter(PWContext(2), contact, 3)
 
 
 def verify_ccno_in_url(args: _ARGS_ST, /) -> VerifiedURL:
-    task, cool_down, size, folder, pwa, rea = args
+    task, cool_down, size, folder, pwa, rea, contact = args
     status = []
     try:
         for url_typ, url, name, exp in task:
@@ -276,12 +279,13 @@ def verify_ccno_in_url(args: _ARGS_ST, /) -> VerifiedURL:
             resp, ana_result = _get_result(
                 SessionSettings(
                     _create_req_adapter(rea),
-                    _create_pw_adapter(pwa),
+                    _create_pw_adapter(pwa, contact),
                     url,
                     name,
                     exp,
                     size,
                     folder,
+                    contact,
                 ),
                 domain,
                 task.search_task,
@@ -319,6 +323,7 @@ class ValueP(Protocol):
 class VerifyCcNosProc:
 
     __slots__: tuple[str, ...] = (
+        "__contact",
         "__finish",
         "__folder",
         "__pw_adapter",
@@ -335,6 +340,7 @@ class VerifyCcNosProc:
         size: int,
         folder: Path,
         finish: ValueP,
+        contact: str,
         /,
     ) -> None:
         self.__read: Queue[_ARGS_T] = read
@@ -342,6 +348,7 @@ class VerifyCcNosProc:
         self.__size = size
         self.__folder = folder
         self.__finish: ValueP = finish
+        self.__contact = contact
         self.__req_adapter: SimpleHTTPAdapter | None = None
         self.__pw_adapter: BrowserPWAdapter | None = None
         atexit.register(lambda: self.close())
@@ -349,7 +356,7 @@ class VerifyCcNosProc:
 
     @property
     def _pw_adapter(self) -> BrowserPWAdapter:
-        self.__pw_adapter = _create_pw_adapter(self.__pw_adapter)
+        self.__pw_adapter = _create_pw_adapter(self.__pw_adapter, self.__contact)
         return self.__pw_adapter
 
     @property
@@ -360,7 +367,15 @@ class VerifyCcNosProc:
     def __verify_ccno_in_url(self, args: _ARGS_T, /) -> VerifiedURL:
         task, req = args
         return verify_ccno_in_url(
-            (task, req, self.__size, self.__folder, self._pw_adapter, self._req_adapter)
+            (
+                task,
+                req,
+                self.__size,
+                self.__folder,
+                self._pw_adapter,
+                self._req_adapter,
+                self.__contact,
+            )
         )
 
     def run(self) -> None:

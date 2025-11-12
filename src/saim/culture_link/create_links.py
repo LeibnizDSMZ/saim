@@ -69,6 +69,7 @@ class CcnoLinkGenerator:
         self,
         worker: int,
         work_dir: Path,
+        contact: str = "",
         db_size_gb: int = 100,
         acr_man: AcronymManager | None = None,
         /,
@@ -77,7 +78,7 @@ class CcnoLinkGenerator:
         if acr is None:
             acr = AcronymManager(CURRENT_VER)
         self.__acr_man: AcronymManager = acr
-        self.__manager = RequestManager(worker, work_dir, db_size_gb)
+        self.__manager = RequestManager(worker, work_dir, db_size_gb, contact)
         self.__worker_cnt: int = worker
         atexit.register(lambda: self.__manager.close())
         super().__init__()

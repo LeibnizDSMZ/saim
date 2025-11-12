@@ -22,6 +22,7 @@ class ValueP(Protocol):
 @final
 class RequestManager:
     __slots__: tuple[str, ...] = (
+        "__contact",
         "__db_size_gb",
         "__domain_info",
         "__finish",
@@ -33,7 +34,9 @@ class RequestManager:
         "__worker",
     )
 
-    def __init__(self, worker: int, work_dir: Path, db_size_gb: int, /) -> None:
+    def __init__(
+        self, worker: int, work_dir: Path, db_size_gb: int, contact: str, /
+    ) -> None:
         self.__work_dir: Path = work_dir
         self.__db_size_gb: int = db_size_gb
         if self.__db_size_gb < 1:
@@ -46,6 +49,7 @@ class RequestManager:
         self.__res: Queue[VerifiedURL] = self.__mpc.Queue()
         self.__finish: ValueP = self.__mpc.Value("b", False)
         self.__worker = list(self.__create_workers(worker_cnt))
+        self.__contact = contact
         for pro in self.__worker:
             pro.start()
         super().__init__()
@@ -59,6 +63,7 @@ class RequestManager:
                     self.__db_size_gb,
                     self.__work_dir,
                     self.__finish,
+                    self.__contact,
                 ).run
             )
 

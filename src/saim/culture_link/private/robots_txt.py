@@ -11,9 +11,15 @@ from saim.shared.misc.constants import ENCODING, VERSION
 from saim.shared.error.exceptions import RequestURIEx
 
 
-BOT_NAME: Final[str] = "StrainInfo"
-USER_AGENT: Final[str] = f"{BOT_NAME}/{VERSION}"
+BOT_NAME: Final[str] = "saim"
+USER_AGENT: Final[str] = f"{BOT_NAME}-bot/{VERSION}"
 ROB_EXP_SEC: Final[int] = 86400
+
+
+def get_user_agent(contact: str, /) -> str:
+    if contact == "":
+        return f"{USER_AGENT} (Python library)"
+    return f"{USER_AGENT} (Python library; {contact})"
 
 
 @final
