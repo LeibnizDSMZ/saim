@@ -63,7 +63,9 @@ async def _verify_links(
     print("<---")
 
 
-def validate_cafi(version: str, worker: int, db_size: int, output: str, /) -> None:
+def validate_cafi(
+    version: str, worker: int, db_size: int, output: str, contact: str, /
+) -> None:
     if output == "" or not (work_dir := Path(output)).is_dir():
         tmp = tempfile.TemporaryDirectory()
         atexit.register(lambda: tmp.cleanup())
@@ -74,6 +76,7 @@ def validate_cafi(version: str, worker: int, db_size: int, output: str, /) -> No
     linker = CcnoLinkGenerator(
         worker,
         work_dir,
+        contact,
         db_size,
     )
     print("VERIFY HOMEPAGES")

@@ -125,6 +125,7 @@ def _cr_args_test_verify_ccno_in_url(
     Path,
     BrowserPWAdapter,
     None,
+    str,
 ]:
     cool = CoolDownDomain(get_worker_ctx(), "test.test")
     robot = RobotsTxt("http://test.test/1", get_worker_ctx())
@@ -147,7 +148,7 @@ def _cr_args_test_verify_ccno_in_url(
         timeout=False,
         prohibited=False,
     )
-    return (task_pack, c_down, 20, workdir, browser_adapter, None)
+    return (task_pack, c_down, 20, workdir, browser_adapter, None, "")
 
 
 @pytest.mark.filterwarnings("ignore:.* http.*")

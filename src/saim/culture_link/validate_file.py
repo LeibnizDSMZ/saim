@@ -95,13 +95,15 @@ async def _verify_links(
 
 
 def validate_file(
-    version: str, worker: int, db_size: int, output: str, in_file: Path, /
+    version: str, worker: int, db_size: int, output: str, in_file: Path, contact: str, /
 ) -> None:
     if output == "" or not (work_dir := Path(output)).is_dir():
         tmp = tempfile.TemporaryDirectory()
         atexit.register(lambda: tmp.cleanup())
         work_dir = Path(tmp.name)
-    linker = CcnoLinkGenerator(worker, work_dir, db_size, AcronymManager(version))
+    linker = CcnoLinkGenerator(
+        worker, work_dir, contact, db_size, AcronymManager(version)
+    )
     print("VERIFY FILE")
     asyncio.run(_verify_links(linker, read_tasks(in_file), output, in_file))
     print("--- DONE ---")

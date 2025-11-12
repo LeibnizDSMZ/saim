@@ -25,7 +25,7 @@ from saim.shared.misc.constants import ENCODING
 
 from saim.culture_link.private.container import CachedPageResp
 from saim.culture_link.private.cool_down import CoolDownDomain
-from saim.culture_link.private.robots_txt import USER_AGENT, RobotsTxt
+from saim.culture_link.private.robots_txt import RobotsTxt, get_user_agent
 from saim.shared.error.exceptions import SessionCreationEx
 from saim.shared.error.warnings import RequestWarn
 
@@ -144,11 +144,20 @@ class SimpleHTTPAdapter(HTTPAdapter):
 
 @final
 class BrowserPWAdapter(BaseAdapter):
-    __slots__: tuple[str, ...] = ("__browser", "__pwc", "__retries", "__runner")
+    __slots__: tuple[str, ...] = (
+        "__browser",
+        "__contact",
+        "__pwc",
+        "__retries",
+        "__runner",
+    )
 
-    def __init__(self, pwc: PWContext, max_retries: int = 0, /) -> None:
+    def __init__(
+        self, pwc: PWContext, contact: str = "", max_retries: int = 0, /
+    ) -> None:
         self.__retries = max_retries
         self.__pwc: PWContext = pwc
+        self.__contact = contact
         if not self.__pwc.is_test:
             ctx = self.__pwc.runner.run(self.__pwc.ctx)
             self.__browser: Browser | None = self.__pwc.runner.run(
@@ -177,7 +186,7 @@ class BrowserPWAdapter(BaseAdapter):
         )
         page.on("console", lambda _: None)
         tout_msec = None
-        await page.set_extra_http_headers({"User-Agent": USER_AGENT})
+        await page.set_extra_http_headers({"User-Agent": get_user_agent(self.__contact)})
         if isinstance(timeout, (float, int)):
             tout_msec = timeout * 1000
             page.set_default_timeout(timeout=tout_msec)
@@ -274,21 +283,26 @@ def run_request(browser: bool, session: CachedSession, /) -> Callable[..., AnyRe
     return session.head
 
 
-def _cr_request_params(browser: bool, /) -> dict[str, Any]:
+def _cr_request_params(browser: bool, contact: str, /) -> dict[str, Any]:
     timeout_val = 60
     if browser:
         timeout_val += 40
     return {
         "timeout": timeout_val,
         "allow_redirects": True,
-        "headers": {"User-Agent": USER_AGENT},
+        "headers": {"User-Agent": get_user_agent(contact)},
     }
 
 
 def _browser_fallback_wrap(
-    browser: bool, pw_adapter: BrowserPWAdapter, session: CachedSession, url: str, /
+    browser: bool,
+    pw_adapter: BrowserPWAdapter,
+    session: CachedSession,
+    url: str,
+    contact: str,
+    /,
 ) -> AnyResponse:
-    params = _cr_request_params(browser)
+    params = _cr_request_params(browser, contact)
     try:
         response = run_request(browser, session)(url, **params)
     except (Error, RequestException):
@@ -309,6 +323,7 @@ def make_get_request(
     url: str,
     session: CachedSession,
     domain_info: tuple[CoolDownDomain, RobotsTxt],
+    contact: str,
     /,
 ) -> CachedPageResp:
     results = CachedPageResp(prohibited=True)
@@ -320,7 +335,7 @@ def make_get_request(
         nonlocal results
         request_time = time.time()
         try:
-            response = _browser_fallback_wrap(browser, pw_adapter, session, url)
+            response = _browser_fallback_wrap(browser, pw_adapter, session, url, contact)
             if response.from_cache:
                 request_time = last_request
         except (Error, RequestException):

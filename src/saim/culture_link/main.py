@@ -47,6 +47,17 @@ def _parse_args(argv: list[str], /) -> argparse.Namespace:
         metavar="str",
     )
     parser.add_argument(
+        "-c",
+        "--contact",
+        action="store",
+        type=str,
+        required=False,
+        default="",
+        help="the contact used for bot user agent header",
+        dest="contact",
+        metavar="str",
+    )
+    parser.add_argument(
         "-o",
         "--output",
         action="store",
@@ -72,10 +83,17 @@ def run() -> None:
     warnings.formatwarning = lambda msg, *_arg: f"WARN: {msg}\n"
     if not args.cafi and args.input != "" and (in_file := Path(args.input)).is_file():
         validate_file(
-            CURRENT_VER, int(args.worker), int(args.db_size), args.output, in_file
+            CURRENT_VER,
+            int(args.worker),
+            int(args.db_size),
+            args.output,
+            in_file,
+            args.contact,
         )
     else:
-        validate_cafi(CURRENT_VER, int(args.worker), int(args.db_size), args.output)
+        validate_cafi(
+            CURRENT_VER, int(args.worker), int(args.db_size), args.output, args.contact
+        )
 
 
 if __name__ == "__main__":
