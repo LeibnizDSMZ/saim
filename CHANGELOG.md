@@ -1,3 +1,9 @@
+## v0.9.5 (2025-11-12)
+
+### Refactor
+
+- add contact option for user agent header
+
 ## v0.9.4 (2025-11-12)
 
 ### Refactor
