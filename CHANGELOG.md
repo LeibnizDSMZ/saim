@@ -1,3 +1,9 @@
+## v0.9.4 (2025-11-12)
+
+### Refactor
+
+- **doi**: make doi regex case‑insensitive and accept any non‑whitespace
+
 ## v0.9.3 (2025-11-11)
 
 ### Refactor
