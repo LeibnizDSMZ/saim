@@ -1,3 +1,9 @@
+## v0.9.7 (2025-11-17)
+
+### Refactor
+
+- improve browser request handling and update CiDSrc enum
+
 ## v0.9.6 (2025-11-17)
 
 ### Fix
