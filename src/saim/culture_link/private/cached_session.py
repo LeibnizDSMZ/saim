@@ -3,7 +3,6 @@ from datetime import timedelta
 from io import BytesIO
 import time
 from typing import (
-    Any,
     Awaitable,
     Callable,
     Concatenate,
@@ -210,21 +209,21 @@ class BrowserPWAdapter(BaseAdapter):
             page.set_default_timeout(timeout=tout_msec)
             page.set_default_navigation_timeout(timeout=tout_msec)
         resp: Response | None = await _get_resp(
-            lambda: page.goto(url, timeout=tout_msec, wait_until="domcontentloaded"),
+            lambda: page.goto(url, timeout=tout_msec, wait_until="commit"),
             err_str,
         )
         for _ in range(self.__retries):
             if resp is not None:
                 break
             resp = await _get_resp(
-                lambda: page.reload(timeout=tout_msec, wait_until="domcontentloaded"),
+                lambda: page.reload(timeout=tout_msec, wait_until="commit"),
                 err_str,
             )
         start = time.time()
         wrapped: RequestResponse | None = None
         if resp is not None:
             try:
-                await page.wait_for_load_state(state="networkidle", timeout=30)
+                await page.wait_for_load_state(state="domcontentloaded", timeout=180)
             except Error:
                 pass
             else:
@@ -307,17 +306,6 @@ def run_request(browser: bool, session: CachedSession, /) -> Callable[..., AnyRe
     return session.head
 
 
-def _cr_request_params(browser: bool, contact: str, /) -> dict[str, Any]:
-    timeout_val = 60
-    if browser:
-        timeout_val *= 3
-    return {
-        "timeout": timeout_val,
-        "allow_redirects": True,
-        "headers": {"User-Agent": get_user_agent(contact)},
-    }
-
-
 def _browser_fallback_wrap(
     browser: bool,
     pw_adapter: BrowserPWAdapter,
@@ -326,7 +314,11 @@ def _browser_fallback_wrap(
     contact: str,
     /,
 ) -> AnyResponse:
-    params = _cr_request_params(browser, contact)
+    params = {
+        "timeout": 60,
+        "allow_redirects": True,
+        "headers": {"User-Agent": get_user_agent(contact)},
+    }
     try:
         response = run_request(browser, session)(url, **params)
     except (Error, RequestException):
