@@ -7,6 +7,7 @@ from typing import (
     Awaitable,
     Callable,
     Concatenate,
+    Final,
     Mapping,
     ParamSpec,
     final,
@@ -142,6 +143,17 @@ class SimpleHTTPAdapter(HTTPAdapter):
         super(HTTPAdapter, self).close()
 
 
+BLOCK_TYPES: Final[list[str]] = [
+    "image",
+    "media",
+    "font",
+    "stylesheet",
+    "ping",
+    "manifest",
+    "prefetch",
+]
+
+
 @final
 class BrowserPWAdapter(BaseAdapter):
     __slots__: tuple[str, ...] = (
@@ -184,6 +196,12 @@ class BrowserPWAdapter(BaseAdapter):
         page = await self.__browser.new_page(
             java_script_enabled=True, accept_downloads=False
         )
+        await page.route(
+            "**/*",
+            lambda route, req: (
+                route.abort() if req.resource_type in BLOCK_TYPES else route.continue_()
+            ),
+        )
         page.on("console", lambda _: None)
         tout_msec = None
         await page.set_extra_http_headers({"User-Agent": get_user_agent(self.__contact)})
@@ -192,20 +210,26 @@ class BrowserPWAdapter(BaseAdapter):
             page.set_default_timeout(timeout=tout_msec)
             page.set_default_navigation_timeout(timeout=tout_msec)
         resp: Response | None = await _get_resp(
-            lambda: page.goto(url, timeout=tout_msec, wait_until="load"), err_str
+            lambda: page.goto(url, timeout=tout_msec, wait_until="domcontentloaded"),
+            err_str,
         )
         for _ in range(self.__retries):
             if resp is not None:
                 break
             resp = await _get_resp(
-                lambda: page.reload(timeout=tout_msec, wait_until="load"), err_str
+                lambda: page.reload(timeout=tout_msec, wait_until="domcontentloaded"),
+                err_str,
             )
         start = time.time()
         wrapped: RequestResponse | None = None
         if resp is not None:
-            await page.wait_for_load_state(state="domcontentloaded")
-            if (tim_sl := 4 - (time.time() - start)) > 0:
-                time.sleep(tim_sl)
+            try:
+                await page.wait_for_load_state(state="networkidle", timeout=30)
+            except Error:
+                pass
+            else:
+                if (tim_sl := 4 - (time.time() - start)) > 0:
+                    time.sleep(tim_sl)
             content = await page.content()
             wrapped = _create_response(request, resp, content)
         await page.close()
@@ -286,7 +310,7 @@ def run_request(browser: bool, session: CachedSession, /) -> Callable[..., AnyRe
 def _cr_request_params(browser: bool, contact: str, /) -> dict[str, Any]:
     timeout_val = 60
     if browser:
-        timeout_val += 40
+        timeout_val *= 3
     return {
         "timeout": timeout_val,
         "allow_redirects": True,
