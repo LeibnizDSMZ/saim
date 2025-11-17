@@ -1,3 +1,9 @@
+## v0.9.6 (2025-11-17)
+
+### Fix
+
+- move contact initialization earlier in RequestManager
+
 ## v0.9.5 (2025-11-12)
 
 ### Refactor
