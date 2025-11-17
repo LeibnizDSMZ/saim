@@ -38,6 +38,7 @@ class RequestManager:
         self, worker: int, work_dir: Path, db_size_gb: int, contact: str, /
     ) -> None:
         self.__work_dir: Path = work_dir
+        self.__contact = contact
         self.__db_size_gb: int = db_size_gb
         if self.__db_size_gb < 1:
             self.__db_size_gb = 100
@@ -49,7 +50,6 @@ class RequestManager:
         self.__res: Queue[VerifiedURL] = self.__mpc.Queue()
         self.__finish: ValueP = self.__mpc.Value("b", False)
         self.__worker = list(self.__create_workers(worker_cnt))
-        self.__contact = contact
         for pro in self.__worker:
             pro.start()
         super().__init__()
