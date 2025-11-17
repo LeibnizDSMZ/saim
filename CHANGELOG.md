@@ -1,3 +1,9 @@
+## v0.9.8 (2025-11-17)
+
+### Refactor
+
+- **browser**: update navigation wait states and request params
+
 ## v0.9.7 (2025-11-17)
 
 ### Refactor
