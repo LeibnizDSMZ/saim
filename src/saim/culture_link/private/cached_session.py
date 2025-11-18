@@ -223,7 +223,7 @@ class BrowserPWAdapter(BaseAdapter):
         wrapped: RequestResponse | None = None
         if resp is not None:
             try:
-                await page.wait_for_load_state(state="domcontentloaded", timeout=180)
+                await page.wait_for_load_state(state="domcontentloaded", timeout=180000)
             except Error:
                 pass
             else:
