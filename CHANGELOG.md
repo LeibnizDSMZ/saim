@@ -1,3 +1,9 @@
+## v0.9.9 (2025-11-18)
+
+### Fix
+
+- increase load state timeout to 180000 ms
+
 ## v0.9.8 (2025-11-17)
 
 ### Refactor
