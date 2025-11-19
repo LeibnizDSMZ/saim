@@ -1,3 +1,9 @@
+## v0.9.10 (2025-11-19)
+
+### Fix
+
+- **taxon_name**: correct filter logic
+
 ## v0.9.9 (2025-11-18)
 
 ### Fix
