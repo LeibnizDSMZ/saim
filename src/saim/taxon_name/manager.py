@@ -101,12 +101,12 @@ class _IdP(Protocol):
     def lpsn(self) -> set[int]: ...
 
 
-def _filter_ids(ncbi: int, lpsn: int, id_con: _IdP, /) -> bool:
-    if ncbi > 0 and ncbi not in id_con.ncbi:
-        return False
-    if lpsn > 0 and lpsn not in id_con.lpsn:
-        return False
-    return True
+def _keep_ids(ncbi: int, lpsn: int, id_con: _IdP, /) -> bool:
+    if lpsn > 0 and lpsn in id_con.lpsn:
+        return True
+    if ncbi > 0 and ncbi in id_con.ncbi:
+        return True
+    return lpsn <= 0 and ncbi <= 0
 
 
 @final
@@ -248,9 +248,7 @@ class TaxonManager:
         _fill_con(ranks, ncbi, lambda con, nid: con.ncbi.add(nid), fun)
         _fill_con(ranks, lpsn, lambda con, lid: con.lpsn.add(lid), fun)
         if len(ranks) > 0:
-            return [
-                rank for rank in ranks.values() if _filter_ids(ncbi_id, lpsn_id, rank)
-            ]
+            return [rank for rank in ranks.values() if _keep_ids(ncbi_id, lpsn_id, rank)]
         return [RankId(rank=self.__gbif.get_rank(name))]
 
     @_verify_date
@@ -275,7 +273,7 @@ class TaxonManager:
         _fill_con(domains, ncbi_res, lambda con, nid: con.ncbi.add(nid), fun)
         _fill_con(domains, lpsn_res, lambda con, lid: con.lpsn.add(lid), fun)
         if len(domains) > 0:
-            return [dom for dom in domains.values() if _filter_ids(ncbi_id, lpsn_id, dom)]
+            return [dom for dom in domains.values() if _keep_ids(ncbi_id, lpsn_id, dom)]
         return []
 
     @_verify_date
@@ -296,7 +294,7 @@ class TaxonManager:
         _fill_con(genus, ncbi, lambda con, nid: con.ncbi.add(nid), fun)
         _fill_con(genus, lpsn, lambda con, lid: con.lpsn.add(lid), fun)
         if len(genus) > 0:
-            return [gen for gen in genus.values() if _filter_ids(ncbi_id, lpsn_id, gen)]
+            return [gen for gen in genus.values() if _keep_ids(ncbi_id, lpsn_id, gen)]
         return []
 
     @_verify_date
@@ -317,7 +315,7 @@ class TaxonManager:
         _fill_con(species, ncbi, lambda con, nid: con.ncbi.add(nid), fun)
         _fill_con(species, lpsn, lambda con, lid: con.lpsn.add(lid), fun)
         if len(species) > 0:
-            return [spe for spe in species.values() if _filter_ids(ncbi_id, lpsn_id, spe)]
+            return [spe for spe in species.values() if _keep_ids(ncbi_id, lpsn_id, spe)]
         return []
 
     @_verify_date
