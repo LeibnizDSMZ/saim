@@ -6,9 +6,9 @@ from saim.shared.parse.geo import (
     check_country_code,
     check_lat,
     check_long,
+    clean_place_name,
     parse_lat_long,
 )
-from saim.shared.parse.string import trim_edges
 
 
 @final
@@ -16,8 +16,8 @@ class Location(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", validate_default=False)
 
     code: Annotated[str, AfterValidator(check_country_code)] = ""
-    country: Annotated[str, Field(min_length=2)] = ""
-    place: list[Annotated[str, AfterValidator(trim_edges), Field(min_length=2)]] = Field(
+    country: Annotated[str, AfterValidator(clean_place_name)] = ""
+    place: list[Annotated[str, AfterValidator(clean_place_name)]] = Field(
         default_factory=list
     )
     long: Annotated[str, AfterValidator(lambda val: parse_lat_long(val, check_long))] = (

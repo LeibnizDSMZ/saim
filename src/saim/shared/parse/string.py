@@ -22,7 +22,7 @@ PATTERN_LEAD_ZERO_R: Final[re.Pattern[str]] = re.compile(r"^0*(?=\d+$)")
 PATTERN_SINGLE_WORD_CHAR_R: Final[Pattern[str]] = re.compile(r"^[A-Za-z0-9]$")
 PATTERN_TAG_R: Final[Pattern[str]] = re.compile(r"<[^<>]*>")
 PATTERN_BRACKETS_RL: Final[tuple[Pattern[str], ...]] = (
-    re.compile(r"\([^())]*\)"),
+    re.compile(r"\([^)(]*\)"),
     re.compile(r"\[[^[\]]*\]"),
 )
 PATTERN_REDUNDANT_SPACE_R: Final[Pattern[str]] = re.compile(r"\s+(?=[\s,.:])")
