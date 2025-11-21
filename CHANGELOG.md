@@ -1,3 +1,9 @@
+## v0.9.11 (2025-11-21)
+
+### Refactor
+
+- **location**: clean and validate place names
+
 ## v0.9.10 (2025-11-19)
 
 ### Fix
