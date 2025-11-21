@@ -4,9 +4,9 @@ import sys
 import warnings
 
 from cafi.constants.versions import CURRENT_VER
-from saim.culture_link.validate_file import validate_file
+from saim.deposit_link.validate_file import validate_file
 
-from saim.culture_link.validate_cafi import validate_cafi
+from saim.deposit_link.validate_cafi import validate_cafi
 
 
 def _parse_args(argv: list[str], /) -> argparse.Namespace:

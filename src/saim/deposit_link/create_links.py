@@ -6,10 +6,10 @@ from typing import AsyncIterable, Iterable, final
 from cafi.constants.versions import CURRENT_VER
 from cafi.library.catalogue import create_ccno_links
 from cafi.container.links import CatalogueLink, LinkLevel
-from saim.culture_link.private.container import SearchTask
+from saim.deposit_link.private.container import SearchTask
 
 
-from saim.culture_link.private.manager import (
+from saim.deposit_link.private.manager import (
     RequestManager,
     TaskPackage,
     VerifiedURL,

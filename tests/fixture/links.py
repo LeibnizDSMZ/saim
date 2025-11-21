@@ -1,8 +1,8 @@
 import pytest
 
-from saim.culture_link.private.cached_session import BrowserPWAdapter, PWContext
-from saim.culture_link.private.container import CachedPageResp, SearchTask, TaskPackage
-from saim.culture_link.private.cool_down import CoolDownDomain
+from saim.deposit_link.private.cached_session import BrowserPWAdapter, PWContext
+from saim.deposit_link.private.container import CachedPageResp, SearchTask, TaskPackage
+from saim.deposit_link.private.cool_down import CoolDownDomain
 from saim.shared.data_con.designation import CCNoDes, CCNoId
 from saim.shared.misc.ctx import get_worker_ctx
 

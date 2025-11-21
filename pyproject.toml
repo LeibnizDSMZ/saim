@@ -28,7 +28,7 @@ dependencies = [
 
 [project.scripts]
 extract_ccno = "saim.designation.main:run"
-verify_cafi = "saim.culture_link.main:run"
+verify_cafi = "saim.deposit_link.main:run"
 
 [tool.setuptools.packages.find]
 where = ["src"]

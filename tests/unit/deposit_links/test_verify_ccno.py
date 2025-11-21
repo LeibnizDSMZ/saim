@@ -6,9 +6,9 @@ from datetime import timedelta
 from unittest.mock import Mock
 from requests_cache import CachedSession
 
-from saim.culture_link.private.cached_session import BrowserPWAdapter
-from saim.culture_link.private.constants import VerificationStatus
-from saim.culture_link.private.container import (
+from saim.deposit_link.private.cached_session import BrowserPWAdapter
+from saim.deposit_link.private.constants import VerificationStatus
+from saim.deposit_link.private.container import (
     CachedPageResp,
     LinkResult,
     LinkStatus,
@@ -16,9 +16,9 @@ from saim.culture_link.private.container import (
     TaskPackage,
     VerifiedURL,
 )
-from saim.culture_link.private.cool_down import CoolDownDomain
-from saim.culture_link.private.robots_txt import RobotsTxt
-from saim.culture_link.private.verify_ccno import (
+from saim.deposit_link.private.cool_down import CoolDownDomain
+from saim.deposit_link.private.robots_txt import RobotsTxt
+from saim.deposit_link.private.verify_ccno import (
     _find_elements_in_content,
     _is_ccno_in_text,
     _is_string_in_text,
@@ -152,9 +152,9 @@ def _cr_args_test_verify_ccno_in_url(
 
 
 @pytest.mark.filterwarnings("ignore:.* http.*")
-@unittest.mock.patch("saim.culture_link.private.verify_ccno.make_get_request")
-@unittest.mock.patch("saim.culture_link.private.verify_ccno.create_get_cache")
-@unittest.mock.patch("saim.culture_link.private.verify_ccno.yaml_serializer")
+@unittest.mock.patch("saim.deposit_link.private.verify_ccno.make_get_request")
+@unittest.mock.patch("saim.deposit_link.private.verify_ccno.create_get_cache")
+@unittest.mock.patch("saim.deposit_link.private.verify_ccno.yaml_serializer")
 def test_verify_ccno_in_url_ok(
     mock_serializer: Mock,
     mock_cache_session: Mock,
@@ -187,9 +187,9 @@ def test_verify_ccno_in_url_ok(
 
 
 @pytest.mark.filterwarnings("ignore:.* http.*")
-@unittest.mock.patch("saim.culture_link.private.verify_ccno.make_get_request")
-@unittest.mock.patch("saim.culture_link.private.verify_ccno.create_get_cache")
-@unittest.mock.patch("saim.culture_link.private.verify_ccno.yaml_serializer")
+@unittest.mock.patch("saim.deposit_link.private.verify_ccno.make_get_request")
+@unittest.mock.patch("saim.deposit_link.private.verify_ccno.create_get_cache")
+@unittest.mock.patch("saim.deposit_link.private.verify_ccno.yaml_serializer")
 def test_verify_ccno_in_url_fail(
     mock_serializer: Mock,
     mock_cache_session: Mock,
@@ -231,9 +231,9 @@ def test_verify_ccno_in_url_fail(
 
 
 @pytest.mark.filterwarnings("ignore:.* http.*")
-@unittest.mock.patch("saim.culture_link.private.verify_ccno.make_get_request")
-@unittest.mock.patch("saim.culture_link.private.verify_ccno.create_get_cache")
-@unittest.mock.patch("saim.culture_link.private.verify_ccno.yaml_serializer")
+@unittest.mock.patch("saim.deposit_link.private.verify_ccno.make_get_request")
+@unittest.mock.patch("saim.deposit_link.private.verify_ccno.create_get_cache")
+@unittest.mock.patch("saim.deposit_link.private.verify_ccno.yaml_serializer")
 def test_verify_ccno_in_url_fatal(
     mock_serializer: Mock,
     mock_cache_session: Mock,

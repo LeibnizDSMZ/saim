@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Protocol, final
 
-from saim.shared.data_con.culture import CultureStatus
+from saim.shared.data_con.deposit import DepositStatus
 from saim.shared.data_con.designation import CCNoIdP
 
 
@@ -15,7 +15,7 @@ class StrainRelation(Protocol):
     def relation(self) -> list[str]: ...
 
 
-class CultureMatch(JsonSerCon, Protocol):
+class DepositMatch(JsonSerCon, Protocol):
     @property
     def ccno(self) -> str: ...
     @property
@@ -25,7 +25,7 @@ class CultureMatch(JsonSerCon, Protocol):
     @property
     def id(self) -> CCNoIdP: ...
     @property
-    def status(self) -> CultureStatus: ...
+    def status(self) -> DepositStatus: ...
     @property
     def strain(self) -> StrainRelation: ...
 
@@ -33,7 +33,7 @@ class CultureMatch(JsonSerCon, Protocol):
 @final
 class ErrType(str, Enum):
     inv_brc = "BRC IS DEPRECATED"
-    inv_cul = "CULTURE IS ERRONEOUS"
+    inv_dep = "DEPOSIT IS ERRONEOUS"
     err_ca = "BROKEN CACHE - CONTAINS -1 IDS"
 
 
@@ -46,8 +46,8 @@ class ErrCon[IN: JsonSerCon]:
 
 @final
 @dataclass(slots=True, frozen=True, kw_only=True)
-class CulMatCon[IN: JsonSerCon]:
-    cul: IN
-    culture_id: int = -1
+class DepMatCon[IN: JsonSerCon]:
+    dep: IN
+    deposit_id: int = -1
     strain_id: int = -1
     fallback_strain_ids: list[int] = field(default_factory=list)

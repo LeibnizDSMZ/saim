@@ -43,7 +43,7 @@ _REQ_KEYS: Final[tuple[str, ...]] = (
 
 
 @final
-class CultureStatus(str, Enum):
+class DepositStatus(str, Enum):
     # not available
     pri = "private"
     dea = "dead"
@@ -64,23 +64,23 @@ class CiDSrc(str, Enum):
     brc_r = "provided by brc"
 
 
-def get_cul_sta_enum() -> list[str]:
-    return [str(sta.value) for sta in CultureStatus]
+def get_dep_sta_enum() -> list[str]:
+    return [str(sta.value) for sta in DepositStatus]
 
 
-_L_STA: Final[set[str]] = {str(sta.value) for sta in CultureStatus}
-_DEP_STA: Final[list[str]] = [str(CultureStatus.err.value)]
+_L_STA: Final[set[str]] = {str(sta.value) for sta in DepositStatus}
+_DEP_STA: Final[list[str]] = [str(DepositStatus.err.value)]
 
 
-def is_cul_status(name: str, /) -> bool:
+def is_dep_status(name: str, /) -> bool:
     return name in _L_STA
 
 
-def get_cul_err_states() -> list[str]:
+def get_dep_err_states() -> list[str]:
     return _DEP_STA
 
 
-def is_cul_erroneous(name: str, /) -> bool:
+def is_dep_erroneous(name: str, /) -> bool:
     return name in _DEP_STA
 
 
@@ -105,7 +105,7 @@ def _fix_name(source: Any) -> str:
 
 
 @final
-class CultureCCNo(BaseModel):
+class DepositCCNo(BaseModel):
     model_config = ConfigDict(frozen=False, extra="forbid", validate_default=False)
     _strict: bool
 
@@ -116,14 +116,14 @@ class CultureCCNo(BaseModel):
     )
     brc_id: Annotated[int, Field(ge=1)] = Field(alias="collectionId")
     ccno: Annotated[str, AfterValidator(clean_id_edges), Field(min_length=2)]
-    status: CultureStatus
+    status: DepositStatus
     type_strain: bool = Field(alias="typeStrain")
     source: CiDSrc
     # optional fields - default
     url: (
         Annotated[HttpUrl, PlainSerializer(lambda val: str(val), return_type=str)] | None
     ) = None
-    cul_id: Annotated[int, Field(ge=1)] | None = Field(default=None, alias="cultureId")
+    dep_id: Annotated[int, Field(ge=1)] | None = Field(default=None, alias="depositId")
     history: Annotated[str, AfterValidator(clean_text_rm_tags), Field(min_length=2)] = ""
     parent: Annotated[str, AfterValidator(trim_edges), Field(min_length=3)] = Field(
         default="", alias="parentDesignation"
@@ -165,7 +165,7 @@ class CultureCCNo(BaseModel):
             self.__check_known_acr(acr_man)
 
     @model_validator(mode="after")
-    def check_culture_ids_completeness(self) -> "CultureCCNo":
+    def check_deposit_ids_completeness(self) -> "DepositCCNo":
         if self.acr not in self.ccno:
             raise ValueError(f"acronym not in CCNo - {self.ccno} | {self.acr}")
         if self.id.full not in self.ccno:
@@ -246,7 +246,7 @@ class CultureCCNo(BaseModel):
 
 
 def run_patch_check(
-    con: CultureCCNo, tax_man: TaxonManager | None, acr_man: AcronymManager | None, /
+    con: DepositCCNo, tax_man: TaxonManager | None, acr_man: AcronymManager | None, /
 ) -> None:
     con.check_known_acr(acr_man)
     con.patch_taxon_name(tax_man)

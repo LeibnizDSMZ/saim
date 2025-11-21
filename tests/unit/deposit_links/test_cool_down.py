@@ -1,5 +1,5 @@
 import pytest
-from saim.culture_link.private.cool_down import CoolDownDomain
+from saim.deposit_link.private.cool_down import CoolDownDomain
 from saim.shared.error.warnings import RequestWarn
 
 pytest_plugins = ("tests.fixture.links",)

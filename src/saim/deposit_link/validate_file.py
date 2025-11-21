@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 import time
 
-from saim.culture_link.create_links import CcnoLinkGenerator, SearchRequest
+from saim.deposit_link.create_links import CcnoLinkGenerator, SearchRequest
 from saim.designation.manager import AcronymManager
 
 

@@ -3,8 +3,8 @@ import pytest
 
 from saim.designation.manager import AcronymManager
 from saim.shared.data_con.designation import CCNoId
-from saim.shared.data_con.culture import CultureStatus
-from saim.shared.data_con.strain import StrainCultureId
+from saim.shared.data_con.deposit import DepositStatus
+from saim.shared.data_con.strain import StrainDepositId
 from saim.strain_matching.manager import MatchCache
 
 from cafi.constants.versions import CURRENT_VER
@@ -23,7 +23,7 @@ class _TestCCNo:
     brc_id: int
     id: CCNoId
     id_syn: list[CCNoId]
-    status: CultureStatus
+    status: DepositStatus
     strain: _TestStrain
 
 
@@ -33,12 +33,12 @@ def relation_cache_1() -> dict[tuple[str, str, str, str], dict[int, int]]:
 
 
 @pytest.fixture
-def culture_ccno_1() -> dict[tuple[int, str, str, str], StrainCultureId]:
-    return {(1, "", "112721", ""): StrainCultureId(c=1, s=1)}
+def deposit_ccno_1() -> dict[tuple[int, str, str, str], StrainDepositId]:
+    return {(1, "", "112721", ""): StrainDepositId(c=1, s=1)}
 
 
 @pytest.fixture
-def si_cu_err_1() -> set[int]:
+def si_dp_err_1() -> set[int]:
     return {1}
 
 
@@ -55,7 +55,7 @@ def ccno_dsmz_no_re1() -> _TestCCNo:
         1,
         CCNoId(full="112721", core="112721"),
         [],
-        CultureStatus.unk,
+        DepositStatus.unk,
         _TestStrain(),
     )
 
@@ -68,7 +68,7 @@ def ccno_dsmz_si_id_re1() -> _TestCCNo:
         1,
         CCNoId(full="112722", core="112722"),
         [],
-        CultureStatus.unk,
+        DepositStatus.unk,
         _TestStrain(relation=["SI-ID 2", "DSM 112721"]),
     )
 
@@ -81,7 +81,7 @@ def ccno_dsmz_ccno_re1() -> _TestCCNo:
         1,
         CCNoId(full="112722", core="112722"),
         [],
-        CultureStatus.unk,
+        DepositStatus.unk,
         _TestStrain(relation=["DSM 112721"]),
     )
 
@@ -89,37 +89,37 @@ def ccno_dsmz_ccno_re1() -> _TestCCNo:
 @pytest.fixture
 def cache_direct_match(
     si_id_1: dict[int, int],
-    culture_ccno_1: dict[tuple[int, str, str, str], StrainCultureId],
+    deposit_ccno_1: dict[tuple[int, str, str, str], StrainDepositId],
 ) -> MatchCache:
     return MatchCache(
-        culture_ccno=culture_ccno_1,
+        deposit_ccno=deposit_ccno_1,
         relation_ccno={},
         si_id=si_id_1,
-        si_cu_err=set(),
+        si_dp_err=set(),
     )
 
 
 @pytest.fixture
 def cache_mis_match() -> MatchCache:
     return MatchCache(
-        culture_ccno={},
+        deposit_ccno={},
         relation_ccno={},
         si_id={},
-        si_cu_err=set(),
+        si_dp_err=set(),
     )
 
 
 @pytest.fixture
 def cache_err_match(
-    si_cu_err_1: set[int],
+    si_dp_err_1: set[int],
     si_id_1: dict[int, int],
-    culture_ccno_1: dict[tuple[int, str, str, str], StrainCultureId],
+    deposit_ccno_1: dict[tuple[int, str, str, str], StrainDepositId],
 ) -> MatchCache:
     return MatchCache(
-        culture_ccno=culture_ccno_1,
+        deposit_ccno=deposit_ccno_1,
         relation_ccno={},
         si_id=si_id_1,
-        si_cu_err=si_cu_err_1,
+        si_dp_err=si_dp_err_1,
     )
 
 
@@ -129,10 +129,10 @@ def cache_strain_match(
     si_id_1: dict[int, int],
 ) -> MatchCache:
     return MatchCache(
-        culture_ccno={},
+        deposit_ccno={},
         relation_ccno=relation_cache_1,
         si_id=si_id_1,
-        si_cu_err=set(),
+        si_dp_err=set(),
     )
 
 

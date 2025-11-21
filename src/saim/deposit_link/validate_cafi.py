@@ -6,7 +6,7 @@ from cafi.library.loader import load_catalogue_db, load_regex_db
 from cafi.container.acr_db import AcrDbEntry
 from cafi.container.links import LinkLevel
 from cafi.container.fun.format import url_to_str
-from saim.culture_link.create_links import CcnoLinkGenerator, SearchRequest
+from saim.deposit_link.create_links import CcnoLinkGenerator, SearchRequest
 from saim.designation.manager import AcronymManager
 
 

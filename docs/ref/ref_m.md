@@ -4,7 +4,7 @@
     options:
         show_submodules: true
 
-::: saim.culture_link
+::: saim.deposit_link
     options:
         show_submodules: true
 

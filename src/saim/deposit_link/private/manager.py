@@ -5,10 +5,10 @@ from pathlib import Path
 from queue import Empty, Full
 from typing import AsyncGenerator, Protocol, TypeAlias, final
 
-from saim.culture_link.private.container import TaskPackage, VerifiedURL
-from saim.culture_link.private.cool_down import CoolDownDomain
-from saim.culture_link.private.robots_txt import RobotsTxt
-from saim.culture_link.private.verify_ccno import VerifyCcNosProc
+from saim.deposit_link.private.container import TaskPackage, VerifiedURL
+from saim.deposit_link.private.cool_down import CoolDownDomain
+from saim.deposit_link.private.robots_txt import RobotsTxt
+from saim.deposit_link.private.verify_ccno import VerifyCcNosProc
 from saim.shared.misc.ctx import get_worker_ctx
 from saim.shared.parse.http_url import get_domain
 

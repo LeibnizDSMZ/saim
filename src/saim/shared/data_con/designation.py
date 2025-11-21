@@ -19,7 +19,7 @@ class DesignationType(str, Enum):
     mir = "MIRRI"
     wdcm_ref = "WDCM_REF"
     strid = "STRAIN_INFO_SI_ID"
-    culid = "STRAIN_INFO_SI_DP"
+    depid = "STRAIN_INFO_SI_DP"
 
 
 WDCM_REG: Final[tuple[re.Pattern[str], ...]] = (re.compile(r"^WDCM\s*\d+$"),)
@@ -39,7 +39,7 @@ ALL_DES_TYPES: Final[tuple[tuple[DesignationType, tuple[re.Pattern[str], ...]], 
     (DesignationType.wdcm_ref, WDCM_REG),
     (DesignationType.mir, MIRRI_REG),
     (DesignationType.strid, STRAIN_INFO_SI_ID_REG),
-    (DesignationType.culid, STRAIN_INFO_SI_DP_REG),
+    (DesignationType.depid, STRAIN_INFO_SI_DP_REG),
 )
 
 
@@ -97,7 +97,7 @@ class CCNoIdM(BaseModel):
         return ccno_id_to_dict(self, trim)
 
     @model_validator(mode="after")
-    def _check_culture_ids_completeness(self) -> "CCNoIdM":
+    def _check_deposit_ids_completeness(self) -> "CCNoIdM":
         if self.full == "" or self.core == "":
             raise ValueError("empty CCNoId detected")
         if self.core not in self.full:

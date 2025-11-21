@@ -18,15 +18,15 @@ from requests_cache import (
     yaml_serializer,
 )
 from urllib3 import Retry
-from saim.culture_link.private.cached_session import (
+from saim.deposit_link.private.cached_session import (
     BrowserPWAdapter,
     PWContext,
     SimpleHTTPAdapter,
     create_get_cache,
     make_get_request,
 )
-from saim.culture_link.private.constants import CacheNames, VerificationStatus
-from saim.culture_link.private.container import (
+from saim.deposit_link.private.constants import CacheNames, VerificationStatus
+from saim.deposit_link.private.container import (
     CachedPageResp,
     LinkResult,
     LinkStatus,
@@ -34,8 +34,8 @@ from saim.culture_link.private.container import (
     TaskPackage,
     VerifiedURL,
 )
-from saim.culture_link.private.cool_down import CoolDownDomain
-from saim.culture_link.private.robots_txt import RobotsTxt
+from saim.deposit_link.private.cool_down import CoolDownDomain
+from saim.deposit_link.private.robots_txt import RobotsTxt
 from saim.designation.extract_ccno import DEF_SUF_RM
 from saim.shared.cache.request import create_sqlite_backend
 from saim.shared.misc.constants import ENCODING

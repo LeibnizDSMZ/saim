@@ -284,7 +284,7 @@ def get_si_id(designation: str, /) -> tuple[int, int] | None:
     return None
 
 
-def get_si_cu(designation: str, /) -> int:
+def get_si_dp(designation: str, /) -> int:
     trimmed = designation.strip()
     for reg in STRAIN_INFO_SI_DP_REG:
         if (mat := reg.match(trimmed)) is not None:

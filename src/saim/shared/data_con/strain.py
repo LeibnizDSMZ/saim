@@ -7,9 +7,9 @@ from saim.shared.data_ops.clean import detect_empty_dict_keys
 from typing import NamedTuple
 
 
-class StrainCultureId(NamedTuple):
+class StrainDepositId(NamedTuple):
     s: int  # strain id
-    c: int  # culture id
+    c: int  # deposit id
 
 
 def _strip_designation(des: Any) -> Any:

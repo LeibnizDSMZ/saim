@@ -3,14 +3,14 @@ from saim.designation.manager import AcronymManager
 from saim.shared.data_con.designation import CCNoDesP
 from saim.strain_matching.private.ccno_match import CCNoMatch
 from saim.strain_matching.manager import MatchCache, UpdateResults
-from saim.strain_matching.private.container import CulMatCon, CultureMatch, ErrCon
+from saim.strain_matching.private.container import DepMatCon, DepositMatch, ErrCon
 from saim.strain_matching.private.strain_match import StrainMatch
 
 
 type MatchStrain = Callable[[Iterable[str]], set[int]]
 
 
-class _MatchWrapper[CT: CultureMatch]:
+class _MatchWrapper[CT: DepositMatch]:
     __slots__ = ("__cache", "__ccno_match", "__strain_match", "__update")
 
     def __init__(
@@ -25,16 +25,16 @@ class _MatchWrapper[CT: CultureMatch]:
 
     def run_match(
         self,
-        cul: CT,
-        update: Callable[[CulMatCon[CT]], UpdateResults],
+        dep: CT,
+        update: Callable[[DepMatCon[CT]], UpdateResults],
     ) -> ErrCon[CT] | None:
-        mat_cul = self.__ccno_match.match(cul)
-        if isinstance(mat_cul, ErrCon):
-            return mat_cul
-        mat_str = self.__strain_match.match(mat_cul)
+        mat_dep = self.__ccno_match.match(dep)
+        if isinstance(mat_dep, ErrCon):
+            return mat_dep
+        mat_str = self.__strain_match.match(mat_dep)
         upd_res = update(mat_str)
         if self.__update:
-            cul = mat_str.cul
+            dep = mat_str.dep
             self.__cache.update_cache(upd_res)
         return None
 
@@ -44,44 +44,44 @@ class _MatchWrapper[CT: CultureMatch]:
 
 
 def _create_relation(
-    cul: CultureMatch | None, acr_manager: AcronymManager, /
+    dep: DepositMatch | None, acr_manager: AcronymManager, /
 ) -> Sequence[CCNoDesP]:
-    if cul is None:
+    if dep is None:
         return []
     return [
         ccno_des
-        for rel in cul.strain.relation
+        for rel in dep.strain.relation
         for ccno_des in acr_manager.identify_ccno_all_valid(rel)
         if ccno_des.acr != ""
     ]
 
 
-def create_update_results[CT: CultureMatch](
-    old_cul: CT | None,
-    new_cul: CT | None,
+def create_update_results[CT: DepositMatch](
+    old_dep: CT | None,
+    new_dep: CT | None,
     si_id: int,
-    si_cu: int,
+    si_dp: int,
     acr_manager: AcronymManager,
     /,
 ) -> UpdateResults:
-    if new_cul is None:
-        return UpdateResults(si_id=si_id, si_cu=si_cu, used_in_update=False)
+    if new_dep is None:
+        return UpdateResults(si_id=si_id, si_dp=si_dp, used_in_update=False)
     return UpdateResults(
         si_id=si_id,
-        si_cu=si_cu,
+        si_dp=si_dp,
         used_in_update=True,
-        cid=(new_cul.brc_id, new_cul.id.pre, new_cul.id.core, new_cul.id.suf),
-        add_relations=_create_relation(new_cul, acr_manager),
-        del_relations=_create_relation(old_cul, acr_manager),
+        cid=(new_dep.brc_id, new_dep.id.pre, new_dep.id.core, new_dep.id.suf),
+        add_relations=_create_relation(new_dep, acr_manager),
+        del_relations=_create_relation(old_dep, acr_manager),
     )
 
 
 type MatchF[CT] = Callable[
-    [CT, Callable[[CulMatCon[CT]], UpdateResults]], ErrCon[CT] | None
+    [CT, Callable[[DepMatCon[CT]], UpdateResults]], ErrCon[CT] | None
 ]
 
 
-def match_factory[CT: CultureMatch](
+def match_factory[CT: DepositMatch](
     con_type: type[CT], dry_run: bool, skip: bool = True, /
 ) -> Callable[[AcronymManager, MatchCache], tuple[MatchF[CT], MatchStrain]]:
     print(f"creating matcher for type - {con_type!s}")

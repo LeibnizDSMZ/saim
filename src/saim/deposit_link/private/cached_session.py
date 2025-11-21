@@ -23,9 +23,9 @@ from requests.models import Response as RequestResponse
 from requests.exceptions import RequestException
 from saim.shared.misc.constants import ENCODING
 
-from saim.culture_link.private.container import CachedPageResp
-from saim.culture_link.private.cool_down import CoolDownDomain
-from saim.culture_link.private.robots_txt import RobotsTxt, get_user_agent
+from saim.deposit_link.private.container import CachedPageResp
+from saim.deposit_link.private.cool_down import CoolDownDomain
+from saim.deposit_link.private.robots_txt import RobotsTxt, get_user_agent
 from saim.shared.error.exceptions import SessionCreationEx
 from saim.shared.error.warnings import RequestWarn
 

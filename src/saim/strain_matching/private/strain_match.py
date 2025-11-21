@@ -4,12 +4,12 @@ import warnings
 from saim.designation.extract_ccno import get_si_id
 from saim.designation.known_acr_db import rm_complex_structure
 from saim.designation.manager import AcronymManager
-from saim.shared.data_con.strain import StrainCultureId
+from saim.shared.data_con.strain import StrainDepositId
 from saim.shared.data_con.designation import CCNoDesP
 from saim.shared.error.warnings import StrainMatchWarn
 from saim.strain_matching.private.container import (
-    CulMatCon,
-    CultureMatch,
+    DepMatCon,
+    DepositMatch,
 )
 
 
@@ -79,7 +79,7 @@ def _cr_selection(
     if selected == -1 and has_fallback and fb_rep != "":
         warn_msg += (
             " [SELECT] could not find a distinct strain "
-            + f"for culture - FB SI-IDs{fallback}"
+            + f"for deposit - FB SI-IDs{fallback}"
         )
     return selected, fallback, warn_msg
 
@@ -107,9 +107,9 @@ def _vote_strain(
 
 class _CacheProt(Protocol):
     @property
-    def si_cu_err(self) -> set[int]: ...
+    def si_dp_err(self) -> set[int]: ...
     @property
-    def culture_ccno(self) -> dict[tuple[int, str, str, str], StrainCultureId]: ...
+    def deposit_ccno(self) -> dict[tuple[int, str, str, str], StrainDepositId]: ...
     @property
     def si_id(self) -> dict[int, int]: ...
     @property
@@ -117,12 +117,12 @@ class _CacheProt(Protocol):
 
 
 @final
-class StrainMatch[CT: CultureMatch]:
+class StrainMatch[CT: DepositMatch]:
     __slots__ = (
         "__ca_acr_man",
-        "__ca_cul_ccno",
+        "__ca_dep_ccno",
         "__ca_rel_ccno",
-        "__ca_si_cu_err",
+        "__ca_si_dp_err",
         "__ca_si_id",
         "__skip",
     )
@@ -131,9 +131,9 @@ class StrainMatch[CT: CultureMatch]:
         self, cache: _CacheProt, ca_acr_man: AcronymManager, skip: bool, /
     ) -> None:
         self.__ca_rel_ccno = cache.relation_ccno
-        self.__ca_cul_ccno = cache.culture_ccno
+        self.__ca_dep_ccno = cache.deposit_ccno
         self.__ca_si_id = cache.si_id
-        self.__ca_si_cu_err = cache.si_cu_err
+        self.__ca_si_dp_err = cache.si_dp_err
         self.__ca_acr_man = ca_acr_man
         self.__skip = skip
         super().__init__()
@@ -143,31 +143,31 @@ class StrainMatch[CT: CultureMatch]:
             return self.__ca_si_id[si_id]
         return -1
 
-    def match(self, cul_mat: CulMatCon[CT]) -> CulMatCon[CT]:
-        if self.__skip and cul_mat.strain_id > 0 and cul_mat.culture_id > 0:
-            return cul_mat
-        r_ccno_sid = self.__find_ccno_in_relation(cul_mat.cul)
-        r_ccno_ov_sid = self.__find_ccno_relation_overlap(cul_mat.cul)
-        r_tcu_ov_sid = self.__find_si_id_relation_overlap(cul_mat.cul)
-        si_id_str, fb_ids, w_msg = _vote_strain(r_ccno_sid, r_ccno_ov_sid, r_tcu_ov_sid)
-        si_id_cul = self.__get_mid(cul_mat.strain_id)
+    def match(self, dep_mat: DepMatCon[CT]) -> DepMatCon[CT]:
+        if self.__skip and dep_mat.strain_id > 0 and dep_mat.deposit_id > 0:
+            return dep_mat
+        r_ccno_sid = self.__find_ccno_in_relation(dep_mat.dep)
+        r_ccno_ov_sid = self.__find_ccno_relation_overlap(dep_mat.dep)
+        r_tde_ov_sid = self.__find_si_id_relation_overlap(dep_mat.dep)
+        si_id_str, fb_ids, w_msg = _vote_strain(r_ccno_sid, r_ccno_ov_sid, r_tde_ov_sid)
+        si_id_dep = self.__get_mid(dep_mat.strain_id)
         sel_si_id = si_id_str
-        selection_mis = si_id_cul > 0 and si_id_str != si_id_cul
+        selection_mis = si_id_dep > 0 and si_id_str != si_id_dep
         if selection_mis:
-            sel_si_id = si_id_cul
+            sel_si_id = si_id_dep
             if si_id_str > 0 or len(fb_ids) > 0:
                 w_msg += (
-                    f"[CUL-STR] cul. si-id {si_id_cul} neq. to str. si-id {si_id_str}"
+                    f"[DEP-STR] dep. si-id {si_id_dep} neq. to str. si-id {si_id_str}"
                 )
                 w_msg += f" fallbacks {fb_ids!s}"
             if si_id_str > 0:
                 fb_ids.append(si_id_str)
         if w_msg != "":
-            warnings.warn(f"[{cul_mat.cul.ccno}] {w_msg}", StrainMatchWarn, stacklevel=2)
-        return CulMatCon(
+            warnings.warn(f"[{dep_mat.dep.ccno}] {w_msg}", StrainMatchWarn, stacklevel=2)
+        return DepMatCon(
             strain_id=sel_si_id,
-            culture_id=cul_mat.culture_id,
-            cul=cul_mat.cul,
+            deposit_id=dep_mat.deposit_id,
+            dep=dep_mat.dep,
             fallback_strain_ids=fb_ids,
         )
 
@@ -180,60 +180,60 @@ class StrainMatch[CT: CultureMatch]:
             for si_id_m in self.__find_ccno_in_relation(ccno)
         }
 
-    def __find_ccno_in_relation(self, cul: CCNoDesP | CT, /) -> set[int]:
-        f_acr = rm_complex_structure(cul.acr)
+    def __find_ccno_in_relation(self, dep: CCNoDesP | CT, /) -> set[int]:
+        f_acr = rm_complex_structure(dep.acr)
         match: set[int] = set()
         if f_acr == "":
             return match
-        cid = (f_acr, cul.id.pre, cul.id.core, cul.id.suf)
+        cid = (f_acr, dep.id.pre, dep.id.core, dep.id.suf)
         if cid in self.__ca_rel_ccno:
             match.update(self.__get_mid(sid) for sid in self.__ca_rel_ccno[cid].keys())
         return match
 
-    def __vote_ccno_ov(self, cul_des: CCNoDesP, /) -> set[int]:
-        f_acr = rm_complex_structure(cul_des.acr)
+    def __vote_ccno_ov(self, dep_des: CCNoDesP, /) -> set[int]:
+        f_acr = rm_complex_structure(dep_des.acr)
         match: set[int] = set()
         if f_acr == "":
             return match
-        cid = (f_acr, cul_des.id.pre, cul_des.id.core, cul_des.id.suf)
+        cid = (f_acr, dep_des.id.pre, dep_des.id.core, dep_des.id.suf)
         if cid in self.__ca_rel_ccno:
             match.update(self.__ca_rel_ccno[cid].keys())
         return match
 
-    def __vote_ccno(self, brc_ids: set[int], cul_des: CCNoDesP, /) -> set[int]:
+    def __vote_ccno(self, brc_ids: set[int], dep_des: CCNoDesP, /) -> set[int]:
         return set(
-            cul_str.s
+            dep_str.s
             for bid in brc_ids
             if (
-                cul_str := self.__ca_cul_ccno.get(
-                    (bid, cul_des.id.pre, cul_des.id.core, cul_des.id.suf), None
+                dep_str := self.__ca_dep_ccno.get(
+                    (bid, dep_des.id.pre, dep_des.id.core, dep_des.id.suf), None
                 )
             )
             is not None
-            and cul_str[0] not in self.__ca_si_cu_err
+            and dep_str[0] not in self.__ca_si_dp_err
         )
 
-    def __find_ccno_relation_overlap(self, cul: CT, /) -> tuple[int, dict[int, int]]:
+    def __find_ccno_relation_overlap(self, dep: CT, /) -> tuple[int, dict[int, int]]:
         voter = 0
         votes: dict[int, int] = defaultdict(lambda: 0)
-        for rel_cul_str in cul.strain.relation:
-            rel_cul_all = self.__ca_acr_man.identify_ccno_all_valid(rel_cul_str)
-            for rel_cul in rel_cul_all:
-                if rel_cul.acr == "":
+        for rel_dep_str in dep.strain.relation:
+            rel_dep_all = self.__ca_acr_man.identify_ccno_all_valid(rel_dep_str)
+            for rel_dep in rel_dep_all:
+                if rel_dep.acr == "":
                     continue
                 voter += 1
-                voted_on = self.__vote_ccno_ov(rel_cul)
+                voted_on = self.__vote_ccno_ov(rel_dep)
                 voted_on.update(
-                    self.__vote_ccno(self.__ca_acr_man.identify_acr(rel_cul.acr), rel_cul)
+                    self.__vote_ccno(self.__ca_acr_man.identify_acr(rel_dep.acr), rel_dep)
                 )
                 for str_id in voted_on:
                     votes[self.__get_mid(str_id)] += 1
         return voter, votes
 
-    def __find_si_id_relation_overlap(self, cul: CT, /) -> set[int]:
+    def __find_si_id_relation_overlap(self, dep: CT, /) -> set[int]:
         si_ids: set[int] = set()
-        for rel_cul_str in cul.strain.relation:
-            si_id_con = get_si_id(rel_cul_str)
+        for rel_dep_str in dep.strain.relation:
+            si_id_con = get_si_id(rel_dep_str)
             if si_id_con is None:
                 continue
             si_id, _ = si_id_con
@@ -241,7 +241,7 @@ class StrainMatch[CT: CultureMatch]:
                 si_ids.add(self.__get_mid(si_id))
         if len(si_ids) > 1:
             warnings.warn(
-                f"[{cul.ccno}] found more than one SI-ID {si_ids!s}",
+                f"[{dep.ccno}] found more than one SI-ID {si_ids!s}",
                 StrainMatchWarn,
                 stacklevel=2,
             )

@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Iterator, final
 
 from cafi.container.links import CatalogueLink
-from saim.culture_link.private.constants import (
+from saim.deposit_link.private.constants import (
     CAT_DET_EXP_DAYS,
     CAT_EXP_DAYS,
     HOME_EXP_DAYS,

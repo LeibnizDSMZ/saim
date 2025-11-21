@@ -1,105 +1,101 @@
 # type: ignore
 # ruff: noqa
-_.encoding  # (src/saim/culture_link/private/cached_session.py:76)
-_.raw  # (src/saim/culture_link/private/cached_session.py:77)
-_._content  # (src/saim/culture_link/private/cached_session.py:78)
-_.reason  # (src/saim/culture_link/private/cached_session.py:79)
-found_ccno  # (src/saim/culture_link/private/container.py:98)
-_._content  # (src/saim/culture_link/private/verify_ccno.py:140)
-_._content  # (src/saim/culture_link/private/verify_ccno.py:147)
-_._content  # (src/saim/culture_link/private/verify_ccno.py:149)
-f_cc_db  # (src/saim/shared/data_con/brc.py:20)
-pri  # (src/saim/shared/data_con/culture.py:48)
-dea  # (src/saim/shared/data_con/culture.py:49)
-unk  # (src/saim/shared/data_con/culture.py:50)
-ava  # (src/saim/shared/data_con/culture.py:52)
-db_e  # unused variable (src/saim/shared/data_con/culture.py:60)
-db_m  # unused variable (src/saim/shared/data_con/culture.py:61)
-brc_s  # (src/saim/shared/data_con/culture.py:61)
-brc_v  # (src/saim/shared/data_con/culture.py:62)
-brc_r  # (src/saim/shared/data_con/culture.py:63)
-type_strain  # (src/saim/shared/data_con/culture.py:119)
-cul_id  # (src/saim/shared/data_con/culture.py:125)
-_._strict  # (src/saim/shared/data_con/culture.py:147)
-type_strain  # (src/saim/shared/data_con/strain.py:54)
-hyb  # (src/saim/shared/data_con/taxon.py:12)
-culp  # (src/saim/shared/data_con/taxon.py:14)
-can  # (src/saim/shared/data_con/taxon.py:15)
-dou  # (src/saim/shared/data_con/taxon.py:16)
-non  # (src/saim/shared/data_con/taxon.py:18)
-blk  # (src/saim/shared/data_con/taxon.py:19)
-otu  # (src/saim/shared/data_con/taxon.py:20)
-bac  # (src/saim/shared/data_con/taxon.py:203)
-arc  # (src/saim/shared/data_con/taxon.py:204)
-euk  # (src/saim/shared/data_con/taxon.py:205)
-_.to_json  # (src/saim/strain_matching/private/container.py:10)
-fallback_strain_ids  # (src/saim/strain_matching/private/container.py:53)
-parsed  # (src/saim/taxon_name/private/container.py:27)
-parsed_par  # (src/saim/taxon_name/private/container.py:28)
-is_ccno_like  # (src/saim/designation/validate_ccno.py:80)
-get_cul_sta_enum  # (src/saim/shared/data_con/culture.py:66)
-is_cul_status  # (src/saim/shared/data_con/culture.py:74)
-get_cul_err_states  # (src/saim/shared/data_con/culture.py:78)
-get_id_src_enum  # (src/saim/shared/data_con/culture.py:86)
-is_id_source  # (src/saim/shared/data_con/culture.py:93)
-get_ranks_list  # (src/saim/shared/data_con/taxon.py:219)
-get_ranks_abr_list  # (src/saim/shared/data_con/taxon.py:223)
-get_domain_list  # (src/saim/shared/data_con/taxon.py:227)
-get_gbif_types  # (src/saim/shared/data_con/taxon.py:231)
-is_correct_doi  # (src/saim/shared/parse/doi.py:14)
-pa_float  # (src/saim/shared/parse/general.py:11)
-pa_opt_int  # (src/saim/shared/parse/general.py:15)
-pa_opt_float  # (src/saim/shared/parse/general.py:19)
-pa_str  # (src/saim/shared/parse/general.py:23)
-pa_opt_str  # (src/saim/shared/parse/general.py:27)
-pa_opt_date  # (src/saim/shared/parse/general.py:31)
-pa_date  # (src/saim/shared/parse/general.py:35)
-pa_int_bool  # (src/saim/shared/parse/general.py:39)
-get_is_acc_regex  # (src/saim/shared/parse/sequence.py:49)
-is_assembly  # (src/saim/shared/parse/sequence.py:53)
-is_nucleotide  # (src/saim/shared/parse/sequence.py:57)
-radix_keys  # (src/saim/shared/search/radix_tree.py:144)
-ch_int  # (src/saim/shared/verify/types.py:48)
-ch_opt_int  # (src/saim/shared/verify/types.py:52)
-ch_float  # (src/saim/shared/verify/types.py:56)
-ch_opt_float  # (src/saim/shared/verify/types.py:60)
-ch_f_str  # (src/saim/shared/verify/types.py:64)
-ch_str  # (src/saim/shared/verify/types.py:68)
-ch_opt_str  # (src/saim/shared/verify/types.py:72)
-ch_date  # (src/saim/shared/verify/types.py:76)
-ch_opt_date  # (src/saim/shared/verify/types.py:80)
-get_lpsn_id  # (src/saim/taxon_name/manager.py:383)
-strain_match_factory  # (src/saim/strain_matching/match.py:99)
-is_different_string  # (src/saim/shared/data_ops/clean.py:51)
-check_si_id_doi  # (src/saim/shared/parse/doi.py:8)
-clean_edges_rm_tags  # (src/saim/shared/parse/string.py:94)
-check_type_strict  # (src/saim/shared/verify/types.py:27)
-check_bool_int  # (src/saim/shared/verify/types.py:33)
-slim_init_extractor  # (src/saim/taxon_name/manager.py:443)
-identify_brc_code  # (src/saim/designation/known_acr_db.py:90)
-parse_seq_acc  # (src/saim/shared/parse/sequence.py:65)
-get_main_id  # (src/saim/strain_matching/manager.py:55)
-clean_ncbi_strain  # (src/saim/taxon_name/private/ncbi.py:212)
-get_si_cu  # (src/saim/designation/extract_ccno.py:287)
-verify_specific_ccno  # (src/saim/designation/validate_ccno.py:48)
-verify_specific_ccno_id  # (src/saim/designation/validate_ccno.py:56)
-is_valid_known_id  # (src/saim/designation/validate_ccno.py:64)
-is_valid_known_ccno  # (src/saim/designation/validate_ccno.py:72)
-year_to_str  # (src/saim/shared/parse/date.py:201)
-has_duplicates  # (src/saim/shared/data_ops/clean.py:75)
-get_date_or_rkms  # (src/saim/shared/parse/date.py:175)
-get_date_year  # (src/saim/shared/parse/date.py:192)
-check_value_or  # (src/saim/shared/verify/types.py:39)
-to_json  # (src/saim/shared/data_con/culture.py:236)
-package_data  # (src/saim/shared/iter/pack.py:25)
-slim_extract_taxa_from_text  # (src/saim/taxon_name/manager.py:449)
-simple_ccno_linking  # (src/saim/culture_link/create_links.py:175)
-check_str_warn  # (src/saim/shared/verify/types.py:8)
-match_factory  # (src/saim/strain_matching/match.py:84)
-history_has_cycle  # (src/saim/history/extract_dep_des.py:157)
-_.send  # (src/saim/culture_link/private/cached_session.py:202)
-create_update_results  # (src/saim/strain_matching/match.py:59)
-_.to_dict_core  # (src/saim/shared/data_con/culture.py:181)
-clean_empty_values_in_dict  # (src/saim/shared/data_ops/clean.py:27)
-has_reasonable_taxon_overlap  # (src/saim/taxon_name/manager.py:410)
-assign_depositor_designation  # (src/saim/history/extract_dep_des.py:113)
+_.encoding
+_.raw
+_._content
+_.reason
+found_ccno
+f_cc_db
+pri
+dea
+unk
+ava
+db_e
+db_m
+brc_s
+brc_v
+brc_r
+type_strain
+dep_id
+_._strict
+hyb
+culp
+can
+dou
+non
+blk
+otu
+bac
+arc
+euk
+_.to_json
+fallback_strain_ids
+parsed
+parsed_par
+is_ccno_like
+get_dep_sta_enum
+is_dep_status
+get_dep_err_states
+get_id_src_enum
+is_id_source
+get_ranks_list
+get_ranks_abr_list
+get_domain_list
+get_gbif_types
+is_correct_doi
+pa_float
+pa_opt_int
+pa_opt_float
+pa_str
+pa_opt_str
+pa_opt_date
+pa_date
+pa_int_bool
+get_is_acc_regex
+is_assembly
+is_nucleotide
+radix_keys
+ch_int
+ch_opt_int
+ch_float
+ch_opt_float
+ch_f_str
+ch_str
+ch_opt_str
+ch_date
+ch_opt_date
+get_lpsn_id
+strain_match_factory
+is_different_string
+check_si_id_doi
+clean_edges_rm_tags
+check_type_strict
+check_bool_int
+slim_init_extractor
+identify_brc_code
+parse_seq_acc
+get_main_id
+clean_ncbi_strain
+get_si_dp
+verify_specific_ccno
+verify_specific_ccno_id
+is_valid_known_id
+is_valid_known_ccno
+year_to_str
+has_duplicates
+get_date_or_rkms
+get_date_year
+check_value_or
+to_json
+package_data
+slim_extract_taxa_from_text
+simple_ccno_linking
+check_str_warn
+match_factory
+history_has_cycle
+_.send
+create_update_results
+_.to_dict_core
+clean_empty_values_in_dict
+has_reasonable_taxon_overlap
+assign_depositor_designation
