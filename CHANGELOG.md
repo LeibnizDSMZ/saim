@@ -1,3 +1,9 @@
+## v0.9.12 (2025-11-21)
+
+### Fix
+
+- trim designation longer than 61 characters
+
 ## v0.9.11 (2025-11-21)
 
 ### Refactor
