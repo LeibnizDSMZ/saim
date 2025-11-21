@@ -12,12 +12,23 @@ class StrainCultureId(NamedTuple):
     c: int  # culture id
 
 
+def _strip_designation(des: Any) -> Any:
+    if isinstance(des, str) and len(des) > 61:
+        return des[:61] + "..."
+    return des
+
+
 @final
 class StrainCCNo(BaseModel):
     model_config = ConfigDict(frozen=False, extra="forbid", validate_default=False)
 
     relation: list[
-        Annotated[str, AfterValidator(trim_edges), Field(min_length=3, max_length=64)]
+        Annotated[
+            str,
+            AfterValidator(trim_edges),
+            AfterValidator(_strip_designation),
+            Field(min_length=3),
+        ]
     ] = Field(default_factory=list)
     strain_id: int | None = Field(default=None, alias="strainId")
 
