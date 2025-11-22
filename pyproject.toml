@@ -23,7 +23,7 @@ dependencies = [
   "python-keycloak ==5.8.1",
   "requests ==2.32.5",
   "requests-cache ==1.2.1",
-  "cafi @ git+https://github.com/LeibnizDSMZ/cafi.git@v0.9.5",
+  "cafi @ git+https://github.com/LeibnizDSMZ/cafi.git@v0.9.6",
 ]
 
 [project.scripts]
