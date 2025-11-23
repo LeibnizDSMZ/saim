@@ -115,8 +115,8 @@ wheels = [
 
 [[package]]
 name = "cafi"
-version = "0.9.6"
-source = { git = "https://github.com/LeibnizDSMZ/cafi.git?rev=v0.9.6#5cd75a7f07062d34875da711eb67038ee8dce0ce" }
+version = "0.9.7"
+source = { git = "https://github.com/LeibnizDSMZ/cafi.git?rev=v0.9.7#6e6fceea1e7e93571033ce48c5b7516c5306b307" }
 dependencies = [
     { name = "pydantic" },
     { name = "requests" },
@@ -1234,7 +1234,7 @@ wheels = [
 
 [[package]]
 name = "saim"
-version = "0.9.13"
+version = "0.9.14"
 source = { editable = "." }
 dependencies = [
     { name = "cafi" },
@@ -1274,7 +1274,7 @@ test = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cafi", git = "https://github.com/LeibnizDSMZ/cafi.git?rev=v0.9.6" },
+    { name = "cafi", git = "https://github.com/LeibnizDSMZ/cafi.git?rev=v0.9.7" },
     { name = "playwright", specifier = "==1.55.0" },
     { name = "pydantic", specifier = "==2.11.9" },
     { name = "python-dateutil", specifier = "==2.9.0.post0" },
