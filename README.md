@@ -27,8 +27,8 @@
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/LeibnizDSMZ/cafi.git
-   cd cafi
+   git clone https://github.com/LeibnizDSMZ/saim.git
+   cd saim
    ```
 
 #### Docker
