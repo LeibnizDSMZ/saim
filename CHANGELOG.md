@@ -1,3 +1,9 @@
+## v0.9.15 (2025-11-23)
+
+### Refactor
+
+- increased timeout to 120 seconds
+
 ## v0.9.14 (2025-11-23)
 
 ### Refactor
