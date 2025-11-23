@@ -206,8 +206,6 @@ class BrowserPWAdapter(BaseAdapter):
         await page.set_extra_http_headers({"User-Agent": get_user_agent(self.__contact)})
         if isinstance(timeout, (float, int)):
             tout_msec = timeout * 1000
-            page.set_default_timeout(timeout=tout_msec)
-            page.set_default_navigation_timeout(timeout=tout_msec)
         resp: Response | None = await _get_resp(
             lambda: page.goto(url, timeout=tout_msec, wait_until="commit"),
             err_str,
@@ -315,7 +313,7 @@ def _browser_fallback_wrap(
     /,
 ) -> AnyResponse:
     params = {
-        "timeout": 60,
+        "timeout": 120,
         "allow_redirects": True,
         "headers": {"User-Agent": get_user_agent(contact)},
     }
