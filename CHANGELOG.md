@@ -1,3 +1,9 @@
+## v0.9.16 (2025-11-24)
+
+### Refactor
+
+- **geo**: improve place and country cleaning logic
+
 ## v0.9.15 (2025-11-23)
 
 ### Refactor
