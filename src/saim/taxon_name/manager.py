@@ -109,6 +109,9 @@ def _keep_ids(ncbi: int, lpsn: int, id_con: _IdP, /) -> bool:
     return lpsn <= 0 and ncbi <= 0
 
 
+_NAME_CLEAN = (re.compile(r"\s+spp?\.$"),)
+
+
 @final
 class TaxonManager:
 
@@ -164,13 +167,14 @@ class TaxonManager:
         return self.__wir
 
     def __prep_name(self, name: str, /) -> tuple[str, str]:
-        trimmed = clean_text_rm_tags(name)
-        patched = trimmed
-        if len(trimmed) > 1:
-            patched = trimmed[0].upper() + trimmed[1:]
+        cleaned = clean_text_rm_tags(name)
+        if len(cleaned) > 1:
+            cleaned = cleaned[0].upper() + cleaned[1:]
+        for cleaner in _NAME_CLEAN:
+            cleaned = cleaner.sub("", cleaned)
         return (
-            patched,
-            self.__gbif.get_name(patched),
+            cleaned,
+            self.__gbif.get_name(cleaned),
         )
 
     @_verify_date
@@ -241,15 +245,18 @@ class TaxonManager:
         def fun(rank: GBIFRanksE) -> RankId:
             return RankId(rank=rank)
 
+        cl_name, *_ = self.__prep_name(name)
         ncbi = self.__cr_ncbi_id(
-            [name], ncbi_id, self._ncbi.get_rank, is_informative_rank
+            [cl_name], ncbi_id, self._ncbi.get_rank, is_informative_rank
         )
-        lpsn = self.__cr_lpsn_id(name, lpsn_id, self.__lpsn.get_rank, is_informative_rank)
+        lpsn = self.__cr_lpsn_id(
+            cl_name, lpsn_id, self.__lpsn.get_rank, is_informative_rank
+        )
         _fill_con(ranks, ncbi, lambda con, nid: con.ncbi.add(nid), fun)
         _fill_con(ranks, lpsn, lambda con, lid: con.lpsn.add(lid), fun)
         if len(ranks) > 0:
             return [rank for rank in ranks.values() if _keep_ids(ncbi_id, lpsn_id, rank)]
-        return [RankId(rank=self.__gbif.get_rank(name))]
+        return [RankId(rank=self.__gbif.get_rank(cl_name))]
 
     @_verify_date
     def get_domain(
@@ -260,14 +267,15 @@ class TaxonManager:
         def fun(dom: DomainE) -> DomainId:
             return DomainId(domain=dom)
 
+        cl_name, *_ = self.__prep_name(name)
         ncbi_res: list[tuple[DomainE, int]] = self.__cr_ncbi_id(
-            _create_extra_names_domain(name),
+            _create_extra_names_domain(cl_name),
             ncbi_id,
             self._ncbi.get_domain,
             lambda val: val != DomainE.ukn,
         )
         lpsn_res: list[tuple[DomainE, int]] = self.__cr_lpsn_id(
-            name, lpsn_id, self.__lpsn.get_domain, lambda val: val != DomainE.ukn
+            cl_name, lpsn_id, self.__lpsn.get_domain, lambda val: val != DomainE.ukn
         )
 
         _fill_con(domains, ncbi_res, lambda con, nid: con.ncbi.add(nid), fun)
@@ -285,11 +293,12 @@ class TaxonManager:
         def fun(gen: str) -> GenusId:
             return GenusId(genus=gen)
 
+        cl_name, *_ = self.__prep_name(name)
         ncbi: list[tuple[str, int]] = self.__cr_ncbi_id(
-            [name], ncbi_id, self._ncbi.get_genus, lambda val: val != ""
+            [cl_name], ncbi_id, self._ncbi.get_genus, lambda val: val != ""
         )
         lpsn: list[tuple[str, int]] = self.__cr_lpsn_id(
-            name, lpsn_id, self.__lpsn.get_genus, lambda val: val != ""
+            cl_name, lpsn_id, self.__lpsn.get_genus, lambda val: val != ""
         )
         _fill_con(genus, ncbi, lambda con, nid: con.ncbi.add(nid), fun)
         _fill_con(genus, lpsn, lambda con, lid: con.lpsn.add(lid), fun)
@@ -306,11 +315,12 @@ class TaxonManager:
         def fun(spe: str) -> SpeciesId:
             return SpeciesId(species=spe)
 
+        cl_name, *_ = self.__prep_name(name)
         ncbi: list[tuple[str, int]] = self.__cr_ncbi_id(
-            [name], ncbi_id, self._ncbi.get_species, lambda val: val != ""
+            [cl_name], ncbi_id, self._ncbi.get_species, lambda val: val != ""
         )
         lpsn: list[tuple[str, int]] = self.__cr_lpsn_id(
-            name, lpsn_id, self.__lpsn.get_species, lambda val: val != ""
+            cl_name, lpsn_id, self.__lpsn.get_species, lambda val: val != ""
         )
         _fill_con(species, ncbi, lambda con, nid: con.ncbi.add(nid), fun)
         _fill_con(species, lpsn, lambda con, lid: con.lpsn.add(lid), fun)
@@ -365,7 +375,8 @@ class TaxonManager:
 
     @_verify_date
     def get_ncbi_id(self, name: str, /) -> list[int]:
-        return list(set(nid for _, nid in self._ncbi.get_name([name])))
+        cl_name, *_ = self.__prep_name(name)
+        return list(set(nid for _, nid in self._ncbi.get_name([cl_name])))
 
     @_verify_date
     def patch_ncbi_id(self, ncbi_id: int | None, /) -> int | None:
@@ -379,7 +390,8 @@ class TaxonManager:
         return self.__lpsn.get_correct_id(lpsn_id)
 
     def get_lpsn_id(self, name: str, /) -> list[int]:
-        return list(set(lid for _, lid in self.__lpsn.get_name([name])))
+        cl_name, *_ = self.__prep_name(name)
+        return list(set(lid for _, lid in self.__lpsn.get_name([cl_name])))
 
     def __cr_overlap(
         self, ov_names: Sequence[TaxonName], /
