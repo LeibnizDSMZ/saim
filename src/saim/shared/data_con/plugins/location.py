@@ -7,6 +7,7 @@ from saim.shared.parse.geo import (
     check_lat,
     check_long,
     clean_place_name,
+    clean_country,
     parse_lat_long,
 )
 
@@ -16,7 +17,9 @@ class Location(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", validate_default=False)
 
     code: Annotated[str, AfterValidator(check_country_code)] = ""
-    country: Annotated[str, AfterValidator(clean_place_name)] = ""
+    country: Annotated[
+        str, AfterValidator(clean_place_name), AfterValidator(clean_country)
+    ] = ""
     place: list[Annotated[str, AfterValidator(clean_place_name)]] = Field(
         default_factory=list
     )
