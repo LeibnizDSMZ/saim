@@ -8,11 +8,19 @@ from saim.shared.verify.types import ch_str_float
 from saim.shared.parse.string import clean_string, clean_text_rm_enclosing, trim_edges
 
 _PATTERN_BRACKETS: Final[tuple[Pattern[str], ...]] = (
-    re.compile(r"^\([^(]*"),
-    re.compile(r"^\[[^[]*"),
-    re.compile(r"[^(]*\)$"),
-    re.compile(r"[^[]*\]$"),
+    re.compile(r"\([^(\)]*$"),
+    re.compile(r"\[[^[\]]*$"),
+    re.compile(r"^[^(\)]*\)"),
+    re.compile(r"^[^[\]]*\]"),
 )
+
+_PATTERN_BRACKETS_RL: Final[tuple[Pattern[str], ...]] = (
+    re.compile(r"\(([^)(]*)\)"),
+    re.compile(r"\[([^[\]]*)\]"),
+    re.compile(r"<([^<>]*)>"),
+)
+
+_COMMA: Final[Pattern[str]] = re.compile(r"\s*,\s*")
 
 
 def parse_lat_long(lat_long: Any, ch_spec_float: Callable[[str], str]) -> str:
@@ -44,7 +52,17 @@ def clean_place_name(place: str) -> str:
     if place == "":
         return ""
     places_no_para = clean_text_rm_enclosing(place_edgeless)
+    extra = ""
+    for reg in _PATTERN_BRACKETS_RL:
+        for found in reg.finditer(place_edgeless):
+            if (trimmed := trim_edges(found.group(1))) == "":
+                continue
+            extra += f" - {trimmed}"
     cl_place = clean_string(places_no_para, *_PATTERN_BRACKETS)
     if len(cl_place) < 2:
         return ""
-    return cl_place[0].upper() + cl_place[1:]
+    return cl_place[0].upper() + cl_place[1:] + extra
+
+
+def clean_country(country: str) -> str:
+    return _COMMA.sub(" - ", country)
