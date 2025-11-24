@@ -1,3 +1,9 @@
+## v0.9.17 (2025-11-24)
+
+### Refactor
+
+- **taxon_name**: normalize taxon names and update filtering
+
 ## v0.9.16 (2025-11-24)
 
 ### Refactor
