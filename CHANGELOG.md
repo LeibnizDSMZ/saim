@@ -1,3 +1,9 @@
+## v0.9.18 (2025-11-25)
+
+### Refactor
+
+- **taxon_name**: add cleaning of cv. suffix
+
 ## v0.9.17 (2025-11-24)
 
 ### Refactor
