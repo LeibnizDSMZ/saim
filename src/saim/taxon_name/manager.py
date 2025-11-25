@@ -109,7 +109,10 @@ def _keep_ids(ncbi: int, lpsn: int, id_con: _IdP, /) -> bool:
     return lpsn <= 0 and ncbi <= 0
 
 
-_NAME_CLEAN = (re.compile(r"\s+spp?\.$"),)
+_NAME_CLEAN = (
+    re.compile(r"\s+spp?\.$"),
+    re.compile(r"\s+cv?\.$"),
+)
 
 
 @final
