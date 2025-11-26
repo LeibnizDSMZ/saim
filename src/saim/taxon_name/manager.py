@@ -87,9 +87,9 @@ def _correct_quotes(name: str, quotes: bool, /) -> str:
 
 
 def _fallback_name(cl_name: str, tax_name: str, /) -> str:
-    if len(tax_name) >= 4:
+    if len(tax_name) >= 3:
         return _correct_quotes(tax_name, '"' in cl_name or "'" in cl_name)
-    if len(cl_name) >= 4:
+    if len(cl_name) >= 3:
         return cl_name
     return ""
 
