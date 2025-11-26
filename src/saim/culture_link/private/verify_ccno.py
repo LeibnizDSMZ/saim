@@ -88,11 +88,13 @@ class SessionSettings:
 
 def _is_string_in_text(text: str, to_find: list[str], /) -> bool:
     for task in to_find:
-        if (
-            task.strip() != ""
-            and re.compile(re.escape(_WSP.sub(" ", task).upper())).search(text) is None
-        ):
-            return False
+        for word in task.split(" "):
+            if (
+                word.strip() != ""
+                and re.compile(re.escape(_WSP.sub(" ", word).upper())).search(text)
+                is None
+            ):
+                return False
     return True
 
 
