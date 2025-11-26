@@ -1,3 +1,9 @@
+## v0.9.19 (2025-11-26)
+
+### Refactor
+
+- **verify**: split tasks into words for text search
+
 ## v0.9.18 (2025-11-25)
 
 ### Refactor
