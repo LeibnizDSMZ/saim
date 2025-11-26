@@ -1,3 +1,10 @@
+## v0.9.20 (2025-11-26)
+
+### Refactor
+
+- reduce min tax name length
+- reduce ccno checks to semantic only
+
 ## v0.9.19 (2025-11-26)
 
 ### Refactor
