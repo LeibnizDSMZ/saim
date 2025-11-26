@@ -151,13 +151,13 @@ class CultureCCNo(BaseModel):
         if self.brc_id not in acr_man.identify_acr(self.acr):
             raise ValueError(f"mismatch brc_id - {self.ccno} | {self.brc_id}")
         kn_acr = acr_man.identify_ccno_by_brc(self.ccno, self.brc_id)
-        if kn_acr.acr != self.acr:
+        if kn_acr.acr.lower() != self.acr.lower():
             raise ValueError(f"mismatch acronym - {self.acr} | {kn_acr.acr}")
-        if kn_acr.id.pre != self.id.pre:
+        if kn_acr.id.pre.lower() != self.id.pre.lower():
             raise ValueError(f"mismatch id prefix - {self.id.pre} | {kn_acr.id.pre}")
-        if kn_acr.id.core != self.id.core:
+        if kn_acr.id.core.lower() != self.id.core.lower():
             raise ValueError(f"mismatch id core - {self.id.core} | {kn_acr.id.core}")
-        if kn_acr.id.suf != self.id.suf:
+        if kn_acr.id.suf.lower() != self.id.suf.lower():
             raise ValueError(f"mismatch id suffix - {self.id.suf} | {kn_acr.id.suf}")
 
     def check_known_acr(self, acr_man: AcronymManager | None, /) -> None:
@@ -166,9 +166,9 @@ class CultureCCNo(BaseModel):
 
     @model_validator(mode="after")
     def check_culture_ids_completeness(self) -> "CultureCCNo":
-        if self.acr not in self.ccno:
+        if self.acr.lower() not in self.ccno.lower():
             raise ValueError(f"acronym not in CCNo - {self.ccno} | {self.acr}")
-        if self.id.full not in self.ccno:
+        if self.id.full.lower() not in self.ccno.lower():
             raise ValueError(f"id not in CCNo - {self.ccno} | {self.id.full}")
         return self
 
