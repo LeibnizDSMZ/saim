@@ -23,7 +23,7 @@ attrs==25.4.0 \
     # via
     #   cattrs
     #   requests-cache
-cafi @ git+https://github.com/LeibnizDSMZ/cafi.git@1b5f00c0491a6f8202655eda8a83599fd8267f98
+cafi @ git+https://github.com/LeibnizDSMZ/cafi.git@b1e97db396b1a99e4072ab16ea9893670ee5da8b
     # via saim
 cattrs==25.3.0 \
     --hash=sha256:1ac88d9e5eda10436c4517e390a4142d88638fe682c436c93db7ce4a277b884a \
