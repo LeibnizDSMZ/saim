@@ -1,3 +1,9 @@
+## v0.9.21 (2025-11-28)
+
+### Refactor
+
+- **cached_session**: improve page reload wait handling
+
 ## v0.9.20 (2025-11-26)
 
 ### Refactor
