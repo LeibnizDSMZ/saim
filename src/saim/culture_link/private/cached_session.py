@@ -214,18 +214,18 @@ class BrowserPWAdapter(BaseAdapter):
             if resp is not None:
                 break
             resp = await _get_resp(
-                lambda: page.reload(timeout=tout_msec, wait_until="commit"),
+                lambda: page.reload(timeout=tout_msec, wait_until="load"),
                 err_str,
             )
         start = time.time()
         wrapped: RequestResponse | None = None
         if resp is not None:
             try:
-                await page.wait_for_load_state(state="domcontentloaded", timeout=180000)
+                await page.wait_for_load_state(state="networkidle", timeout=180000)
             except Error:
                 pass
             else:
-                if (tim_sl := 4 - (time.time() - start)) > 0:
+                if (tim_sl := 6 - (time.time() - start)) > 0:
                     time.sleep(tim_sl)
             content = await page.content()
             wrapped = _create_response(request, resp, content)
