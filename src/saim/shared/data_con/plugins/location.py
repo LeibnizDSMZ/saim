@@ -36,8 +36,9 @@ class Location(BaseModel):
         )
         dict_res["place"] = [
             cl_pla
-            for pla_full in filter_duplicates(self.place)
-            for pla in pla_full.split(",")
+            for pla in filter_duplicates(
+                ele for con in self.place for ele in con.split(",")
+            )
             if len(cl_pla := clean_place_name(pla)) >= 2
             and cl_pla.lower() != self.country.lower()
         ]
