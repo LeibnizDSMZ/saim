@@ -35,9 +35,11 @@ class Location(BaseModel):
             mode="python", exclude={"place"}, by_alias=True
         )
         dict_res["place"] = [
-            pla
-            for pla in filter_duplicates(self.place)
-            if len(pla) >= 2 and pla.lower() != self.country.lower()
+            cl_pla
+            for pla_full in filter_duplicates(self.place)
+            for pla in pla_full.split(",")
+            if len(cl_pla := clean_place_name(pla)) >= 2
+            and cl_pla.lower() != self.country.lower()
         ]
         if trim:
             for key in detect_empty_dict_keys(dict_res):
