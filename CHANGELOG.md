@@ -1,3 +1,9 @@
+## v0.9.23 (2025-12-05)
+
+### Fix
+
+- **location**: correct duplicate filtering of place names
+
 ## v0.9.22 (2025-12-05)
 
 ### Refactor
