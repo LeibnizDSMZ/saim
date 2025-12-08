@@ -79,21 +79,6 @@ def _create_extra_names_domain(name: str, /) -> list[str]:
     return names
 
 
-def _correct_quotes(name: str, quotes: bool, /) -> str:
-    if quotes:
-        buf = name.replace("'", "").replace('"', "")
-        return f'"{buf}"'
-    return name
-
-
-def _fallback_name(cl_name: str, tax_name: str, /) -> str:
-    if len(tax_name) >= 3:
-        return _correct_quotes(tax_name, '"' in cl_name or "'" in cl_name)
-    if len(cl_name) >= 3:
-        return cl_name
-    return ""
-
-
 class _IdP(Protocol):
     @property
     def ncbi(self) -> set[int]: ...
@@ -111,7 +96,7 @@ def _keep_ids(ncbi: int, lpsn: int, id_con: _IdP, /) -> bool:
 
 _NAME_CLEAN = (
     re.compile(r"\s+spp?\.$"),
-    re.compile(r"\s+cv?\.$"),
+    re.compile(r"\s+cv\.$"),
 )
 
 
@@ -189,7 +174,9 @@ class TaxonManager:
         names_id = self._ncbi.get_name([tax_name, cl_name])
         if len(names_id) > 0:
             return names_id[0][0]
-        return _fallback_name(cl_name, tax_name)
+        if len(cl_name) >= 3:
+            return cl_name
+        return ""
 
     @_verify_date
     def get_correct_name(
