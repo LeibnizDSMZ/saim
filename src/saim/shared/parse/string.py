@@ -114,20 +114,20 @@ def clean_ledge_rm_tags(val: Any) -> str:
 
 def clean_text(val: Any) -> str:
     if type(val) is str:
-        sample = clean_string(val, PATTERN_REDUNDANT_SPACE_R)
-        return sample.strip()
+        text = clean_string(val, PATTERN_REDUNDANT_SPACE_R)
+        return text.strip()
     return ""
 
 
 def clean_text_rm_tags(val: Any) -> str:
     if type(val) is str:
-        sample = clean_string(val, PATTERN_TAG_R)
-        return clean_text(sample)
+        text = clean_string(val, PATTERN_TAG_R)
+        return clean_text(text)
     return ""
 
 
 def clean_text_rm_enclosing(val: Any) -> str:
     if type(val) is str:
-        sample = clean_string(val, PATTERN_TAG_R, *PATTERN_BRACKETS_RL)
-        return clean_text(sample)
+        text = clean_string(val, PATTERN_TAG_R, *PATTERN_BRACKETS_RL)
+        return clean_text(text)
     return ""

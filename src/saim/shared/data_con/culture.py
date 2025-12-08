@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
 import json
+import re
 from typing import Annotated, Any, Final, final
 import unicodedata
 
@@ -19,9 +20,11 @@ from saim.designation.manager import AcronymManager
 from saim.shared.data_con.plugins.dep_iso import Deposition, Isolation
 from saim.shared.parse.sequence import check_sequence
 from saim.shared.parse.string import (
+    PATTERN_REDUNDANT_SPACE_R,
     clean_edges,
     clean_id_edges,
     clean_ledge_rm_tags,
+    clean_string,
     clean_text_rm_tags,
     trim_edges,
 )
@@ -95,10 +98,14 @@ def is_id_source(name: str, /) -> bool:
     return name in _L_SRC
 
 
+_UND = re.compile("_+")
+
+
 def _fix_name(source: Any) -> str:
     if not isinstance(source, str):
         return ""
     clean = clean_ledge_rm_tags(source)
+    clean = clean_string(_UND.sub(" ", clean), PATTERN_REDUNDANT_SPACE_R)
     if len(clean) > 1:
         return clean[0].upper() + clean[1:]
     return clean
