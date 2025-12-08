@@ -1,3 +1,9 @@
+## v0.9.24 (2025-12-08)
+
+### Refactor
+
+- **culture**: relax taxon_name minimum length
+
 ## v0.9.23 (2025-12-05)
 
 ### Fix
