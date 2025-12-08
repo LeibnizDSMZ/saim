@@ -98,14 +98,16 @@ def is_id_source(name: str, /) -> bool:
     return name in _L_SRC
 
 
-_UND = re.compile("_+")
+_UND = re.compile(r"_+")
 
 
 def _fix_name(source: Any) -> str:
     if not isinstance(source, str):
         return ""
     clean = clean_ledge_rm_tags(source)
-    clean = clean_string(_UND.sub(" ", clean), PATTERN_REDUNDANT_SPACE_R)
+    if " " not in clean:
+        clean = _UND.sub(" ", clean)
+    clean = clean_string(clean, PATTERN_REDUNDANT_SPACE_R)
     if len(clean) > 1:
         return clean[0].upper() + clean[1:]
     return clean
