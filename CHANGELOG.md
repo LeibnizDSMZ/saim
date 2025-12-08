@@ -1,3 +1,9 @@
+## v0.9.25 (2025-12-08)
+
+### Refactor
+
+- **taxon_name**: simplify name handling logic
+
 ## v0.9.24 (2025-12-08)
 
 ### Refactor
