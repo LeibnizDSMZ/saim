@@ -132,7 +132,7 @@ class CultureCCNo(BaseModel):
     sample: Sample = Field(default_factory=Sample)
     isolation: Isolation = Field(default_factory=Isolation)
     deposition: Deposition = Field(default_factory=Deposition)
-    taxon_name: Annotated[str, AfterValidator(_fix_name), Field(min_length=4)] = Field(
+    taxon_name: Annotated[str, AfterValidator(_fix_name), Field(min_length=2)] = Field(
         default="", alias="taxonName"
     )
     sequence: list[Annotated[str, AfterValidator(check_sequence)]] = Field(
