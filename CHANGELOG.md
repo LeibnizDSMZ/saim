@@ -63,7 +63,7 @@
 
 ### Refactor
 
-- update cafi mtccindia
+- update cafi mtcc india
 
 ## v0.9.13 (2025-11-22)
 
