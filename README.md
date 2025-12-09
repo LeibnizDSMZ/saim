@@ -1,6 +1,6 @@
 # Strain Authentication and Identification Methods - saim
 
-[![release: 0.9.25](https://img.shields.io/badge/rel-0.9.25-blue.svg?style=flat-square)](https://github.com/LeibnizDSMZ/saim.git)
+[![release: 0.9.26](https://img.shields.io/badge/rel-0.9.26-blue.svg?style=flat-square)](https://github.com/LeibnizDSMZ/saim.git)
 [![MIT LICENSE](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](https://choosealicense.com/licenses/mit/)
 [![Documentation Status](https://img.shields.io/badge/docs-GitHub-blue.svg?style=flat-square)](https://LeibnizDSMZ.github.io/saim/)
 

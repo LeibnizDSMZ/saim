@@ -1,3 +1,9 @@
+## v0.9.26 (2025-12-09)
+
+### Refactor
+
+- **culture**: use url_to_str for URL serialization
+
 ## v0.9.25 (2025-12-08)
 
 ### Refactor
