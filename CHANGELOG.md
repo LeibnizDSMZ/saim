@@ -1,3 +1,9 @@
+## v0.9.27 (2025-12-10)
+
+### Refactor
+
+- **link**: add URL validation for link status and result
+
 ## v0.9.26 (2025-12-09)
 
 ### Refactor
