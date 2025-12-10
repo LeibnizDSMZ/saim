@@ -33,7 +33,6 @@ from saim.shared.data_con.strain import StrainCCNo
 from saim.shared.data_ops.clean import detect_empty_dict_keys
 from saim.shared.parse.date import check_date_str, date_to_str
 from saim.taxon_name.manager import TaxonManager
-from cafi.container.fun.format import url_to_str
 
 _REQ_KEYS: Final[tuple[str, ...]] = (
     "acronym",
@@ -131,8 +130,7 @@ class CultureCCNo(BaseModel):
     source: CiDSrc
     # optional fields - default
     url: (
-        Annotated[HttpUrl, PlainSerializer(lambda val: url_to_str(val), return_type=str)]
-        | None
+        Annotated[HttpUrl, PlainSerializer(lambda val: str(val), return_type=str)] | None
     ) = None
     cul_id: Annotated[int, Field(ge=1)] | None = Field(default=None, alias="cultureId")
     history: Annotated[str, AfterValidator(clean_text_rm_tags), Field(min_length=2)] = ""

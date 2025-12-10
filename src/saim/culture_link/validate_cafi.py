@@ -5,7 +5,6 @@ import tempfile
 from cafi.library.loader import load_catalogue_db, load_regex_db
 from cafi.container.acr_db import AcrDbEntry
 from cafi.container.links import LinkLevel
-from cafi.container.fun.format import url_to_str
 from saim.culture_link.create_links import CcnoLinkGenerator, SearchRequest
 from saim.designation.manager import AcronymManager
 
@@ -21,7 +20,7 @@ def _create_search_request_homepage(
             exclude=(LinkLevel.cat,),
         )
         for task_id, (acr_id, acr_entry) in enumerate(cc_db.items())
-        if url_to_str(acr_entry.homepage) != ""
+        if str(acr_entry.homepage) != ""
     ]
 
 

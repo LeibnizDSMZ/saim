@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Iterator, final
 
 from cafi.container.links import CatalogueLink
+from pydantic import HttpUrl, ValidationError
 from saim.culture_link.private.constants import (
     CAT_DET_EXP_DAYS,
     CAT_EXP_DAYS,
@@ -89,6 +90,15 @@ class LinkStatus:
     link_type: str
     status: VerificationStatus
 
+    def __post_init__(self) -> None:
+        try:
+            if self.link != "":
+                object.__setattr__(self, "link", str(HttpUrl(self.link)))
+        except ValidationError:
+            object.__setattr__(self, "link", "")
+        if self.link == "":
+            object.__setattr__(self, "status", VerificationStatus.no_url)
+
 
 @final
 @dataclass(frozen=True, slots=True)
@@ -96,6 +106,13 @@ class LinkResult:
     link: str
     brc_id: int
     found_ccno: CCNoDes
+
+    def __post_init__(self) -> None:
+        try:
+            if self.link != "":
+                object.__setattr__(self, "link", str(HttpUrl(self.link)))
+        except ValidationError:
+            object.__setattr__(self, "link", "")
 
 
 @final
