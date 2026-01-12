@@ -20,7 +20,7 @@ def _create_search_request_homepage(
             exclude=(LinkLevel.cat,),
         )
         for task_id, (acr_id, acr_entry) in enumerate(cc_db.items())
-        if str(acr_entry.homepage) != ""
+        if acr_entry.homepage is not None and str(acr_entry.homepage) != ""
     ]
 
 
