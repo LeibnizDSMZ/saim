@@ -43,7 +43,7 @@ class JWTCred:
 
     def _on_error(self, error: KeycloakPostError, /) -> None:
         err = "failed to get keycloak token:"
-        err += f"\n{error.response_code!s} {error.error_message}"
+        err += f"\n{error.response_code!s} {error.error_message!s}"
         print(err)
         sleep(10)
         self.__connection = None

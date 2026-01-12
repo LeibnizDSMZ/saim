@@ -22,6 +22,6 @@ class VerificationStatus(str, Enum):
     err = "An exception was raised"
 
 
-CAT_EXP_DAYS: Final[int] = 7
+CAT_EXP_DAYS: Final[int] = 30
 CAT_DET_EXP_DAYS: Final[int] = 1
-HOME_EXP_DAYS: Final[int] = 30
+HOME_EXP_DAYS: Final[int] = 60

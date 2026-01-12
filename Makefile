@@ -94,7 +94,7 @@ recom recommit:
 		[ ! -s .commit_msg ] || (echo "Missing commit message!" && exit 1); \
 		git commit -F .commit_msg; \
 	else \
-		$(UVE) run cz commit; \
+		$(UVE) run cz commit --retry; \
 	fi
 	echo "" > .commit_msg
 

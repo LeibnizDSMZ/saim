@@ -1,6 +1,8 @@
 import asyncio
 from datetime import timedelta
 from io import BytesIO
+import random
+import tempfile
 import time
 from typing import (
     Awaitable,
@@ -17,7 +19,8 @@ from requests import PreparedRequest, Timeout
 from requests.structures import CaseInsensitiveDict
 from requests.adapters import HTTPAdapter, BaseAdapter
 from requests_cache import AnyResponse, BaseCache, CachedSession
-from playwright.async_api import Response, async_playwright, Error, Browser, Playwright
+from playwright.async_api import (Response, async_playwright, Error,
+                                  BrowserContext, Playwright, Page)
 from urllib3 import HTTPResponse
 from requests.models import Response as RequestResponse
 from requests.exceptions import RequestException
@@ -31,14 +34,17 @@ from saim.shared.error.warnings import RequestWarn
 
 
 async def _get_resp(
-    call: Callable[[], Awaitable[Response | None]], err_str: str, /
+    call: Callable[[], Awaitable[Response | None]], err_str: str, retry: int, /
 ) -> Response | None:
     resp: Response | None = None
     try:
         resp = await call()
     except Error as err:
-        warnings.warn(f"{err!s} - {err_str}", RequestWarn, stacklevel=1)
-        time.sleep(0.5)
+        warnings.warn(
+            f"{retry!s} - {err!s} - {resp!s} - {err_str}",
+            RequestWarn,
+            stacklevel=0
+        )
     return resp
 
 
@@ -146,7 +152,6 @@ BLOCK_TYPES: Final[list[str]] = [
     "image",
     "media",
     "font",
-    "stylesheet",
     "ping",
     "manifest",
     "prefetch",
@@ -161,20 +166,25 @@ class BrowserPWAdapter(BaseAdapter):
         "__pwc",
         "__retries",
         "__runner",
+        "__tmp"
     )
 
     def __init__(
         self, pwc: PWContext, contact: str = "", max_retries: int = 0, /
     ) -> None:
-        self.__retries = max_retries
+        self.__retries = max_retries if max_retries > 1 else 1
         self.__pwc: PWContext = pwc
         self.__contact = contact
+        self.__tmp = tempfile.TemporaryDirectory()
         if not self.__pwc.is_test:
             ctx = self.__pwc.runner.run(self.__pwc.ctx)
-            self.__browser: Browser | None = self.__pwc.runner.run(
-                ctx.chromium.launch(
+            self.__browser: BrowserContext | None = self.__pwc.runner.run(
+                ctx.chromium.launch_persistent_context(
+                    user_data_dir=self.__tmp.name,
                     headless=True,
                     chromium_sandbox=True,
+                    java_script_enabled=True,
+                    accept_downloads=False,
                     args=["--disable-gpu"],
                 )
             )
@@ -192,45 +202,45 @@ class BrowserPWAdapter(BaseAdapter):
     ) -> RequestResponse | None:
         if self.__browser is None:
             raise SessionCreationEx("browser not started")
-        page = await self.__browser.new_page(
-            java_script_enabled=True, accept_downloads=False
-        )
-        await page.route(
-            "**/*",
-            lambda route, req: (
-                route.abort() if req.resource_type in BLOCK_TYPES else route.continue_()
-            ),
-        )
-        page.on("console", lambda _: None)
-        tout_msec = None
-        await page.set_extra_http_headers({"User-Agent": get_user_agent(self.__contact)})
+        tout_msec = 30_000.0
         if isinstance(timeout, (float, int)):
-            tout_msec = timeout * 1000
-        resp: Response | None = await _get_resp(
-            lambda: page.goto(url, timeout=tout_msec, wait_until="commit"),
-            err_str,
-        )
-        for _ in range(self.__retries):
-            if resp is not None:
-                break
-            resp = await _get_resp(
-                lambda: page.reload(timeout=tout_msec, wait_until="load"),
-                err_str,
+            tout_msec = timeout * 1000.0
+        for attempt in range(self.__retries):
+            page = await self.__browser.new_page()
+            await page.route(
+                "**/*",
+                lambda route, req: (
+                    route.abort()
+                    if req.resource_type in BLOCK_TYPES else route.continue_()
+                ),
             )
-        start = time.time()
-        wrapped: RequestResponse | None = None
-        if resp is not None:
-            try:
-                await page.wait_for_load_state(state="networkidle", timeout=180000)
-            except Error:
-                pass
-            else:
-                if (tim_sl := 6 - (time.time() - start)) > 0:
-                    time.sleep(tim_sl)
-            content = await page.content()
-            wrapped = _create_response(request, resp, content)
-        await page.close()
-        return wrapped
+            page.on("console", lambda _: None)
+            await page.set_extra_http_headers(
+                {"User-Agent": get_user_agent(self.__contact)}
+            )
+            att_time = tout_msec * (0.5 if attempt > 0 else 1.0)
+            async def go_to_page(p: Page = page, t: float = att_time) -> Response | None:
+                return await p.goto(url, timeout=t, wait_until="load")
+
+            resp: Response | None = await _get_resp(go_to_page, err_str, attempt +1)
+            if resp is not None:
+                start_time = time.time()
+                try:
+                    await page.wait_for_load_state("networkidle", timeout=60_000.0)
+                except Error:
+                    pass
+                else:
+                    elapsed = time.time() - start_time
+                    remaining = max(0, 6 - elapsed)
+                    if remaining > 0:
+                        await asyncio.sleep(remaining)
+                content = await page.content()
+                await page.close()
+                return _create_response(request, resp, content)
+            await page.close()
+            if attempt + 1 < self.__retries:
+                await asyncio.sleep(1.0 + (random.random() - 0.5)) # noqa: S311
+        return None
 
     def send(
         self,
@@ -259,6 +269,7 @@ class BrowserPWAdapter(BaseAdapter):
         if self.__browser is not None:
             self.__pwc.runner.run(self.__browser.close())
         self.__pwc.close(False)
+        self.__tmp.cleanup()
 
 
 def _mount_adapters(
@@ -293,7 +304,7 @@ def create_get_cache(
             key_fn=key_fn,
         )
         _mount_adapters(adapter, session)
-    except Exception as cex:
+    except Error as cex:
         raise SessionCreationEx(f"{cex!s}") from cex
     return session
 
@@ -313,7 +324,7 @@ def _browser_fallback_wrap(
     /,
 ) -> AnyResponse:
     params = {
-        "timeout": 120,
+        "timeout": 180,
         "allow_redirects": True,
         "headers": {"User-Agent": get_user_agent(contact)},
     }
