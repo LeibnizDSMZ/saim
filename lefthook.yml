@@ -54,10 +54,6 @@ pre-commit:
       group:
         piped: true
         jobs:
-          - name: black
-            glob: "*.py"
-            run: black {staged_files}
-            stage_fixed: true
           - name: ruff
             glob: "*.py"
             run: ruff check {staged_files} --fix
