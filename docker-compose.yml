@@ -11,3 +11,5 @@ services:
         USER_GID: 1000
         WORK_DIR: "/workspace"
         UV: ${UV_INSTALL_DIR}
+    cap_add:
+      - SYS_ADMIN

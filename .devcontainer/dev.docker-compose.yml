@@ -20,6 +20,8 @@ services:
       - ${GITCONFIG_PATH:-${HOME}/.gitconfig}:/etc/gitconfig:ro
     networks:
       - ollama
+    cap_add:
+      - SYS_ADMIN
 
 networks:
     ollama:
