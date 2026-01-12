@@ -1,3 +1,15 @@
+## v0.9.28 (2026-01-12)
+
+### Fix
+
+- correct playwright installation
+- correct dockerignore and entrypoint
+
+### Refactor
+
+- improve linking procedure
+- update dependencies
+
 ## v0.9.27 (2025-12-10)
 
 ### Refactor
