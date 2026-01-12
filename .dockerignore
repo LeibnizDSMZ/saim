@@ -4,6 +4,7 @@
 !/src
 !/configs
 
+!.env
 !Makefile
 !uv.lock
 !pyproject.toml
