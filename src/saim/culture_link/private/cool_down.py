@@ -40,25 +40,26 @@ class CoolDownDomain:
                 if wait_time == 0:
                     self.__last_request.value = now
                     break
-            time.sleep(wait_time)
+            time.sleep(wait_time + 0.01)
 
     def skip_request(self) -> bool:
         with self.__lock:
             last_req = self.__last_request.value
             timeout_cnt = self.__timeout_cnt.value
-            if (time.time() - last_req) < _T_RESET:
+            if timeout_cnt < _T_LIMIT:
+                return False
+            if (time.time() - last_req) >= _T_RESET:
                 self.__timeout_cnt.value = 0
-            elif timeout_cnt >= _T_LIMIT:
-                return True
-        return False
+                return False
+        return True
 
 
     def finished_request( self, timeout: bool, tasks_cnt: int,  /) -> None:
         with self.__lock:
             timeout_cnt = self.__timeout_cnt.value
-            if not timeout and timeout_cnt > 0 :
+            if not timeout and timeout_cnt > 0:
                 self.__timeout_cnt.value = 0.0
-            elif timeout_cnt < _T_LIMIT:
+            if timeout and timeout_cnt < _T_LIMIT:
                 self.__timeout_cnt.value += (1.0 / tasks_cnt)
                 warnings.warn(
                         f"[TIMEOUT] {self.__domain} [{self.__timeout_cnt.value}]",
