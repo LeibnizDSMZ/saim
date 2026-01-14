@@ -18,8 +18,14 @@ from requests import PreparedRequest, Timeout
 from requests.structures import CaseInsensitiveDict
 from requests.adapters import BaseAdapter
 from requests_cache import BaseCache, CachedSession
-from playwright.async_api import (Response, async_playwright, Error,
-                                  BrowserContext, Playwright, Page)
+from playwright.async_api import (
+    Response,
+    async_playwright,
+    Error,
+    BrowserContext,
+    Playwright,
+    Page,
+)
 from urllib3 import HTTPResponse
 from requests.models import Response as RequestResponse
 from requests.exceptions import RequestException
@@ -40,9 +46,7 @@ async def _get_resp(
         resp = await call()
     except Error as err:
         warnings.warn(
-            f"{retry!s} - {err!s} - {resp!s} - {err_str}",
-            RequestWarn,
-            stacklevel=0
+            f"{retry!s} - {err!s} - {resp!s} - {err_str}", RequestWarn, stacklevel=0
         )
     return resp
 
@@ -155,20 +159,16 @@ class BrowserPWAdapter(BaseAdapter):
         "__pwc",
         "__retries",
         "__runner",
-        "__tmp"
+        "__tmp",
     )
 
     def __init__(
-        self,
-        pwc: PWContext,
-        contact: str = "",
-        max_attempts: int = 1,
-        /
+        self, pwc: PWContext, contact: str = "", max_attempts: int = 1, /
     ) -> None:
         self.__pwc: PWContext = pwc
         self.__contact = contact
         self.__tmp = tempfile.TemporaryDirectory()
-        self.__cool_down : CoolDownDomain | None = None
+        self.__cool_down: CoolDownDomain | None = None
         self.__delay = 1.0
         self.__retries = max_attempts if max_attempts > 1 else 1
         if not self.__pwc.is_test:
@@ -216,7 +216,8 @@ class BrowserPWAdapter(BaseAdapter):
                 "**/*",
                 lambda route, req: (
                     route.abort()
-                    if req.resource_type in BLOCK_TYPES else route.continue_()
+                    if req.resource_type in BLOCK_TYPES
+                    else route.continue_()
                 ),
             )
             page.on("console", lambda _: None)
@@ -224,10 +225,12 @@ class BrowserPWAdapter(BaseAdapter):
                 {"User-Agent": get_user_agent(self.__contact)}
             )
             att_time = tout_msec * (0.5 if attempt > 0 else 1.0)
+
             async def go_to_page(p: Page = page, t: float = att_time) -> Response | None:
                 return await p.goto(url, timeout=t, wait_until="load")
+
             await self.__await_cool_down()
-            resp: Response | None = await _get_resp(go_to_page, err_str, attempt +1)
+            resp: Response | None = await _get_resp(go_to_page, err_str, attempt + 1)
             if resp is not None:
                 start_time = time.time()
                 try:
@@ -244,7 +247,7 @@ class BrowserPWAdapter(BaseAdapter):
                 return _create_response(request, resp, content)
             await page.close()
             if attempt + 1 < self.__retries:
-                await asyncio.sleep(1.0 + (random.random() - 0.5)) # noqa: S311
+                await asyncio.sleep(1.0 + (random.random() - 0.5))  # noqa: S311
         return None
 
     def send(
@@ -295,9 +298,7 @@ def _create_get_cache(
             stale_if_error=False,
             always_revalidate=False,
             allowable_codes=[*range(200, 400), 404, 403],
-            allowable_methods=(
-                "GET",
-            ),
+            allowable_methods=("GET",),
             key_fn=key_fn,
         )
         session.mount("http://", adapter)
@@ -321,20 +322,28 @@ def make_get_request(
 ) -> CachedPageResp:
     results = CachedPageResp(prohibited=True)
     cool_down, robots_txt, contact = info
-    pw_adapter, exp, cache, call  = session
+    pw_adapter, exp, cache, call = session
 
     pw_adapter.set_cool_down(cool_down, robots_txt.get_delay())
-    cached_session = _create_get_cache(pw_adapter, exp, cache, call, )
+    cached_session = _create_get_cache(
+        pw_adapter,
+        exp,
+        cache,
+        call,
+    )
 
     if robots_txt.can_fetch(url):
         if cool_down.skip_request():
             return results
         try:
-            response = cached_session.get(url, **{
-                "timeout": 180,
-                "allow_redirects": True,
-                "headers": {"User-Agent": get_user_agent(contact)},
-            })
+            response = cached_session.get(
+                url,
+                **{
+                    "timeout": 180,
+                    "allow_redirects": True,
+                    "headers": {"User-Agent": get_user_agent(contact)},
+                },
+            )
         except (Error, RequestException):
             cool_down.finished_request(True, tasks_cnt)
             return CachedPageResp(timeout=True)

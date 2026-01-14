@@ -15,7 +15,6 @@ pytest_plugins = ("tests.fixture.designation",)
 
 
 class TestSample:
-
     def test_valid_ccno_des(self, brc_simple: BrcContainer) -> None:
         valid_ccnos = [
             "DSM3",

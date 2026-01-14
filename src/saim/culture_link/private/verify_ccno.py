@@ -64,9 +64,7 @@ def _wrap_status(
 
 _REQ: TypeAlias = dict[str, tuple[CoolDownDomain, RobotsTxt]]
 _ARGS_T: TypeAlias = tuple[TaskPackage, _REQ]
-_ARGS_ST: TypeAlias = tuple[
-    TaskPackage, _REQ, int, Path, BrowserPWAdapter | None, str
-]
+_ARGS_ST: TypeAlias = tuple[TaskPackage, _REQ, int, Path, BrowserPWAdapter | None, str]
 _WSP: Final[Pattern[str]] = re.compile(r"\s+")
 
 
@@ -229,11 +227,11 @@ def _get_result(
         f"verify_ccno_{settings.name}", settings.work_dir, custom_ser_p
     )(settings.db_size_gb, settings.exp_days)
     resp = make_get_request(
-            settings.url,
-            (settings.pw_adapter, settings.exp_days, backend, wrap_key_f),
-            (*domain, settings.contact),
-            tasks_cnt
-        )
+        settings.url,
+        (settings.pw_adapter, settings.exp_days, backend, wrap_key_f),
+        (*domain, settings.contact),
+        tasks_cnt,
+    )
     if not resp.cached and closure:
         resp = CachedPageResp.change_to_cached_content(resp, buffered)
     if resp.cached:
@@ -269,7 +267,7 @@ def verify_ccno_in_url(args: _ARGS_ST, /) -> VerifiedURL:
                 ),
                 domain,
                 task.search_task,
-                len(task.urls)
+                len(task.urls),
             )
             status.append(
                 LinkStatus(
@@ -302,7 +300,6 @@ class ValueP(Protocol):
 
 @final
 class VerifyCcNosProc:
-
     __slots__: tuple[str, ...] = (
         "__contact",
         "__finish",
@@ -337,7 +334,6 @@ class VerifyCcNosProc:
     def _pw_adapter(self) -> BrowserPWAdapter:
         self.__pw_adapter = _create_pw_adapter(self.__pw_adapter, self.__contact)
         return self.__pw_adapter
-
 
     def __verify_ccno_in_url(self, args: _ARGS_T, /) -> VerifiedURL:
         task, req = args

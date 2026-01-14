@@ -102,7 +102,6 @@ _NAME_CLEAN = (
 
 @final
 class TaxonManager:
-
     __slots__ = (
         "__gbif",
         "__jump",
@@ -135,7 +134,6 @@ class TaxonManager:
     def __create_session(
         self, cnf: LPSNConf, /
     ) -> tuple[GbifTaxReq, NcbiTaxReq, LpsnTaxReq]:
-
         try:
             return (
                 GbifTaxReq(self.__wir, self._exp_days),

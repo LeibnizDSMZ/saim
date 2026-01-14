@@ -54,9 +54,13 @@ pre-commit:
       group:
         piped: true
         jobs:
-          - name: ruff
+          - name: ruff-check
             glob: "*.py"
             run: ruff check {staged_files} --fix
+            stage_fixed: true
+          - name: ruff-format
+            glob: "*.py"
+            run: ruff format {staged_files}
             stage_fixed: true
           - name: uv-export
             run: make runLock && git add \*/requirements\*\.txt

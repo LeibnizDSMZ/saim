@@ -131,7 +131,6 @@ def radix_get_next[T](radix: RadixTree[T], ind: str, /) -> RadixTree[T] | None:
 def _append_2_tuple_iter[T](
     data: tuple[_RQP[T], ...], to_add_k: str, to_add_v: str, index: tuple[T, ...], /
 ) -> Iterable[_RQP[T]]:
-
     append = True
     for ite in data:
         if ite[0] == to_add_k:
