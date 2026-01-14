@@ -200,6 +200,7 @@ def _get_result(
     settings: SessionSettings,
     domain: tuple[CoolDownDomain, RobotsTxt],
     sea_task: SearchTask,
+    tasks_cnt: int,
     /,
 ) -> tuple[CachedPageResp, LinkResult | None]:
     skip_search = settings.name == str(CacheNames.hom.value)
@@ -239,7 +240,11 @@ def _get_result(
         main_adapter, settings.exp_days, backend, wrap_key_f
     ) as session:
         resp = make_get_request(
-            browser, settings.pw_adapter, settings.url, session, domain, settings.contact
+            browser,             
+            settings.url, 
+            (session, settings.pw_adapter), 
+            (*domain, settings.contact), 
+            tasks_cnt
         )
     if not resp.cached and closure:
         resp = CachedPageResp.change_to_cached_content(resp, buffered)
@@ -251,15 +256,7 @@ def _get_result(
 def _create_req_adapter(adapter: SimpleHTTPAdapter | None, /) -> SimpleHTTPAdapter:
     if adapter is not None:
         return adapter
-    return SimpleHTTPAdapter(
-        max_retries=Retry(
-            status=3,
-            backoff_factor=0.2,
-            backoff_max=10,
-            respect_retry_after_header=False,
-            status_forcelist=[500, 502, 503, 504],
-        )
-    )
+    return SimpleHTTPAdapter(max_retries=0)
 
 
 def _create_pw_adapter(
@@ -267,7 +264,7 @@ def _create_pw_adapter(
 ) -> BrowserPWAdapter:
     if adapter is not None:
         return adapter
-    return BrowserPWAdapter(PWContext(2), contact, 3)
+    return BrowserPWAdapter(PWContext(2), contact)
 
 
 def verify_ccno_in_url(args: _ARGS_ST, /) -> VerifiedURL:
@@ -291,6 +288,7 @@ def verify_ccno_in_url(args: _ARGS_ST, /) -> VerifiedURL:
                 ),
                 domain,
                 task.search_task,
+                len(task.urls)
             )
             status.append(
                 LinkStatus(

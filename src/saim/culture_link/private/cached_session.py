@@ -164,7 +164,6 @@ class BrowserPWAdapter(BaseAdapter):
         "__browser",
         "__contact",
         "__pwc",
-        "__retries",
         "__runner",
         "__tmp"
     )
@@ -344,36 +343,26 @@ def _browser_fallback_wrap(
 
 def make_get_request(
     browser: bool,
-    pw_adapter: BrowserPWAdapter,
     url: str,
-    session: CachedSession,
-    domain_info: tuple[CoolDownDomain, RobotsTxt],
-    contact: str,
+    context: tuple[CachedSession, BrowserPWAdapter],
+    info: tuple[CoolDownDomain, RobotsTxt, str],
+    tasks_cnt: int,
     /,
 ) -> CachedPageResp:
     results = CachedPageResp(prohibited=True)
-    cool_down, robots_txt = domain_info
-
-    def _callback(last_request: float, /) -> tuple[float, bool]:
-        if last_request < 0:
-            return last_request, True
-        nonlocal results
-        request_time = time.time()
+    cool_down, robots_txt, contact = info
+    pw_adapter, session = context
+    if robots_txt.can_fetch(url):
+        if cool_down.skip_request():
+            return results            
         try:
             response = _browser_fallback_wrap(browser, pw_adapter, session, url, contact)
-            if response.from_cache:
-                request_time = last_request
         except (Error, RequestException):
-            results = CachedPageResp(timeout=True)
-            return request_time, True
+            cool_down.increase_timeout(tasks_cnt)
+            return CachedPageResp(timeout=True)
         results = CachedPageResp(
             response=b"" if response.content is None else response.content,
             status=response.status_code,
             cached=response.from_cache,
         )
-        return request_time, False
-
-    if robots_txt.can_fetch(url):
-        delay = robots_txt.get_delay()
-        cool_down.call_after_cool_down(delay, _callback)
     return results
