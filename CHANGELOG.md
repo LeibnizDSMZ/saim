@@ -1,3 +1,20 @@
+## v0.9.29 (2026-01-14)
+
+### Fix
+
+- add timeout reset
+- improve requests and cooldown
+- correct playwright installation
+- correct dockerignore and entrypoint
+
+### Refactor
+
+- add ruff formatting
+- improve timeout logic
+- improve linking procedure
+- update dependencies
+- start improving requests
+
 ## v0.9.28 (2026-01-12)
 
 ### Fix
