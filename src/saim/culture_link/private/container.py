@@ -56,15 +56,9 @@ class TaskPackage:
     template_links: CatalogueLink
     fallback_link: str = ""
 
-    def _pack_catalogue(self, link: str, /) -> tuple[str, str, int]:
-        if len(self.search_task.find_extra) == 0:
-            return (link, str(CacheNames.cat.value), CAT_EXP_DAYS)
-        return (link, str(CacheNames.cat_det.value), CAT_DET_EXP_DAYS)
-
-    def __iter__(self) -> Iterator[tuple[str, str, str, int]]:
-        return iter(
-            task
-            for task in [
+    @property
+    def urls(self) -> list[tuple[str, str, str, int]]:
+        return [
                 *[
                     (
                         LinkLevel.cat.value,
@@ -80,7 +74,14 @@ class TaskPackage:
                     HOME_EXP_DAYS,
                 ),
             ]
-        )
+
+    def _pack_catalogue(self, link: str, /) -> tuple[str, str, int]:
+        if len(self.search_task.find_extra) == 0:
+            return (link, str(CacheNames.cat.value), CAT_EXP_DAYS)
+        return (link, str(CacheNames.cat_det.value), CAT_DET_EXP_DAYS)
+
+    def __iter__(self) -> Iterator[tuple[str, str, str, int]]:
+        return iter(task for task in self.urls)
 
 
 @final

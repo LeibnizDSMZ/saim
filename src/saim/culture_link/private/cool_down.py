@@ -6,9 +6,9 @@ import warnings
 from saim.shared.error.warnings import RequestWarn
 
 
-_COOL_DOWN: Final[float] = 1.0
+_COOL_DOWN: Final[float] = 3.0
 _T_RESET: Final[int] = 259200
-_T_LIMIT: Final[int] = 3
+_T_LIMIT: Final[float] = 3.0
 _MAX_DELAY: Final[int] = 5
 
 
@@ -18,53 +18,51 @@ class CoolDownDomain:
 
     def __init__(self, mpc: SpawnContext, domain: str, /) -> None:
         manager = mpc.Manager()
-        self.__timeout_cnt = manager.Value("i", 0)
-        self.__last_request = manager.Value("d", time.time() - _COOL_DOWN)
+        self.__timeout_cnt = manager.Value("d", 0.0)
+        last_req = time.time() - _COOL_DOWN
+        if last_req < 0:
+            last_req = time.time()
+        self.__last_request = manager.Value("d", last_req)
         self.__lock = manager.Lock()
         self.__domain = domain
         super().__init__()
 
-    def call_after_cool_down(
-        self, delay: float, callback: Callable[[float], tuple[float, bool]], /
-    ) -> None:
+    def await_cool_down(self, delay: float, /) -> None:
         with self.__lock:
             last_req = self.__last_request.value
+            cur_time = time.time()
             cool_down_sec = delay if 0 < delay < _MAX_DELAY else _COOL_DOWN
-            time_dif = time.time() - last_req
-            time_out_cnt = self.__timeout_cnt.value
-            if time_out_cnt >= _T_LIMIT and time_dif < _T_RESET:
-                last_req = -1
-            wait_time = cool_down_sec - time.time() + last_req
-            new_req = last_req
+            wait_time = cool_down_sec - cur_time + last_req
             if wait_time > 0:
-                new_req = last_req + wait_time
-                self.__last_request.value = new_req
+                self.__last_request.value = last_req + wait_time
+            else:
+                self.__last_request.value = cur_time
         if wait_time > 0:
             time.sleep(wait_time)
         if delay >= _MAX_DELAY:
             warnings.warn(
                 f"[DELAY] High delay requirement detected - {self.__domain}",
                 RequestWarn,
-                stacklevel=2,
+                stacklevel=1,
             )
-        request_time, timeout = callback(last_req)
+
+    def skip_request(self) -> bool:
         with self.__lock:
-            if self.__last_request.value == new_req:
-                self.__last_request.value = request_time
-            if timeout:
-                cur_add = 0 if time_out_cnt >= _T_LIMIT else 1
-                self.__timeout_cnt.value += cur_add
-                info = "skipped" if last_req == -1 else "called"
-                warnings.warn(
-                    f"[TIMEOUT] {self.__domain} [{time_out_cnt} - {cur_add}] - {info}",
-                    RequestWarn,
-                    stacklevel=2,
-                )
-            else:
-                if time_out_cnt > 0:
-                    warnings.warn(
-                        f"[TIMEOUT] {self.__domain} timeout reset",
-                        RequestWarn,
-                        stacklevel=2,
-                    )
+            last_req = self.__last_request.value
+            timeout_cnt = self.__timeout_cnt.value
+            if timeout_cnt >= _T_LIMIT and (time.time() - last_req) < _T_RESET:
+                return True
+            elif timeout_cnt >= _T_LIMIT:
                 self.__timeout_cnt.value = 0
+        return False
+
+
+    def increase_timeout( self, tasks_cnt: int,  /) -> None:
+        with self.__lock:  
+                if self.__timeout_cnt.value < _T_LIMIT:         
+                    self.__timeout_cnt.value += (1.0 / tasks_cnt)
+                    warnings.warn(
+                        f"[TIMEOUT] {self.__domain} [{self.__timeout_cnt.value}]",
+                        RequestWarn,
+                        stacklevel=1,
+                    )
