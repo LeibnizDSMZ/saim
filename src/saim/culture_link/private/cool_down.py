@@ -53,16 +53,15 @@ class CoolDownDomain:
                 return False
         return True
 
-
-    def finished_request( self, timeout: bool, tasks_cnt: int,  /) -> None:
+    def finished_request(self, timeout: bool, tasks_cnt: int, /) -> None:
         with self.__lock:
             timeout_cnt = self.__timeout_cnt.value
             if not timeout and timeout_cnt > 0:
                 self.__timeout_cnt.value = 0.0
             if timeout and timeout_cnt < _T_LIMIT:
-                self.__timeout_cnt.value += (1.0 / tasks_cnt)
+                self.__timeout_cnt.value += 1.0 / tasks_cnt
                 warnings.warn(
-                        f"[TIMEOUT] {self.__domain} [{self.__timeout_cnt.value}]",
-                        RequestWarn,
-                        stacklevel=1,
-                    )
+                    f"[TIMEOUT] {self.__domain} [{self.__timeout_cnt.value}]",
+                    RequestWarn,
+                    stacklevel=1,
+                )

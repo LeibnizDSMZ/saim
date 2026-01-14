@@ -33,16 +33,14 @@ def _create_header(lpsn_cred: JWTCred, /) -> dict[str, str]:
     }
 
 
-def _request_next[
-    RT: (LPSNName, LPSNId)
-](
+def _request_next[RT: (LPSNName, LPSNId)](
     req_res: RT,
     lpsn_cred: JWTCred,
     session: CachedSession,
     cont: type[RT],
     cnt: int = 1,
     /,
-) -> (tuple[RT, bool] | None):
+) -> tuple[RT, bool] | None:
     if req_res.next is None or req_res.next == "" or cnt > 3:
         return None
     err_401 = False

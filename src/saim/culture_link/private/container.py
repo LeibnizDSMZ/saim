@@ -59,21 +59,21 @@ class TaskPackage:
     @property
     def urls(self) -> list[tuple[str, str, str, int]]:
         return [
-                *[
-                    (
-                        LinkLevel.cat.value,
-                        *self._pack_catalogue(cat),
-                    )
-                    for cat in self.template_links.catalogue
-                ],
-                ("fallback", *self._pack_catalogue(self.fallback_link)),
+            *[
                 (
-                    LinkLevel.home.value,
-                    self.template_links.homepage,
-                    str(CacheNames.hom.value),
-                    HOME_EXP_DAYS,
-                ),
-            ]
+                    LinkLevel.cat.value,
+                    *self._pack_catalogue(cat),
+                )
+                for cat in self.template_links.catalogue
+            ],
+            ("fallback", *self._pack_catalogue(self.fallback_link)),
+            (
+                LinkLevel.home.value,
+                self.template_links.homepage,
+                str(CacheNames.hom.value),
+                HOME_EXP_DAYS,
+            ),
+        ]
 
     def _pack_catalogue(self, link: str, /) -> tuple[str, str, int]:
         if len(self.search_task.find_extra) == 0:

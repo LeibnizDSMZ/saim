@@ -93,7 +93,6 @@ def test_prepare_result_raw_suc(
 def test_prepare_result_raw_fail(
     search_task: SearchTask, cached_resp_fail: CachedPageResp
 ) -> None:
-
     assert _prepare_result_raw("somelink", cached_resp_fail, search_task, False) is None
 
 
@@ -101,7 +100,6 @@ def test_prepare_result_raw_fail(
 def test_prepare_result_raw_fail_emp(
     search_task: SearchTask, cached_resp_suc_emp: CachedPageResp
 ) -> None:
-
     assert (
         _prepare_result_raw("somelink", cached_resp_suc_emp, search_task, False) is None
     )
