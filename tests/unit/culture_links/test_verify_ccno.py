@@ -124,7 +124,6 @@ def _cr_args_test_verify_ccno_in_url(
     int,
     Path,
     BrowserPWAdapter,
-    None,
     str,
 ]:
     cool = CoolDownDomain(get_worker_ctx(), "test.test")
@@ -148,12 +147,12 @@ def _cr_args_test_verify_ccno_in_url(
         timeout=False,
         prohibited=False,
     )
-    return (task_pack, c_down, 20, workdir, browser_adapter, None, "")
+    return (task_pack, c_down, 20, workdir, browser_adapter, "")
 
 
 @pytest.mark.filterwarnings("ignore:.* http.*")
 @unittest.mock.patch("saim.culture_link.private.verify_ccno.make_get_request")
-@unittest.mock.patch("saim.culture_link.private.verify_ccno.create_get_cache")
+@unittest.mock.patch("saim.culture_link.private.cached_session._create_get_cache")
 @unittest.mock.patch("saim.culture_link.private.verify_ccno.yaml_serializer")
 def test_verify_ccno_in_url_ok(
     mock_serializer: Mock,
@@ -188,7 +187,7 @@ def test_verify_ccno_in_url_ok(
 
 @pytest.mark.filterwarnings("ignore:.* http.*")
 @unittest.mock.patch("saim.culture_link.private.verify_ccno.make_get_request")
-@unittest.mock.patch("saim.culture_link.private.verify_ccno.create_get_cache")
+@unittest.mock.patch("saim.culture_link.private.cached_session._create_get_cache")
 @unittest.mock.patch("saim.culture_link.private.verify_ccno.yaml_serializer")
 def test_verify_ccno_in_url_fail(
     mock_serializer: Mock,
@@ -232,7 +231,7 @@ def test_verify_ccno_in_url_fail(
 
 @pytest.mark.filterwarnings("ignore:.* http.*")
 @unittest.mock.patch("saim.culture_link.private.verify_ccno.make_get_request")
-@unittest.mock.patch("saim.culture_link.private.verify_ccno.create_get_cache")
+@unittest.mock.patch("saim.culture_link.private.cached_session._create_get_cache")
 @unittest.mock.patch("saim.culture_link.private.verify_ccno.yaml_serializer")
 def test_verify_ccno_in_url_fatal(
     mock_serializer: Mock,

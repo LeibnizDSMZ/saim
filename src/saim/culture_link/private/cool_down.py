@@ -1,6 +1,6 @@
 from multiprocessing.context import SpawnContext
 import time
-from typing import Callable, Final, final
+from typing import Final, final
 import warnings
 
 from saim.shared.error.warnings import RequestWarn
@@ -28,23 +28,19 @@ class CoolDownDomain:
         super().__init__()
 
     def await_cool_down(self, delay: float, /) -> None:
-        with self.__lock:
-            last_req = self.__last_request.value
-            cur_time = time.time()
-            cool_down_sec = delay if 0 < delay < _MAX_DELAY else _COOL_DOWN
-            wait_time = cool_down_sec - cur_time + last_req
-            if wait_time > 0:
-                self.__last_request.value = last_req + wait_time
-            else:
-                self.__last_request.value = cur_time
-        if wait_time > 0:
+        wait_time = 0.0
+        cool_down_sec = delay if 0 < delay < _MAX_DELAY else _COOL_DOWN
+
+        while True:
+            with self.__lock:
+                now = time.time()
+                next_allowed = self.__last_request.value + cool_down_sec
+                wait_time = max(0, next_allowed - now)
+
+                if wait_time == 0:
+                    self.__last_request.value = now
+                    break
             time.sleep(wait_time)
-        if delay >= _MAX_DELAY:
-            warnings.warn(
-                f"[DELAY] High delay requirement detected - {self.__domain}",
-                RequestWarn,
-                stacklevel=1,
-            )
 
     def skip_request(self) -> bool:
         with self.__lock:
@@ -58,8 +54,8 @@ class CoolDownDomain:
 
 
     def increase_timeout( self, tasks_cnt: int,  /) -> None:
-        with self.__lock:  
-                if self.__timeout_cnt.value < _T_LIMIT:         
+        with self.__lock:
+                if self.__timeout_cnt.value < _T_LIMIT:
                     self.__timeout_cnt.value += (1.0 / tasks_cnt)
                     warnings.warn(
                         f"[TIMEOUT] {self.__domain} [{self.__timeout_cnt.value}]",

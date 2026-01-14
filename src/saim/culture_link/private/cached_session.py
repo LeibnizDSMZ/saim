@@ -12,13 +12,12 @@ from typing import (
     Mapping,
     ParamSpec,
     final,
-    override,
 )
 import warnings
 from requests import PreparedRequest, Timeout
 from requests.structures import CaseInsensitiveDict
-from requests.adapters import HTTPAdapter, BaseAdapter
-from requests_cache import AnyResponse, BaseCache, CachedSession
+from requests.adapters import BaseAdapter
+from requests_cache import BaseCache, CachedSession
 from playwright.async_api import (Response, async_playwright, Error,
                                   BrowserContext, Playwright, Page)
 from urllib3 import HTTPResponse
@@ -136,18 +135,6 @@ class PWContext:
             runner.close()
 
 
-@final
-class SimpleHTTPAdapter(HTTPAdapter):
-
-    @override
-    def close(self) -> None:
-        pass
-
-    def finish(self) -> None:
-        print("CLOSING HTTP")
-        super(HTTPAdapter, self).close()
-
-
 BLOCK_TYPES: Final[list[str]] = [
     "image",
     "media",
@@ -163,18 +150,27 @@ class BrowserPWAdapter(BaseAdapter):
     __slots__: tuple[str, ...] = (
         "__browser",
         "__contact",
+        "__cool_down",
+        "__delay",
         "__pwc",
+        "__retries",
         "__runner",
         "__tmp"
     )
 
     def __init__(
-        self, pwc: PWContext, contact: str = "", max_retries: int = 0, /
+        self,
+        pwc: PWContext,
+        contact: str = "",
+        max_attempts: int = 1,
+        /
     ) -> None:
-        self.__retries = max_retries if max_retries > 1 else 1
         self.__pwc: PWContext = pwc
         self.__contact = contact
         self.__tmp = tempfile.TemporaryDirectory()
+        self.__cool_down : CoolDownDomain | None = None
+        self.__delay = 1.0
+        self.__retries = max_attempts if max_attempts > 1 else 1
         if not self.__pwc.is_test:
             ctx = self.__pwc.runner.run(self.__pwc.ctx)
             self.__browser: BrowserContext | None = self.__pwc.runner.run(
@@ -190,6 +186,16 @@ class BrowserPWAdapter(BaseAdapter):
         else:
             self.__browser = None
         super().__init__()
+
+    def set_cool_down(self, cool_down: CoolDownDomain, delay: float, /) -> None:
+        self.__cool_down = cool_down
+        self.__delay = delay
+
+    async def __await_cool_down(self) -> None:
+        if self.__cool_down is None:
+            await asyncio.sleep(1.0)
+        else:
+            self.__cool_down.await_cool_down(self.__delay)
 
     async def __send(
         self,
@@ -220,7 +226,7 @@ class BrowserPWAdapter(BaseAdapter):
             att_time = tout_msec * (0.5 if attempt > 0 else 1.0)
             async def go_to_page(p: Page = page, t: float = att_time) -> Response | None:
                 return await p.goto(url, timeout=t, wait_until="load")
-
+            await self.__await_cool_down()
             resp: Response | None = await _get_resp(go_to_page, err_str, attempt +1)
             if resp is not None:
                 start_time = time.time()
@@ -271,18 +277,11 @@ class BrowserPWAdapter(BaseAdapter):
         self.__tmp.cleanup()
 
 
-def _mount_adapters(
-    adapter_pw: BrowserPWAdapter | SimpleHTTPAdapter, session: CachedSession, /
-) -> None:
-    session.mount("http://", adapter_pw)
-    session.mount("https://", adapter_pw)
-
-
 P = ParamSpec("P")
 
 
-def create_get_cache(
-    adapter: BrowserPWAdapter | SimpleHTTPAdapter,
+def _create_get_cache(
+    adapter: BrowserPWAdapter,
     exp_days: int,
     backend: BaseCache,
     key_fn: Callable[Concatenate[PreparedRequest, P], str],
@@ -298,65 +297,44 @@ def create_get_cache(
             allowable_codes=[*range(200, 400), 404, 403],
             allowable_methods=(
                 "GET",
-                "HEAD",
             ),
             key_fn=key_fn,
         )
-        _mount_adapters(adapter, session)
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
     except Error as cex:
         raise SessionCreationEx(f"{cex!s}") from cex
     return session
 
 
-def run_request(browser: bool, session: CachedSession, /) -> Callable[..., AnyResponse]:
-    if browser:
-        return session.get
-    return session.head
-
-
-def _browser_fallback_wrap(
-    browser: bool,
-    pw_adapter: BrowserPWAdapter,
-    session: CachedSession,
-    url: str,
-    contact: str,
-    /,
-) -> AnyResponse:
-    params = {
-        "timeout": 180,
-        "allow_redirects": True,
-        "headers": {"User-Agent": get_user_agent(contact)},
-    }
-    try:
-        response = run_request(browser, session)(url, **params)
-    except (Error, RequestException):
-        if not browser:
-            _mount_adapters(pw_adapter, session)
-            response = session.get(url, **params)
-        else:
-            raise
-    else:
-        if 400 <= response.status_code < 500 and not browser:
-            response = session.get(url, **params)
-    return response
-
-
 def make_get_request(
-    browser: bool,
     url: str,
-    context: tuple[CachedSession, BrowserPWAdapter],
+    session: tuple[
+        BrowserPWAdapter,
+        int,
+        BaseCache,
+        Callable[Concatenate[PreparedRequest, P], str],
+    ],
     info: tuple[CoolDownDomain, RobotsTxt, str],
     tasks_cnt: int,
     /,
 ) -> CachedPageResp:
     results = CachedPageResp(prohibited=True)
     cool_down, robots_txt, contact = info
-    pw_adapter, session = context
+    pw_adapter, exp, cache, call  = session
+
+    pw_adapter.set_cool_down(cool_down, robots_txt.get_delay())
+    cached_session = _create_get_cache(pw_adapter, exp, cache, call, )
+
     if robots_txt.can_fetch(url):
         if cool_down.skip_request():
-            return results            
+            return results
         try:
-            response = _browser_fallback_wrap(browser, pw_adapter, session, url, contact)
+            response = cached_session.get(url, **{
+                "timeout": 180,
+                "allow_redirects": True,
+                "headers": {"User-Agent": get_user_agent(contact)},
+            })
         except (Error, RequestException):
             cool_down.increase_timeout(tasks_cnt)
             return CachedPageResp(timeout=True)
