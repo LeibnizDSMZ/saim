@@ -46,18 +46,21 @@ class CoolDownDomain:
         with self.__lock:
             last_req = self.__last_request.value
             timeout_cnt = self.__timeout_cnt.value
-            if timeout_cnt >= _T_LIMIT and (time.time() - last_req) < _T_RESET:
-                return True
-            elif timeout_cnt >= _T_LIMIT:
+            if (time.time() - last_req) < _T_RESET:
                 self.__timeout_cnt.value = 0
+            elif timeout_cnt >= _T_LIMIT:
+                return True
         return False
 
 
-    def increase_timeout( self, tasks_cnt: int,  /) -> None:
+    def finished_request( self, timeout: bool, tasks_cnt: int,  /) -> None:
         with self.__lock:
-                if self.__timeout_cnt.value < _T_LIMIT:
-                    self.__timeout_cnt.value += (1.0 / tasks_cnt)
-                    warnings.warn(
+            timeout_cnt = self.__timeout_cnt.value
+            if not timeout and timeout_cnt > 0 :
+                self.__timeout_cnt.value = 0.0
+            elif timeout_cnt < _T_LIMIT:
+                self.__timeout_cnt.value += (1.0 / tasks_cnt)
+                warnings.warn(
                         f"[TIMEOUT] {self.__domain} [{self.__timeout_cnt.value}]",
                         RequestWarn,
                         stacklevel=1,

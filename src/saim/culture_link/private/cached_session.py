@@ -336,11 +336,12 @@ def make_get_request(
                 "headers": {"User-Agent": get_user_agent(contact)},
             })
         except (Error, RequestException):
-            cool_down.increase_timeout(tasks_cnt)
+            cool_down.finished_request(True, tasks_cnt)
             return CachedPageResp(timeout=True)
         results = CachedPageResp(
             response=b"" if response.content is None else response.content,
             status=response.status_code,
             cached=response.from_cache,
         )
+    cool_down.finished_request(results.timeout, tasks_cnt)
     return results
