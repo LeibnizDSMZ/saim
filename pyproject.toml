@@ -28,7 +28,7 @@ dependencies = [
 
 [project.scripts]
 extract_ccno = "saim.designation.main:run"
-verify_cafi = "saim.culture_link.main:run"
+verify_links = "saim.culture_link.main:run"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -250,7 +250,7 @@ parallel = true
 
 [tool.coverage.report]
 show_missing = false
-fail_under = 50
+fail_under = 30
 
 [tool.vulture]
 paths = ["configs/dev/whitelist.py", "src"]

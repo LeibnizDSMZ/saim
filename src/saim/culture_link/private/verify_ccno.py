@@ -17,12 +17,9 @@ from requests_cache import (
     create_key,
     yaml_serializer,
 )
-from urllib3 import Retry
 from saim.culture_link.private.cached_session import (
     BrowserPWAdapter,
     PWContext,
-    SimpleHTTPAdapter,
-    create_get_cache,
     make_get_request,
 )
 from saim.culture_link.private.constants import CacheNames, VerificationStatus
@@ -68,7 +65,7 @@ def _wrap_status(
 _REQ: TypeAlias = dict[str, tuple[CoolDownDomain, RobotsTxt]]
 _ARGS_T: TypeAlias = tuple[TaskPackage, _REQ]
 _ARGS_ST: TypeAlias = tuple[
-    TaskPackage, _REQ, int, Path, BrowserPWAdapter | None, SimpleHTTPAdapter | None, str
+    TaskPackage, _REQ, int, Path, BrowserPWAdapter | None, str
 ]
 _WSP: Final[Pattern[str]] = re.compile(r"\s+")
 
@@ -76,7 +73,6 @@ _WSP: Final[Pattern[str]] = re.compile(r"\s+")
 @final
 @dataclass(frozen=True, slots=True)
 class SessionSettings:
-    req_adapter: SimpleHTTPAdapter
     pw_adapter: BrowserPWAdapter
     url: str
     name: str
@@ -229,21 +225,13 @@ def _get_result(
         name="yaml_slim",
         is_binary=False,
     )
-    browser = settings.name in [str(CacheNames.cat.value), str(CacheNames.cat_det.value)]
-    main_adapter: BrowserPWAdapter | SimpleHTTPAdapter = settings.req_adapter
-    if browser:
-        main_adapter = settings.pw_adapter
     backend = create_sqlite_backend(
         f"verify_ccno_{settings.name}", settings.work_dir, custom_ser_p
     )(settings.db_size_gb, settings.exp_days)
-    with create_get_cache(
-        main_adapter, settings.exp_days, backend, wrap_key_f
-    ) as session:
-        resp = make_get_request(
-            browser,             
-            settings.url, 
-            (session, settings.pw_adapter), 
-            (*domain, settings.contact), 
+    resp = make_get_request(
+            settings.url,
+            (settings.pw_adapter, settings.exp_days, backend, wrap_key_f),
+            (*domain, settings.contact),
             tasks_cnt
         )
     if not resp.cached and closure:
@@ -253,22 +241,16 @@ def _get_result(
     return resp, _prepare_result_raw(settings.url, resp, sea_task, skip_search)
 
 
-def _create_req_adapter(adapter: SimpleHTTPAdapter | None, /) -> SimpleHTTPAdapter:
-    if adapter is not None:
-        return adapter
-    return SimpleHTTPAdapter(max_retries=0)
-
-
 def _create_pw_adapter(
     adapter: BrowserPWAdapter | None, contact: str, /
 ) -> BrowserPWAdapter:
     if adapter is not None:
         return adapter
-    return BrowserPWAdapter(PWContext(2), contact)
+    return BrowserPWAdapter(PWContext(2), contact, 3)
 
 
 def verify_ccno_in_url(args: _ARGS_ST, /) -> VerifiedURL:
-    task, cool_down, size, folder, pwa, rea, contact = args
+    task, cool_down, size, folder, pwa, contact = args
     status = []
     try:
         for url_typ, url, name, exp in task:
@@ -277,7 +259,6 @@ def verify_ccno_in_url(args: _ARGS_ST, /) -> VerifiedURL:
                 continue
             resp, ana_result = _get_result(
                 SessionSettings(
-                    _create_req_adapter(rea),
                     _create_pw_adapter(pwa, contact),
                     url,
                     name,
@@ -328,7 +309,6 @@ class VerifyCcNosProc:
         "__folder",
         "__pw_adapter",
         "__read",
-        "__req_adapter",
         "__size",
         "__write",
     )
@@ -349,7 +329,6 @@ class VerifyCcNosProc:
         self.__folder = folder
         self.__finish: ValueP = finish
         self.__contact = contact
-        self.__req_adapter: SimpleHTTPAdapter | None = None
         self.__pw_adapter: BrowserPWAdapter | None = None
         atexit.register(lambda: self.close())
         super().__init__()
@@ -359,10 +338,6 @@ class VerifyCcNosProc:
         self.__pw_adapter = _create_pw_adapter(self.__pw_adapter, self.__contact)
         return self.__pw_adapter
 
-    @property
-    def _req_adapter(self) -> SimpleHTTPAdapter:
-        self.__req_adapter = _create_req_adapter(self.__req_adapter)
-        return self.__req_adapter
 
     def __verify_ccno_in_url(self, args: _ARGS_T, /) -> VerifiedURL:
         task, req = args
@@ -373,7 +348,6 @@ class VerifyCcNosProc:
                 self.__size,
                 self.__folder,
                 self._pw_adapter,
-                self._req_adapter,
                 self.__contact,
             )
         )
@@ -390,9 +364,6 @@ class VerifyCcNosProc:
                 self.__write.put(result)
 
     def close(self) -> None:
-        if self.__req_adapter is not None:
-            self.__req_adapter.finish()
-            self.__req_adapter = None
         if self.__pw_adapter is not None:
             self.__pw_adapter.finish()
             self.__pw_adapter = None
