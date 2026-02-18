@@ -1,3 +1,9 @@
+## v0.9.30 (2026-02-18)
+
+### Fix
+
+- **taxon**: correct ACELLULAR ROOT mapping
+
 ## v0.9.29 (2026-01-14)
 
 ### Fix
