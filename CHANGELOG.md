@@ -1,3 +1,9 @@
+## v0.9.31 (2026-02-18)
+
+### Fix
+
+- **taxon**: correct realm rank mapping to sup_kin
+
 ## v0.9.30 (2026-02-18)
 
 ### Fix
