@@ -192,7 +192,7 @@ _NCBI_EXCLUSIVE_RANKS_MAP: Final[dict[str, GBIFRanksE]] = {
     "CLADE": GBIFRanksE.oth,
     "NO RANK": GBIFRanksE.unr,
     "REALM": GBIFRanksE.dom,
-    "ACELLULAR ROOT": GBIFRanksE.unr,
+    "ACELLULAR ROOT": GBIFRanksE.dom,
     "CELLULAR ROOT": GBIFRanksE.unr,
 }
 
