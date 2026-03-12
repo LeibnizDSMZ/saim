@@ -1,3 +1,9 @@
+## v0.9.32 (2026-03-12)
+
+### Refactor
+
+- update dependencies
+
 ## v0.9.31 (2026-02-18)
 
 ### Fix

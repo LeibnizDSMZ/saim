@@ -1280,7 +1280,7 @@ wheels = [
 
 [[package]]
 name = "saim"
-version = "0.9.31"
+version = "0.9.32"
 source = { editable = "." }
 dependencies = [
     { name = "cafi" },
