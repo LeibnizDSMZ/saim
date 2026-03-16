@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from datetime import datetime, timedelta
-from typing import Any, Self, final
+from typing import Self, final
 
 from saim.designation.extract_ccno import get_syn_eq_struct
 from saim.designation.known_acr_db import create_brc_con
@@ -50,7 +50,7 @@ class HistoryManager:
         self._start = datetime.now()
         super().__init__()
 
-    def __new__(cls, *_args: Any) -> Self:
+    def __new__(cls, *_args: str | int) -> Self:
         if cls.__instance is not None:
             return cls.__instance
         cls.__instance = super().__new__(cls)

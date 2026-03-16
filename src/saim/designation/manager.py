@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Callable, Iterable, Self, final
 
 from saim.designation.extract_ccno import (
@@ -74,7 +73,7 @@ class AcronymManager:
         self.__limit = limit
         super().__init__()
 
-    def __new__(cls, *_args: Path | str) -> Self:
+    def __new__(cls, *_args: int | str) -> Self:
         if cls.__instance is not None:
             return cls.__instance
         cls.__instance = super().__new__(cls)
