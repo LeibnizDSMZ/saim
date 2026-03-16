@@ -125,7 +125,7 @@ class TaxonManager:
         self.__jump = 0
         super().__init__()
 
-    def __new__(cls, *_args: Path | str) -> Self:
+    def __new__(cls, *_args: Path | LPSNConf) -> Self:
         if cls.__instance is not None:
             return cls.__instance
         cls.__instance = super().__new__(cls)
