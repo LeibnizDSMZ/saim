@@ -1,3 +1,9 @@
+## v0.9.33 (2026-03-16)
+
+### Refactor
+
+- **manager**: adjust type hints for __new__ methods
+
 ## v0.9.32 (2026-03-12)
 
 ### Refactor
