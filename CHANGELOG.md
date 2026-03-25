@@ -1,3 +1,9 @@
+## v0.9.34 (2026-03-25)
+
+### Fix
+
+- **parse**: correct accession regex to match numeric suffixes
+
 ## v0.9.33 (2026-03-16)
 
 ### Refactor
