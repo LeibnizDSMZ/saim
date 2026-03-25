@@ -19,7 +19,7 @@ _ASSE_CORE: Final[str] = (
     r"|[A-Z]{5}\d{7}"
 )
 
-_ACC_ASSE: Final[str] = r"(" + _ASSE_CORE + r")(?:\.d+)?"
+_ACC_ASSE: Final[str] = r"(" + _ASSE_CORE + r")(?:\.\d+)?"
 
 _NUC_CORE: Final[str] = (
     # Nucleotide
@@ -29,10 +29,10 @@ _NUC_CORE: Final[str] = (
     r"|(?:AC_|NC_|NG_|NT_|NW_|NZ_|NM_|NR_|XM_|XR_)\d+"
 )
 
-_ACC_NUC: Final[str] = r"(" + _NUC_CORE + r")(?:\.d+)?"
+_ACC_NUC: Final[str] = r"(" + _NUC_CORE + r")(?:\.\d+)?"
 
 
-_ACC_ALL: Final[str] = r"(" + _ASSE_CORE + "|" + _NUC_CORE + r")(?:\.d+)?"
+_ACC_ALL: Final[str] = r"(" + _ASSE_CORE + "|" + _NUC_CORE + r")(?:\.\d+)?"
 
 _ACC_REG: Final[Pattern[str]] = re.compile(_ACC_ALL)
 _IS_ACC: Final[Pattern[str]] = re.compile(r"^" + _ACC_ALL + r"$")
