@@ -62,6 +62,10 @@ pre-commit:
             glob: "*.py"
             run: ruff format {staged_files}
             stage_fixed: true
+          - name: ruff-format
+            glob: "*.py"
+            run: ruff format {staged_files}
+            stage_fixed: true
           - name: uv-export
             run: make runLock && git add \*/requirements\*\.txt
             stage_fixed: true
