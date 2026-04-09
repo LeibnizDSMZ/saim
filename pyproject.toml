@@ -18,12 +18,12 @@ keywords = [
 requires-python = ">=3.13,<4"
 dependencies = [
   "pydantic ==2.12.5",
-  "playwright ==1.57.0",
+  "playwright ==1.58.0",
   "python-dateutil ==2.9.0.post0",
-  "python-keycloak ==7.0.2",
-  "requests ==2.32.5",
-  "requests-cache ==1.2.1",
-  "cafi @ git+https://github.com/LeibnizDSMZ/cafi.git@v0.11.0",
+  "python-keycloak ==7.1.1",
+  "requests ==2.33.1",
+  "requests-cache ==1.3.1",
+  "cafi @ git+https://github.com/LeibnizDSMZ/cafi.git@v0.11.1",
 ]
 
 [project.scripts]
@@ -35,7 +35,7 @@ where = ["src"]
 include = ["saim"]
 
 [build-system]
-requires = ["uv_build>=0.9.16,<0.10.0"]
+requires = ["uv_build>=0.11.6,<0.12.0"]
 build-backend = "uv_build"
 
 [tool.uv]
@@ -44,20 +44,20 @@ default-groups = []
 
 [dependency-groups]
 dev = [
-  "commitizen ==4.11.2",
-  "mypy ==1.19.1",
-  "ruff ==0.14.11",
-  "codespell ==2.4.1",
+  "commitizen ==4.13.9",
+  "mypy ==1.20.0",
+  "ruff ==0.15.9",
+  "codespell ==2.4.2",
   "shellcheck-py ==0.11.0.1",
   "pre-commit-hooks ==6.0.0",
-  "vulture ==2.14",
+  "vulture ==2.16",
   # commit hooks
-  "lefthook ==2.0.13",
+  "lefthook ==2.1.4",
   # types
-  "types-python-dateutil ==2.9.0.20251115",
-  "types-requests ==2.32.4.20260107",
+  "types-python-dateutil ==2.9.0.20260408",
+  "types-requests ==2.33.0.20260408",
 ]
-test = ["coverage ==7.13.1", "pytest ==9.0.2", "tox ==4.34.1"]
+test = ["coverage ==7.13.5", "pytest ==9.0.3", "tox ==4.52.0"]
 docs = [
   "mkdocs ==1.6.1",
   "mkdocs-material ==9.7.1",
