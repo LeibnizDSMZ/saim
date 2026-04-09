@@ -46,7 +46,7 @@ def create_sqlite_backend(
         )
     except Exception as cex:
         raise SessionCreationEx(f"{cex!s}") from cex
-    return lambda exp_days, db_size_gb: _clean_cache(db_size_gb, exp_days, db_path, cache)
+    return lambda db_size_gb, exp_days: _clean_cache(db_size_gb, exp_days, db_path, cache)
 
 
 def create_default_retry_args() -> dict[str, int | float | Collection[int]]:
