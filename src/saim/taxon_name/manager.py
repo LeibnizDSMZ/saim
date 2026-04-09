@@ -117,7 +117,7 @@ class TaxonManager:
 
     def __init__(self, work_dir: Path, lpsn_conf: LPSNConf, /) -> None:
         self.__wir = work_dir
-        self._exp_days = 14
+        self._exp_days = 60
         self._start = datetime.now()
         self.__gbif, self._ncbi, self.__lpsn = self.__create_session(lpsn_conf)
         self._radix_sg: None | RadixTree[int] = None
