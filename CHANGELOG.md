@@ -1,3 +1,9 @@
+## v0.9.36 (2026-04-13)
+
+### Fix
+
+- add extra check for acronyms
+
 ## v0.9.35 (2026-04-09)
 
 ### Fix
