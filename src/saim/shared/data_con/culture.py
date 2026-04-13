@@ -160,6 +160,8 @@ class CultureCCNo(BaseModel):
         if self.brc_id not in acr_man.identify_acr(self.acr):
             raise ValueError(f"mismatch brc_id - {self.ccno} | {self.brc_id}")
         kn_acr = acr_man.identify_ccno_by_brc(self.ccno, self.brc_id)
+        if kn_acr.acr == "":
+            raise ValueError(f"could not detect acronym - {self.acr} | {self.brc_id}")
         if kn_acr.acr.lower() != self.acr.lower():
             raise ValueError(f"mismatch acronym - {self.acr} | {kn_acr.acr}")
         if kn_acr.id.pre.lower() != self.id.pre.lower():
