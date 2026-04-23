@@ -1,3 +1,9 @@
+## v0.10.0 (2026-04-23)
+
+### Feat
+
+- **taxon**: add is_species_or_lower helper
+
 ## v0.9.36 (2026-04-13)
 
 ### Fix
