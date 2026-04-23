@@ -214,6 +214,34 @@ _L_NCBI_RANKS: Final[set[str]] = set(_NCBI_EXCLUSIVE_RANKS_MAP.keys())
 _L_DOMAIN: Final[set[str]] = {str(ski.value) for ski in DomainE}
 _L_DOMAIN_MAP: Final[dict[str, DomainE]] = {str(ski.value): ski for ski in DomainE}
 _L_GBIF_TYP: Final[set[str]] = {str(typ.value) for typ in GBIFTypeE}
+_L_SPECIES_OR_BELOW: Final[set[str]] = {
+    GBIFRanksE.spe,
+    GBIFRanksE.inf_spec,
+    GBIFRanksE.grex,
+    GBIFRanksE.sub_spe,
+    GBIFRanksE.cul_var_gr,
+    GBIFRanksE.con_var,
+    GBIFRanksE.inf_sub_spec,
+    GBIFRanksE.prol,
+    GBIFRanksE.rac,
+    GBIFRanksE.nat,
+    GBIFRanksE.abe,
+    GBIFRanksE.morph,
+    GBIFRanksE.var,
+    GBIFRanksE.sub_var,
+    GBIFRanksE.form,
+    GBIFRanksE.sub_form,
+    GBIFRanksE.pat_var,
+    GBIFRanksE.bio_var,
+    GBIFRanksE.che_var,
+    GBIFRanksE.mor_var,
+    GBIFRanksE.pha_var,
+    GBIFRanksE.ser_var,
+    GBIFRanksE.che_form,
+    GBIFRanksE.for_spec,
+    GBIFRanksE.cul_var,
+    GBIFRanksE.str,
+}
 
 
 def get_ranks_list() -> list[str]:
@@ -256,6 +284,10 @@ def is_informative_rank(name: GBIFRanksE, /) -> bool:
 
 def is_domain(name: str, /) -> bool:
     return name in _L_DOMAIN
+
+
+def is_species_or_lower(rank: GBIFRanksE) -> bool:
+    return rank in _L_SPECIES_OR_BELOW
 
 
 def parse_domain(name: str, /) -> DomainE:
