@@ -1,3 +1,9 @@
+## v0.10.1 (2026-06-24)
+
+### Fix
+
+- **taxon_name**: improve taxon name resolution and reconstruction
+
 ## v0.10.0 (2026-04-23)
 
 ### Feat
