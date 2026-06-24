@@ -155,7 +155,8 @@ class TaxonManager:
     def __prep_name(self, name: str, /) -> tuple[str, str]:
         cleaned = clean_text_rm_tags(name)
         if len(cleaned) > 1:
-            cleaned = cleaned[0].upper() + cleaned[1:]
+            # Could cause issues with older names especially virus names
+            cleaned = cleaned[0].upper() + cleaned[1:].lower()
         for cleaner in _NAME_CLEAN:
             cleaned = cleaner.sub("", cleaned)
         return (
@@ -166,12 +167,12 @@ class TaxonManager:
     @_verify_date
     def get_patched_name(self, name: str, /) -> str:
         cl_name, tax_name = self.__prep_name(name)
-        names_id = self.__lpsn.get_name([tax_name, cl_name])
-        if len(names_id) > 0:
-            return names_id[0][0]
-        names_id = self._ncbi.get_name([tax_name, cl_name])
-        if len(names_id) > 0:
-            return names_id[0][0]
+        resolve_order = (self.__lpsn.get_name, self._ncbi.get_name)
+        for arg in (cl_name, tax_name):
+            for resolve in resolve_order:
+                names_id = resolve([arg])
+                if len(names_id) > 0:
+                    return names_id[0][0]
         if len(cl_name) >= 3:
             return cl_name
         return ""
