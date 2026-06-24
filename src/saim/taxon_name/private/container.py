@@ -33,6 +33,7 @@ class GBIFName(BaseModel):
     )
     canon_mark: str = Field(default="", alias="canonicalNameWithMarker")
     genus: str = Field(default="", alias="genusOrAbove")
+    epithet: str = Field(default="", alias="specificEpithet")
 
 
 @final

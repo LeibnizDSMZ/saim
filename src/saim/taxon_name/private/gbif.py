@@ -13,7 +13,7 @@ from saim.taxon_name.private.container import GBIF, GBIFName
 _GBIF_API: Final[str] = "https://api.gbif.org/v1/parser/name"
 
 
-def _select_genus(genus: str, name: str, typ: GBIFTypeE, /) -> bool:
+def _trim_to_higher(genus: str, name: str, typ: GBIFTypeE, /) -> bool:
     if genus == "":
         return False
     return typ == GBIFTypeE.inf and name[-1] == "."
@@ -25,8 +25,10 @@ def _get_name_gbif(gbif: GBIFName, /) -> GBIF:
             name=clean_text_rm_enclosing(gbif.sci_name).replace("'", "").replace('"', ""),
             rank_marker=gbif.rank,
         )
-    if _select_genus(gbif.genus, gbif.canon_mark, gbif.type):
-        return GBIF(name=gbif.genus, rank_marker=GBIFRanksE.unr)
+    if _trim_to_higher(gbif.genus, gbif.canon_mark, gbif.type):
+        return GBIF(
+            name=f"{gbif.genus} {gbif.epithet}".strip(), rank_marker=GBIFRanksE.unr
+        )
     return GBIF(name=gbif.canon_mark, rank_marker=gbif.rank)
 
 
