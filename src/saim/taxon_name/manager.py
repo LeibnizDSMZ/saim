@@ -99,6 +99,11 @@ _NAME_CLEAN = (
     re.compile(r"\s+cv\.?$"),
 )
 
+_LOWER_INDICATORS = (
+    re.compile(r"(pv\.\s)([a-zA-Z])"),
+    re.compile(r"(subsp\.\s)([a-zA-Z])"),
+)
+
 
 @final
 class TaxonManager:
@@ -155,10 +160,13 @@ class TaxonManager:
     def __prep_name(self, name: str, /) -> tuple[str, str]:
         cleaned = clean_text_rm_tags(name)
         if len(cleaned) > 1:
-            # Could cause issues with older names especially virus names
-            cleaned = cleaned[0].upper() + cleaned[1:].lower()
+            cleaned = cleaned[0].upper() + cleaned[1:]
         for cleaner in _NAME_CLEAN:
             cleaned = cleaner.sub("", cleaned)
+        for indicator in _LOWER_INDICATORS:
+            mat = indicator.search(cleaned)
+            if mat:
+                cleaned = indicator.sub(mat.group(1) + mat.group(2).lower(), cleaned)
         return (
             cleaned,
             self.__gbif.get_name(cleaned),
