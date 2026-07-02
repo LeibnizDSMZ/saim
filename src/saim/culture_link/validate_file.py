@@ -62,8 +62,9 @@ async def _verify_links(
                 "link": link.result.link,
                 "link_type": list(
                     filter(
-                        lambda status: link.result is not None
-                        and status.link == link.result.link,
+                        lambda status: (
+                            link.result is not None and status.link == link.result.link
+                        ),
                         link.status,
                     )
                 )
