@@ -1,3 +1,10 @@
+## v0.10.2 (2026-07-03)
+
+### Fix
+
+- **taxon_name**: update regex patterns for lower indicators
+- **src.saim.taxon_name.manager.py**: changed lowering of input before parsing with gbif
+
 ## v0.10.1 (2026-06-24)
 
 ### Fix
