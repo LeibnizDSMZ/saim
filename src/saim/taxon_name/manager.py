@@ -100,8 +100,8 @@ _NAME_CLEAN = (
 )
 
 _LOWER_INDICATORS = (
-    re.compile(r"(pv\.\s)([a-zA-Z])"),
-    re.compile(r"(subsp\.\s)([a-zA-Z])"),
+    re.compile(r"(pv\.\s)\s*([a-zA-Z]+)"),
+    re.compile(r"(subsp\.\s)\s*([a-zA-Z]+)"),
 )
 
 
@@ -165,7 +165,7 @@ class TaxonManager:
             cleaned = cleaner.sub("", cleaned)
         for indicator in _LOWER_INDICATORS:
             mat = indicator.search(cleaned)
-            if mat:
+            if mat is not None:
                 cleaned = indicator.sub(mat.group(1) + mat.group(2).lower(), cleaned)
         return (
             cleaned,
