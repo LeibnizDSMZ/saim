@@ -1,3 +1,9 @@
+## v0.11.0 (2026-07-08)
+
+### Feat
+
+- **lpsn**: implement caching for lpsn requests
+
 ## v0.10.4 (2026-07-07)
 
 ### Fix
