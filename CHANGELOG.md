@@ -1,3 +1,9 @@
+## v0.11.1 (2026-07-10)
+
+### Refactor
+
+- add exact match to lpsn api
+
 ## v0.11.0 (2026-07-08)
 
 ### Feat
