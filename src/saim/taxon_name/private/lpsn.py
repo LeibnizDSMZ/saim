@@ -70,7 +70,7 @@ def _request_lpsn_ad(
 ) -> list[tuple[str, int]]:
     if name == "":
         return []
-    req_url = f"{LPSN_ADV}taxon-name={parse.quote(name)}"
+    req_url = f"{LPSN_ADV}taxon-name={parse.quote(name)}&match_mode=exact"
     res_con = LPSNName(next=req_url, results=[])
     lids: list[tuple[str, int]] = []
     while (new_res := _request_next(res_con, lpsn_cred, session, LPSNName)) is not None:
