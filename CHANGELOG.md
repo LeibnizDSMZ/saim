@@ -1,3 +1,9 @@
+## v0.11.2 (2026-07-13)
+
+### Refactor
+
+- **taxon_name**: standardize rate limiting and simplify request handling
+
 ## v0.11.1 (2026-07-10)
 
 ### Refactor
