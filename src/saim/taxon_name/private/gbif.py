@@ -49,9 +49,10 @@ def _request_gbif(
     if name == "":
         return GBIF()
     req = f"{_GBIF_API}?name={parse.quote(name)}"
+    time.sleep(last_req(time.time()))
     if (res := session.get(req, timeout=60)).status_code == 200:
-        if not res.from_cache:
-            time.sleep(last_req(time.time()))
+        if res.from_cache:
+            last_req(0.0)
         return _analyse_gbif_response(name, res)
     return GBIF(name=name)
 
