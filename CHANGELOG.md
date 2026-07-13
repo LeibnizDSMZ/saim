@@ -1,3 +1,9 @@
+## v0.11.3 (2026-07-13)
+
+### Refactor
+
+- improve timeout for taxa requests
+
 ## v0.11.2 (2026-07-13)
 
 ### Refactor
