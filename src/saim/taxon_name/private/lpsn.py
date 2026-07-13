@@ -1,7 +1,7 @@
 import atexit
 from pathlib import Path
 import time
-from typing import Callable, Final, final
+from typing import Any, Callable, Final, final
 from requests.exceptions import RequestException
 from requests_cache import CachedSession
 from urllib import parse
@@ -33,31 +33,33 @@ def _create_header(lpsn_cred: JWTCred, /) -> dict[str, str]:
     }
 
 
-def _request_next[RT: (LPSNName, LPSNId)](
-    req_res: RT,
+def _request_next(
+    req_next: str | None,
     lpsn_cred: JWTCred,
     session: CachedSession,
-    cont: type[RT],
+    last_req: Callable[[float], float],
     cnt: int = 1,
     /,
-) -> tuple[RT, bool] | None:
-    if req_res.next is None or req_res.next == "" or cnt > 3:
+) -> dict[str, Any] | None:
+    if req_next is None or req_next == "" or cnt > 3:
         return None
     err_401 = False
     headers = _create_header(lpsn_cred)
+    time.sleep(last_req(time.time()))
     try:
-        res = session.get(req_res.next, headers=headers, timeout=60)
-        if res.status_code == 200:
-            return cont(**res.json()), res.from_cache
+        res = session.get(req_next, headers=headers, timeout=60)
+        if res.status_code == 200 and isinstance((resd := res.json()), dict):
+            if res.from_cache:
+                last_req(0.0)
+            return resd
         elif res.status_code == 401:
             err_401 = True
     except RequestException as exc:
         if exc.response is not None and exc.response.status_code == 401:
             err_401 = True
     if err_401:
-        time.sleep(1)
         lpsn_cred.refresh()
-        return _request_next(req_res, lpsn_cred, session, cont, cnt + 1)
+        return _request_next(req_next, lpsn_cred, session, last_req, cnt + 1)
     return None
 
 
@@ -73,11 +75,11 @@ def _request_lpsn_ad(
     req_url = f"{LPSN_ADV}taxon-name={parse.quote(name)}&match_mode=exact"
     res_con = LPSNName(next=req_url, results=[])
     lids: list[tuple[str, int]] = []
-    while (new_res := _request_next(res_con, lpsn_cred, session, LPSNName)) is not None:
-        res_con, from_cache = new_res
+    while (
+        res_buf := _request_next(res_con.next, lpsn_cred, session, last_req)
+    ) is not None:
+        res_con = LPSNName(**res_buf)
         lids.extend((name, lid) for lid in res_con.results if lid > 0)
-        if not from_cache:
-            time.sleep(last_req(time.time()))
     return lids
 
 
@@ -92,13 +94,11 @@ def _request_lpsn_org(
         return []
     req_url = f"{LPSN_ORG}{lpsn_id}"
     res_con = LPSNId(next=req_url, results=[])
-    nam: list[LpsnOrgC] = []
-    while (new_res := _request_next(res_con, lpsn_cred, session, LPSNId)) is not None:
-        res_con, from_cache = new_res
-        nam.extend(con for con in res_con.results)
-        if not from_cache:
-            time.sleep(last_req(time.time()))
-        return nam
+    while (
+        res_buf := _request_next(res_con.next, lpsn_cred, session, last_req)
+    ) is not None:
+        res_con = LPSNId(**res_buf)
+        return res_con.results
     return []
 
 
