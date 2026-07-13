@@ -50,7 +50,7 @@ def _request_next(
         res = session.get(req_next, headers=headers, timeout=60)
         if res.status_code == 200 and isinstance((resd := res.json()), dict):
             if res.from_cache:
-                last_req(0.0)
+                last_req(-1.0)
             return resd
         elif res.status_code == 401:
             err_401 = True
@@ -129,10 +129,11 @@ class LpsnTaxReq:
     __slots__ = (
         "__correct_name_cache",
         "__exp_days",
+        "__first_request_in_window",
         "__kcl",
-        "__last_req",
         "__name_cache",
         "__org_cache",
+        "__request_count",
         "__session",
         "__work_dir",
     )
@@ -141,7 +142,8 @@ class LpsnTaxReq:
         self, work_dir: Path, exp_days: int, user: str, upw: str, kurl: str, /
     ) -> None:
         self.__exp_days = exp_days
-        self.__last_req: float = 0.0
+        self.__first_request_in_window: float = 0.0
+        self.__request_count: int = 0
         self.__work_dir = work_dir
         # TODO list in cache only occur because of fetch and possible next, even if it
         # never happens, should be replaced in linkatlas or here at a later time
@@ -163,13 +165,23 @@ class LpsnTaxReq:
         return create_simple_get_cache(self.__exp_days, backend), kcl
 
     def __cwt(self, time: float, /) -> float:
-        wait_time = 1 - (time - self.__last_req)
-        self.__last_req = time
-        if wait_time < 0:
+        if time <= 0:
+            self.__request_count -= 1  # can't be asynchronous
             return 0
-        if wait_time > 1:
-            return 1
-        return wait_time
+
+        time_since_last = time - self.__first_request_in_window
+        self.__request_count += 1
+
+        if time_since_last >= 1:
+            self.__request_count = 0
+            self.__first_request_in_window = time
+            return 0
+
+        if self.__request_count >= 2:
+            wait_time = 1 - time_since_last
+            return wait_time if wait_time > 0 else 0
+
+        return 0
 
     def __get_org_cache(self, lpsn_id: int, /) -> list[LpsnOrgC]:
         if lpsn_id < 1:
