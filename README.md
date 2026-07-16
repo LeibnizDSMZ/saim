@@ -6,7 +6,7 @@
 
 [![main](https://github.com/LeibnizDSMZ/saim/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/LeibnizDSMZ/saim/actions/workflows/main.yml)
 
-[![DOI](https://zenodo.org/badge/932743748.svg)](https://doi.org/10.5281/zenodo.14879790)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14879790.svg)](https://doi.org/10.5281/zenodo.14879790)
 
 ---
 
