@@ -122,7 +122,7 @@ Closes \#42\n\
 
 
 message:
-	git diff --staged -- . ':(exclude)*requirements*.txt' | \
+	git diff --staged -- . ':(exclude)uv.lock' ':(exclude)*requirements*.txt' | \
 		jq -Rs --arg prompt "$(PROMPT)" '{"stream": false, "model": "$(OLLAMA_MODEL)", "prompt": (" <GIT_DIFF> " + . + " </GIT_DIFF> " + $$prompt)}' | \
 		curl -s -X POST http://ollama:11434/api/generate \
 			-H "Content-Type: application/json" \
