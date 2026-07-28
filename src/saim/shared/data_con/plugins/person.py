@@ -25,31 +25,23 @@ class PersonInfo(BaseModel):
                 del dict_res[key]
         return dict_res
 
-
-@final
-class Group(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid", validate_default=False)
-
-    main: PersonInfo = Field(default_factory=PersonInfo)
-    coop: list[PersonInfo] = Field(default_factory=list)
-
-    def __rm_dup_coop(self) -> Iterable[PersonInfo]:
+    @staticmethod
+    def __rm_dup_per(people: list["PersonInfo"], /) -> Iterable["PersonInfo"]:
         buffer = set()
-        for cop in self.coop:
+        for cop in people:
             pid = (cop.name, cop.institute, cop.orcid, cop.ror)
             if len(cop.to_dict(True)) > 0 and pid not in buffer:
                 buffer.add(pid)
                 yield cop
 
-    def to_dict(self, trim: bool = True, /) -> dict[str, Any]:
-        main = self.main.to_dict(trim)
-        if trim and len(main) == 0:
-            return {}
-        dict_res = {
-            "main": main,
-            "coop": [cop.to_dict(trim) for cop in self.__rm_dup_coop()],
-        }
-        if trim:
-            for key in detect_empty_dict_keys(dict_res):
-                del dict_res[key]
-        return dict_res
+    @staticmethod
+    def to_dict_people(
+        people: list["PersonInfo"], trim: bool = True, /
+    ) -> list[dict[str, Any]]:
+        if trim and len(people) == 0:
+            return []
+        return [
+            per_dict
+            for per in PersonInfo.__rm_dup_per(people)
+            if (per_dict := per.to_dict(trim)) or not trim
+        ]

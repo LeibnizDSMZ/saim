@@ -17,7 +17,7 @@ from pydantic import (
 
 from saim.shared.data_con.plugins.sample import Sample
 from saim.designation.manager import AcronymManager
-from saim.shared.data_con.plugins.dep_iso import Deposition, Isolation
+from saim.shared.data_con.plugins.dep_iso import Deposition, Isolation, Registration
 from saim.shared.parse.sequence import check_sequence
 from saim.shared.parse.string import (
     PATTERN_REDUNDANT_SPACE_R,
@@ -113,10 +113,100 @@ def _fix_name(source: Any) -> str:
     return clean
 
 
-@final
-class CultureCCNo(BaseModel):
+class _DepCore(BaseModel):
     model_config = ConfigDict(frozen=False, extra="forbid", validate_default=False)
-    _strict: bool
+
+    # required fields - init
+    type_strain: bool = Field(alias="typeStrain")
+    status: CultureStatus
+
+    # optional fields - default
+    cul_id: Annotated[int, Field(ge=1)] | None = Field(default=None, alias="cultureId")
+    strain: StrainCCNo = Field(default_factory=StrainCCNo)
+    sample: Sample = Field(default_factory=Sample)
+    isolation: Isolation = Field(default_factory=Isolation)
+    taxon_name: Annotated[str, AfterValidator(_fix_name), Field(min_length=2)] = Field(
+        default="", alias="taxonName"
+    )
+    sequence: list[Annotated[str, AfterValidator(check_sequence)]] = Field(
+        default_factory=list, alias="sequenceAccessionNumber"
+    )
+
+    def patch_taxon_name(self, tax_man: TaxonManager | None = None, /) -> None:
+        if tax_man is not None:
+            self.taxon_name = tax_man.get_patched_name(self.taxon_name)
+
+    def to_dict_core(
+        self,
+        trim: bool = True,
+        /,
+    ) -> dict[str, Any]:
+        dict_res = self.model_dump(
+            mode="python",
+            exclude={
+                "strain",
+                "sample",
+                "isolation",
+                "sequence",
+            },
+            by_alias=True,
+        )
+        dict_res["strain"] = self.strain.to_dict(trim)
+        dict_res["sample"] = self.sample.to_dict(trim)
+        dict_res["isolation"] = self.isolation.to_dict(trim)
+        dict_res["sequenceAccessionNumber"] = list(set(self.sequence))
+        if trim:
+            for key in detect_empty_dict_keys(dict_res):
+                if key not in _REQ_KEYS:
+                    del dict_res[key]
+        return dict_res
+
+
+@final
+class Deposit(_DepCore):
+    model_config = ConfigDict(frozen=False, extra="forbid", validate_default=False)
+
+    # required fields - init
+    designation: Annotated[str, AfterValidator(clean_id_edges), Field(min_length=2)]
+    registration: Registration
+
+    def to_dict(
+        self,
+        tax_man: TaxonManager | None = None,
+        trim: bool = True,
+        /,
+    ) -> dict[str, Any]:
+        run_deposit_patch_check(self, tax_man)
+        dict_res = {
+            **super().to_dict_core(trim),
+            **self.model_dump(
+                mode="python",
+                include={
+                    "designation",
+                },
+                by_alias=True,
+            ),
+        }
+        dict_res["registration"] = self.registration.to_dict(trim)
+        if trim:
+            for key in detect_empty_dict_keys(dict_res):
+                if key not in _REQ_KEYS:
+                    del dict_res[key]
+        return dict_res
+
+    def to_json(
+        self,
+        tax_man: TaxonManager | None = None,
+        /,
+    ) -> str:
+        return unicodedata.normalize(
+            "NFKD", json.dumps(self.to_dict(tax_man, True), ensure_ascii=False)
+        )
+
+
+@final
+class DepositCCNo(_DepCore):
+    model_config = ConfigDict(frozen=False, extra="forbid", validate_default=False)
 
     # required fields - init
     id: CCNoIdM
@@ -125,36 +215,20 @@ class CultureCCNo(BaseModel):
     )
     brc_id: Annotated[int, Field(ge=1)] = Field(alias="collectionId")
     ccno: Annotated[str, AfterValidator(clean_id_edges), Field(min_length=2)]
-    status: CultureStatus
-    type_strain: bool = Field(alias="typeStrain")
     source: CiDSrc
     # optional fields - default
     url: (
         Annotated[HttpUrl, PlainSerializer(lambda val: str(val), return_type=str)] | None
     ) = None
-    cul_id: Annotated[int, Field(ge=1)] | None = Field(default=None, alias="cultureId")
     history: Annotated[str, AfterValidator(clean_text_rm_tags), Field(min_length=2)] = ""
     parent: Annotated[str, AfterValidator(trim_edges), Field(min_length=3)] = Field(
         default="", alias="parentDesignation"
     )
-    strain: StrainCCNo = Field(default_factory=StrainCCNo)
-    sample: Sample = Field(default_factory=Sample)
-    isolation: Isolation = Field(default_factory=Isolation)
     deposition: Deposition = Field(default_factory=Deposition)
-    taxon_name: Annotated[str, AfterValidator(_fix_name), Field(min_length=2)] = Field(
-        default="", alias="taxonName"
-    )
-    sequence: list[Annotated[str, AfterValidator(check_sequence)]] = Field(
-        default_factory=list, alias="sequenceAccessionNumber"
-    )
     # resource acquired date
     update: Annotated[str, AfterValidator(trim_edges), AfterValidator(check_date_str)] = (
         Field(default_factory=lambda: date_to_str(datetime.now(), True))
     )
-
-    def __init__(self, *, mode: bool = False, **data: dict[str, Any]) -> None:
-        super().__init__(**data)
-        self._strict = mode
 
     def __check_known_acr(self, acr_man: AcronymManager, /) -> None:
         if self.brc_id not in acr_man.identify_acr(self.acr):
@@ -176,21 +250,17 @@ class CultureCCNo(BaseModel):
             self.__check_known_acr(acr_man)
 
     @model_validator(mode="after")
-    def check_culture_ids_completeness(self) -> "CultureCCNo":
+    def check_culture_ids_completeness(self) -> "DepositCCNo":
         if self.acr.lower() not in self.ccno.lower():
             raise ValueError(f"acronym not in CCNo - {self.ccno} | {self.acr}")
         if self.id.full.lower() not in self.ccno.lower():
             raise ValueError(f"id not in CCNo - {self.ccno} | {self.id.full}")
         return self
 
-    def patch_taxon_name(self, tax_man: TaxonManager | None = None, /) -> None:
-        if tax_man is not None:
-            self.taxon_name = tax_man.get_patched_name(self.taxon_name)
-
     def patch_strain(self) -> None:
         self.strain.patch_relation(self.acr, self.id)
 
-    def to_dict_core(self) -> dict[str, Any]:
+    def to_dict_min(self) -> dict[str, Any]:
         dict_res = self.model_dump(
             mode="python",
             include={
@@ -217,28 +287,27 @@ class CultureCCNo(BaseModel):
         trim: bool = True,
         /,
     ) -> dict[str, Any]:
-        run_patch_check(self, tax_man, acr_man)
-        dict_res = self.model_dump(
-            mode="python",
-            exclude={
-                "id",
-                "id_syn",
-                "strain",
-                "sample",
-                "isolation",
-                "deposition",
-                "seq",
-            },
-            by_alias=True,
-        )
-        # is not saved
+        run_ccno_patch_check(self, tax_man, acr_man)
+        dict_res = {
+            **super().to_dict_core(trim),
+            **self.model_dump(
+                mode="python",
+                include={
+                    "acr",
+                    "brc_id",
+                    "ccno",
+                    "source",
+                    "history",
+                    "parent",
+                    "update",
+                },
+                by_alias=True,
+            ),
+        }
         dict_res["id"] = self.id.to_dict(trim)
-        # case sensitivity to vague for being a synonym
-        dict_res["strain"] = self.strain.to_dict(trim)
-        dict_res["sample"] = self.sample.to_dict(trim)
-        dict_res["isolation"] = self.isolation.to_dict(trim)
         dict_res["deposition"] = self.deposition.to_dict(trim)
-        dict_res["sequenceAccessionNumber"] = list(set(self.sequence))
+        if self.url is not None:
+            dict_res["url"] = self.url.encoded_string()
         if trim:
             for key in detect_empty_dict_keys(dict_res):
                 if key not in _REQ_KEYS:
@@ -256,9 +325,13 @@ class CultureCCNo(BaseModel):
         )
 
 
-def run_patch_check(
-    con: CultureCCNo, tax_man: TaxonManager | None, acr_man: AcronymManager | None, /
+def run_ccno_patch_check(
+    con: DepositCCNo, tax_man: TaxonManager | None, acr_man: AcronymManager | None, /
 ) -> None:
     con.check_known_acr(acr_man)
     con.patch_taxon_name(tax_man)
     con.patch_strain()
+
+
+def run_deposit_patch_check(con: Deposit, tax_man: TaxonManager | None, /) -> None:
+    con.patch_taxon_name(tax_man)
