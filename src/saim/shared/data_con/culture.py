@@ -19,6 +19,7 @@ from saim.shared.data_con.plugins.sample import Sample
 from saim.designation.manager import AcronymManager
 from saim.shared.data_con.plugins.dep_iso import Deposition, Isolation, Registration
 from saim.shared.parse.sequence import check_sequence
+from saim.shared.parse.doi import check_doi
 from saim.shared.parse.string import (
     PATTERN_REDUNDANT_SPACE_R,
     clean_edges,
@@ -131,6 +132,9 @@ class _DepCore(BaseModel):
     sequence: list[Annotated[str, AfterValidator(check_sequence)]] = Field(
         default_factory=list, alias="sequenceAccessionNumber"
     )
+    literature: list[Annotated[str, AfterValidator(check_doi)]] = Field(
+        default_factory=list, alias="literatureDOI"
+    )
 
     def patch_taxon_name(self, tax_man: TaxonManager | None = None, /) -> None:
         if tax_man is not None:
@@ -155,6 +159,7 @@ class _DepCore(BaseModel):
         dict_res["sample"] = self.sample.to_dict(trim)
         dict_res["isolation"] = self.isolation.to_dict(trim)
         dict_res["sequenceAccessionNumber"] = list(set(self.sequence))
+        dict_res["literatureDOI"] = list(set(self.literature))
         if trim:
             for key in detect_empty_dict_keys(dict_res):
                 if key not in _REQ_KEYS:

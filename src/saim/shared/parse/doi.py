@@ -13,3 +13,9 @@ def check_si_id_doi(doi: str, /) -> str:
 
 def is_correct_doi(doi: str, /) -> bool:
     return _REG_DOI.match(doi) is not None
+
+
+def check_doi(doi: str, /) -> str:
+    if is_correct_doi(doi):
+        return doi
+    raise ValueError(f"{doi} is not a valid DOI")
