@@ -118,7 +118,6 @@ class _DepCore(BaseModel):
     model_config = ConfigDict(frozen=False, extra="forbid", validate_default=False)
 
     # required fields - init
-    type_strain: bool = Field(alias="typeStrain")
     status: CultureStatus
 
     # optional fields - default
@@ -214,6 +213,7 @@ class DepositCCNo(_DepCore):
     model_config = ConfigDict(frozen=False, extra="forbid", validate_default=False)
 
     # required fields - init
+    type_strain: bool = Field(alias="typeStrain")
     id: CCNoIdM
     acr: Annotated[str, AfterValidator(clean_edges), Field(min_length=2)] = Field(
         alias="acronym"
@@ -301,6 +301,7 @@ class DepositCCNo(_DepCore):
                     "acr",
                     "brc_id",
                     "ccno",
+                    "type_strain",
                     "source",
                     "history",
                     "parent",
