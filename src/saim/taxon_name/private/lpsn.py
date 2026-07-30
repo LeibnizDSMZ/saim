@@ -266,7 +266,7 @@ class LpsnTaxReq:
     def get_domain(self, lpsn_id: int, /) -> DomainE:
         domain_name = self.__get_rank_name(lpsn_id, GBIFRanksE.dom)
         if not is_domain(domain_name):
-            return DomainE.ukn
+            return DomainE.unk
         return parse_domain(domain_name)
 
     def get_correct_name(self, name: str, lpsn_id: int = -1, /) -> list[tuple[str, int]]:

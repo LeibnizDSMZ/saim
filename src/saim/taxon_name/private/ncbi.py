@@ -124,7 +124,7 @@ def _create_all_correct_names(
         domain = resolve_domain(spe_id)
         if (
             cor_name == ""
-            or domain == DomainE.ukn
+            or domain == DomainE.unk
             or _NAME_FILTER.search(cor_name) is not None
         ):
             continue
@@ -300,8 +300,8 @@ def _create_ncbi_container(res_down: bytes, /) -> NcbiTaxCon | None:
 
 def _patch_ncbi_id[T](
     func: Callable[["NcbiTaxReq", int], T],
-) -> Callable[["NcbiTaxReq", int | None], T]:
-    def wrap(self: "NcbiTaxReq", ncbi_id: int | None) -> T:
+) -> Callable[["NcbiTaxReq", int], T]:
+    def wrap(self: "NcbiTaxReq", ncbi_id: int) -> T:
         ncbi_p = self.get_correct_id(ncbi_id)
         if ncbi_p is None:
             return func(self, -1)
@@ -364,10 +364,10 @@ class NcbiTaxReq:
     @_patch_ncbi_id
     def get_domain(self, ncbi_id: int, /) -> DomainE:
         if ncbi_id < 1 or (domain_id := self.__con.domain.get(ncbi_id, None)) is None:
-            return DomainE.ukn
+            return DomainE.unk
         domain_name = self.__con.id_2_name.get(domain_id, "").upper()
         if not is_domain(domain_name):
-            return DomainE.ukn
+            return DomainE.unk
         return parse_domain(domain_name)
 
     @_patch_ncbi_id

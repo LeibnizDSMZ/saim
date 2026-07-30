@@ -3,7 +3,13 @@ from typing import Annotated, Any, final
 
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 
-from saim.shared.data_con.taxon import DomainE, parse_gbif_rank, GBIFRanksE, GBIFTypeE
+from saim.shared.data_con.taxon import (
+    DomainKnownL,
+    RankKnownL,
+    parse_gbif_rank,
+    GBIFRanksE,
+    GBIFTypeE,
+)
 
 
 def _check_rank(rank: Any, /) -> GBIFRanksE:
@@ -99,13 +105,13 @@ class CorTaxonNameId(_IdCon):
 @final
 @dataclass(frozen=True, kw_only=True, slots=True)
 class RankId(_IdCon):
-    rank: GBIFRanksE
+    rank: RankKnownL
 
 
 @final
 @dataclass(frozen=True, kw_only=True, slots=True)
 class DomainId(_IdCon):
-    domain: DomainE
+    domain: DomainKnownL
 
 
 @final

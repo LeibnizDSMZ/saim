@@ -1,7 +1,7 @@
 from enum import Enum
 from re import Pattern
 import re
-from typing import Final, Literal
+from typing import Final, Literal, TypeGuard
 from typing import final
 
 
@@ -196,10 +196,86 @@ _NCBI_EXCLUSIVE_RANKS_MAP: Final[dict[str, GBIFRanksE]] = {
     "CELLULAR ROOT": GBIFRanksE.unr,
 }
 
+type RankKnownL = Literal[
+    GBIFRanksE.dom,
+    GBIFRanksE.sup_kin,
+    GBIFRanksE.kin,
+    GBIFRanksE.sub_kin,
+    GBIFRanksE.inf_kin,
+    GBIFRanksE.sup_pyl,
+    GBIFRanksE.pyl,
+    GBIFRanksE.sub_pyl,
+    GBIFRanksE.inf_pyl,
+    GBIFRanksE.sup_cla,
+    GBIFRanksE.cla,
+    GBIFRanksE.sub_cla,
+    GBIFRanksE.inf_cla,
+    GBIFRanksE.par_cla,
+    GBIFRanksE.sup_leg,
+    GBIFRanksE.leg,
+    GBIFRanksE.sub_leg,
+    GBIFRanksE.inf_leg,
+    GBIFRanksE.sup_coh,
+    GBIFRanksE.coh,
+    GBIFRanksE.sub_coh,
+    GBIFRanksE.inf_coh,
+    GBIFRanksE.mag_ord,
+    GBIFRanksE.sup_ord,
+    GBIFRanksE.gra_ord,
+    GBIFRanksE.ord,
+    GBIFRanksE.sub_ord,
+    GBIFRanksE.inf_ord,
+    GBIFRanksE.par_ord,
+    GBIFRanksE.sup_fam,
+    GBIFRanksE.fam,
+    GBIFRanksE.sub_fam,
+    GBIFRanksE.inf_fam,
+    GBIFRanksE.sup_tri,
+    GBIFRanksE.tri,
+    GBIFRanksE.sub_tri,
+    GBIFRanksE.inf_tri,
+    GBIFRanksE.sup_genc,
+    GBIFRanksE.gen,
+    GBIFRanksE.sub_gen,
+    GBIFRanksE.inf_gen,
+    GBIFRanksE.sec,
+    GBIFRanksE.sub_sec,
+    GBIFRanksE.seri,
+    GBIFRanksE.sub_ser,
+    GBIFRanksE.inf_genc,
+    GBIFRanksE.agg,
+    GBIFRanksE.spe,
+    GBIFRanksE.inf_spec,
+    GBIFRanksE.grex,
+    GBIFRanksE.sub_spe,
+    GBIFRanksE.cul_var_gr,
+    GBIFRanksE.con_var,
+    GBIFRanksE.inf_sub_spec,
+    GBIFRanksE.prol,
+    GBIFRanksE.rac,
+    GBIFRanksE.nat,
+    GBIFRanksE.abe,
+    GBIFRanksE.morph,
+    GBIFRanksE.var,
+    GBIFRanksE.sub_var,
+    GBIFRanksE.form,
+    GBIFRanksE.sub_form,
+    GBIFRanksE.pat_var,
+    GBIFRanksE.bio_var,
+    GBIFRanksE.che_var,
+    GBIFRanksE.mor_var,
+    GBIFRanksE.pha_var,
+    GBIFRanksE.ser_var,
+    GBIFRanksE.che_form,
+    GBIFRanksE.for_spec,
+    GBIFRanksE.cul_var,
+    GBIFRanksE.str,
+]
+
 
 @final
 class DomainE(str, Enum):
-    ukn = "UNKNOWN"
+    unk = "UNKNOWN"
     bac = "BACTERIA"
     arc = "ARCHAEA"
     euk = "EUKARYOTA"
@@ -267,6 +343,14 @@ _GEN_RANKS: Final[set[GBIFRanksE]] = {
     GBIFRanksE.oth,
 }
 
+_GEN_DOMAINS: Final[set[DomainE]] = {
+    DomainE.unk,
+}
+
+
+def is_domain(name: str, /) -> bool:
+    return name in _L_DOMAIN
+
 
 def is_rank(name: str, /) -> bool:
     return name in _L_RANKS
@@ -280,12 +364,12 @@ def parse_ncbi_rank(name: str, /) -> GBIFRanksE:
     return _NCBI_EXCLUSIVE_RANKS_MAP.get(name, _L_RANKS_MAP.get(name, GBIFRanksE.oth))
 
 
-def is_informative_rank(name: GBIFRanksE, /) -> bool:
+def is_informative_rank(name: GBIFRanksE, /) -> TypeGuard[RankKnownL]:
     return name not in _GEN_RANKS
 
 
-def is_domain(name: str, /) -> bool:
-    return name in _L_DOMAIN
+def is_informative_domain(name: DomainE, /) -> TypeGuard[DomainKnownL]:
+    return name not in _GEN_DOMAINS
 
 
 def is_species_or_lower(rank: GBIFRanksE) -> bool:
@@ -293,7 +377,7 @@ def is_species_or_lower(rank: GBIFRanksE) -> bool:
 
 
 def parse_domain(name: str, /) -> DomainE:
-    return _L_DOMAIN_MAP.get(name, DomainE.ukn)
+    return _L_DOMAIN_MAP.get(name, DomainE.unk)
 
 
 def parse_gbif_rank(name: str, /) -> GBIFRanksE:

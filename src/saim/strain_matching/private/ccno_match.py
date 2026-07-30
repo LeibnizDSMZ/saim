@@ -1,7 +1,7 @@
 from typing import Protocol, final
 
 from saim.designation.manager import AcronymManager
-from saim.shared.data_con.culture import is_cul_erroneous
+from saim.shared.data_con.deposit import is_dep_erroneous
 from saim.shared.data_con.strain import StrainCultureId
 from saim.shared.error.exceptions import StrainMatchEx
 from saim.strain_matching.private.container import (
@@ -35,7 +35,7 @@ class CCNoMatch[CT: CultureMatch]:
         super().__init__()
 
     def __is_cul_err(self, cul_up: CulMatCon[CT], /) -> bool:
-        if is_cul_erroneous(cul_up.cul.status):
+        if cul_up.cul.status is not None and is_dep_erroneous(cul_up.cul.status):
             return True
         return False
 

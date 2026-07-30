@@ -4,15 +4,27 @@ import itertools
 from pathlib import Path
 from re import Pattern
 import re
-from typing import Callable, Concatenate, Final, Iterable, Protocol, Self, final
+from typing import (
+    Callable,
+    Concatenate,
+    Final,
+    Iterable,
+    Protocol,
+    Self,
+    TypeGuard,
+    final,
+)
+
 import warnings
 
 from pydantic import ValidationError
 
 from saim.shared.data_con.taxon import (
     DomainE,
-    GBIFRanksE,
+    DomainKnownL,
+    RankKnownL,
     has_virus_in_name,
+    is_informative_domain,
     is_informative_rank,
 )
 from saim.shared.error.exceptions import GlobalManagerEx, RequestURIEx, ValidationEx
@@ -103,6 +115,10 @@ _LOWER_INDICATORS = (
     re.compile(r"(pv\.\s)\s*([a-zA-Z]+)"),
     re.compile(r"(subsp\.\s)\s*([a-zA-Z]+)"),
 )
+
+
+def _string_not_empty(inp: str, /) -> TypeGuard[str]:
+    return inp != ""
 
 
 @final
@@ -201,14 +217,14 @@ class TaxonManager:
         _fill_con(cor_names, lpsn, lambda con, lid: con.lpsn.add(lid), fun)
         return [cor_nam for cor_nam in cor_names.values()]
 
-    def __cr_lpsn_id[T](
+    def __cr_lpsn_id[T, L](
         self,
         name: str,
         lpsn_id: int,
         get_lpsn: Callable[[int], T],
-        eval: Callable[[T], bool],
+        eval: Callable[[T], TypeGuard[L]],
         /,
-    ) -> list[tuple[T, int]]:
+    ) -> list[tuple[L, int]]:
         if lpsn_id > 0 and eval(lpsn_val := get_lpsn(lpsn_id)):
             return [(lpsn_val, lpsn_id)]
         return [
@@ -217,14 +233,14 @@ class TaxonManager:
             if eval(lpsn_val := get_lpsn(lid))
         ]
 
-    def __cr_ncbi_id[T](
+    def __cr_ncbi_id[T, L](
         self,
         name: list[str],
         ncbi_id: int,
         get_ncbi: Callable[[int], T],
-        eval: Callable[[T], bool],
+        eval: Callable[[T], TypeGuard[L]],
         /,
-    ) -> list[tuple[T, int]]:
+    ) -> list[tuple[L, int]]:
         if ncbi_id > 0 and eval(ncbi_val := get_ncbi(ncbi_id)):
             return [(ncbi_val, ncbi_id)]
         return [
@@ -237,9 +253,9 @@ class TaxonManager:
     def get_rank(
         self, name: str, ncbi_id: int = -1, lpsn_id: int = -1, /
     ) -> list[RankId]:
-        ranks: dict[GBIFRanksE, RankId] = {}
+        ranks: dict[RankKnownL, RankId] = {}
 
-        def fun(rank: GBIFRanksE) -> RankId:
+        def fun(rank: RankKnownL) -> RankId:
             return RankId(rank=rank)
 
         cl_name, *_ = self.__prep_name(name)
@@ -253,26 +269,29 @@ class TaxonManager:
         _fill_con(ranks, lpsn, lambda con, lid: con.lpsn.add(lid), fun)
         if len(ranks) > 0:
             return [rank for rank in ranks.values() if _keep_ids(ncbi_id, lpsn_id, rank)]
-        return [RankId(rank=self.__gbif.get_rank(cl_name))]
+        gbif = self.__gbif.get_rank(cl_name)
+        if is_informative_rank(gbif):
+            return [RankId(rank=gbif)]
+        return []
 
     @_verify_date
     def get_domain(
         self, name: str, ncbi_id: int = -1, lpsn_id: int = -1, /
     ) -> list[DomainId]:
-        domains: dict[DomainE, DomainId] = {}
+        domains: dict[DomainKnownL, DomainId] = {}
 
-        def fun(dom: DomainE) -> DomainId:
+        def fun(dom: DomainKnownL) -> DomainId:
             return DomainId(domain=dom)
 
         cl_name, *_ = self.__prep_name(name)
-        ncbi_res: list[tuple[DomainE, int]] = self.__cr_ncbi_id(
+        ncbi_res: list[tuple[DomainKnownL, int]] = self.__cr_ncbi_id(
             _create_extra_names_domain(cl_name),
             ncbi_id,
             self._ncbi.get_domain,
-            lambda val: val != DomainE.ukn,
+            is_informative_domain,
         )
-        lpsn_res: list[tuple[DomainE, int]] = self.__cr_lpsn_id(
-            cl_name, lpsn_id, self.__lpsn.get_domain, lambda val: val != DomainE.ukn
+        lpsn_res: list[tuple[DomainKnownL, int]] = self.__cr_lpsn_id(
+            cl_name, lpsn_id, self.__lpsn.get_domain, is_informative_domain
         )
 
         _fill_con(domains, ncbi_res, lambda con, nid: con.ncbi.add(nid), fun)
@@ -292,10 +311,10 @@ class TaxonManager:
 
         cl_name, *_ = self.__prep_name(name)
         ncbi: list[tuple[str, int]] = self.__cr_ncbi_id(
-            [cl_name], ncbi_id, self._ncbi.get_genus, lambda val: val != ""
+            [cl_name], ncbi_id, self._ncbi.get_genus, _string_not_empty
         )
         lpsn: list[tuple[str, int]] = self.__cr_lpsn_id(
-            cl_name, lpsn_id, self.__lpsn.get_genus, lambda val: val != ""
+            cl_name, lpsn_id, self.__lpsn.get_genus, _string_not_empty
         )
         _fill_con(genus, ncbi, lambda con, nid: con.ncbi.add(nid), fun)
         _fill_con(genus, lpsn, lambda con, lid: con.lpsn.add(lid), fun)
@@ -314,10 +333,10 @@ class TaxonManager:
 
         cl_name, *_ = self.__prep_name(name)
         ncbi: list[tuple[str, int]] = self.__cr_ncbi_id(
-            [cl_name], ncbi_id, self._ncbi.get_species, lambda val: val != ""
+            [cl_name], ncbi_id, self._ncbi.get_species, _string_not_empty
         )
         lpsn: list[tuple[str, int]] = self.__cr_lpsn_id(
-            cl_name, lpsn_id, self.__lpsn.get_species, lambda val: val != ""
+            cl_name, lpsn_id, self.__lpsn.get_species, _string_not_empty
         )
         _fill_con(species, ncbi, lambda con, nid: con.ncbi.add(nid), fun)
         _fill_con(species, lpsn, lambda con, lid: con.lpsn.add(lid), fun)
@@ -392,8 +411,8 @@ class TaxonManager:
 
     def __cr_overlap(
         self, ov_names: Sequence[TaxonName], /
-    ) -> tuple[set[str], set[str], set[DomainE]]:
-        main_domain: set[DomainE] = set()
+    ) -> tuple[set[str], set[str], set[DomainKnownL]]:
+        main_domain: set[DomainKnownL] = set()
         main_genus: set[str] = set()
         main_species: set[str] = set()
         for ov_tax in ov_names:
@@ -428,7 +447,7 @@ class TaxonManager:
         main_genus: set[str] = set(
             gen.genus for cnam in cr_nam for gen in self.get_genus(cnam.name)
         )
-        main_domain: set[DomainE] = set(
+        main_domain: set[DomainKnownL] = set(
             dom.domain for cnam in cr_nam for dom in self.get_domain(cnam.name)
         )
         ov_species, ov_genus, ov_domain = self.__cr_overlap(ov_names)

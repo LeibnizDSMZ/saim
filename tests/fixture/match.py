@@ -3,7 +3,7 @@ import pytest
 
 from saim.designation.manager import AcronymManager
 from saim.shared.data_con.designation import CCNoId
-from saim.shared.data_con.culture import CultureStatus
+from saim.shared.data_con.deposit import DepositStatus
 from saim.shared.data_con.strain import StrainCultureId
 from saim.strain_matching.manager import MatchCache
 
@@ -23,8 +23,8 @@ class _TestCCNo:
     brc_id: int
     id: CCNoId
     id_syn: list[CCNoId]
-    status: CultureStatus
     strain: _TestStrain
+    status: DepositStatus | None = None
 
 
 @pytest.fixture
@@ -55,7 +55,6 @@ def ccno_dsmz_no_re1() -> _TestCCNo:
         1,
         CCNoId(full="112721", core="112721"),
         [],
-        CultureStatus.unk,
         _TestStrain(),
     )
 
@@ -68,7 +67,6 @@ def ccno_dsmz_si_id_re1() -> _TestCCNo:
         1,
         CCNoId(full="112722", core="112722"),
         [],
-        CultureStatus.unk,
         _TestStrain(relation=["SI-ID 2", "DSM 112721"]),
     )
 
@@ -81,7 +79,6 @@ def ccno_dsmz_ccno_re1() -> _TestCCNo:
         1,
         CCNoId(full="112722", core="112722"),
         [],
-        CultureStatus.unk,
         _TestStrain(relation=["DSM 112721"]),
     )
 
