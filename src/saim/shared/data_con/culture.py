@@ -18,6 +18,7 @@ from pydantic import (
 from saim.shared.data_con.plugins.sample import Sample
 from saim.designation.manager import AcronymManager
 from saim.shared.data_con.plugins.dep_iso import Deposition, Isolation, Registration
+from saim.shared.data_con.taxon import DomainKnownL
 from saim.shared.parse.sequence import check_sequence
 from saim.shared.parse.doi import check_doi
 from saim.shared.parse.string import (
@@ -172,6 +173,8 @@ class Deposit(_DepCore):
 
     # required fields - init
     designation: Annotated[str, AfterValidator(clean_id_edges), Field(min_length=2)]
+    domain: DomainKnownL
+
     registration: Registration
 
     def to_dict(
@@ -185,13 +188,12 @@ class Deposit(_DepCore):
             **super().to_dict_core(trim),
             **self.model_dump(
                 mode="python",
-                include={
-                    "designation",
-                },
+                include={"designation"},
                 by_alias=True,
             ),
         }
         dict_res["registration"] = self.registration.to_dict(trim)
+        dict_res["domain"] = self.domain.value
         if trim:
             for key in detect_empty_dict_keys(dict_res):
                 if key not in _REQ_KEYS:

@@ -1,7 +1,7 @@
 from enum import Enum
 from re import Pattern
 import re
-from typing import Final
+from typing import Final, Literal
 from typing import final
 
 
@@ -205,6 +205,8 @@ class DomainE(str, Enum):
     euk = "EUKARYOTA"
     vir = "VIRUSES"
 
+
+type DomainKnownL = Literal[DomainE.bac, DomainE.arc, DomainE.euk, DomainE.vir]
 
 _L_RANKS: Final[set[str]] = {str(rank.value) for rank in GBIFRanksE}
 _L_RANKS_MAP: Final[dict[str, GBIFRanksE]] = {
