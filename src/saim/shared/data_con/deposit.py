@@ -264,7 +264,7 @@ class DepositCCNo(_DepCore):
             self.__check_known_acr(acr_man)
 
     @model_validator(mode="after")
-    def check_culture_ids_completeness(self) -> "DepositCCNo":
+    def _check_culture_ids_completeness(self) -> "DepositCCNo":
         if self.acr.lower() not in self.ccno.lower():
             raise ValueError(f"acronym not in CCNo - {self.ccno} | {self.acr}")
         if self.id.full.lower() not in self.ccno.lower():
