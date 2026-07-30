@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 import json
 import re
-from typing import Annotated, Any, Final, final
+from typing import Annotated, Any, Final, Self, final
 import unicodedata
 
 from pydantic import (
@@ -119,7 +119,7 @@ class _DepCore(BaseModel):
 
     # optional fields - default
     status: DepositStatus | None = None
-    cul_id: Annotated[int, Field(ge=1)] | None = Field(default=None, alias="cultureId")
+    dep_id: Annotated[int, Field(ge=1)] | None = Field(default=None, alias="depositId")
     strain: StrainCCNo = Field(default_factory=StrainCCNo)
     sample: Sample = Field(default_factory=Sample)
     isolation: Isolation = Field(default_factory=Isolation)
@@ -137,7 +137,7 @@ class _DepCore(BaseModel):
         if tax_man is not None:
             self.taxon_name = tax_man.get_patched_name(self.taxon_name)
 
-    def to_dict_core(
+    def to_dict_main(
         self,
         trim: bool = True,
         /,
@@ -174,6 +174,14 @@ class Deposit(_DepCore):
 
     registration: Registration
 
+    @model_validator(mode="after")
+    def _check_sample(self) -> Self:
+        if self.sample.source == "":
+            raise ValueError("Source required")
+        if self.sample.date == "":
+            raise ValueError("Date required")
+        return self
+
     def to_dict(
         self,
         tax_man: TaxonManager | None = None,
@@ -182,7 +190,7 @@ class Deposit(_DepCore):
     ) -> dict[str, Any]:
         run_deposit_patch_check(self, tax_man)
         dict_res = {
-            **super().to_dict_core(trim),
+            **super().to_dict_main(trim),
             **self.model_dump(
                 mode="python",
                 include={"designation"},
@@ -295,7 +303,7 @@ class DepositCCNo(_DepCore):
     ) -> dict[str, Any]:
         run_ccno_patch_check(self, tax_man, acr_man)
         dict_res = {
-            **super().to_dict_core(trim),
+            **super().to_dict_main(trim),
             **self.model_dump(
                 mode="python",
                 include={
