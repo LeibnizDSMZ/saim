@@ -34,7 +34,7 @@ def relation_cache_1() -> dict[tuple[str, str, str, str], dict[int, int]]:
 
 @pytest.fixture
 def culture_ccno_1() -> dict[tuple[int, str, str, str], StrainCultureId]:
-    return {(1, "", "112721", ""): StrainCultureId(c=1, s=1)}
+    return {(1, "", "112721", ""): StrainCultureId(d=1, s=1)}
 
 
 @pytest.fixture
@@ -92,7 +92,7 @@ def cache_direct_match(
         culture_ccno=culture_ccno_1,
         relation_ccno={},
         si_id=si_id_1,
-        si_cu_err=set(),
+        si_dp_err=set(),
     )
 
 
@@ -102,7 +102,7 @@ def cache_mis_match() -> MatchCache:
         culture_ccno={},
         relation_ccno={},
         si_id={},
-        si_cu_err=set(),
+        si_dp_err=set(),
     )
 
 
@@ -116,7 +116,7 @@ def cache_err_match(
         culture_ccno=culture_ccno_1,
         relation_ccno={},
         si_id=si_id_1,
-        si_cu_err=si_cu_err_1,
+        si_dp_err=si_cu_err_1,
     )
 
 
@@ -129,7 +129,7 @@ def cache_strain_match(
         culture_ccno={},
         relation_ccno=relation_cache_1,
         si_id=si_id_1,
-        si_cu_err=set(),
+        si_dp_err=set(),
     )
 
 

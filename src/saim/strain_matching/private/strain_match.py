@@ -79,7 +79,7 @@ def _cr_selection(
     if selected == -1 and has_fallback and fb_rep != "":
         warn_msg += (
             " [SELECT] could not find a distinct strain "
-            + f"for culture - FB SI-IDs{fallback}"
+            + f"for deposit - FB SI-IDs{fallback}"
         )
     return selected, fallback, warn_msg
 
@@ -107,7 +107,7 @@ def _vote_strain(
 
 class _CacheProt(Protocol):
     @property
-    def si_cu_err(self) -> set[int]: ...
+    def si_dp_err(self) -> set[int]: ...
     @property
     def culture_ccno(self) -> dict[tuple[int, str, str, str], StrainCultureId]: ...
     @property
@@ -122,7 +122,7 @@ class StrainMatch[CT: CultureMatch]:
         "__ca_acr_man",
         "__ca_cul_ccno",
         "__ca_rel_ccno",
-        "__ca_si_cu_err",
+        "__ca_si_dp_err",
         "__ca_si_id",
         "__skip",
     )
@@ -133,7 +133,7 @@ class StrainMatch[CT: CultureMatch]:
         self.__ca_rel_ccno = cache.relation_ccno
         self.__ca_cul_ccno = cache.culture_ccno
         self.__ca_si_id = cache.si_id
-        self.__ca_si_cu_err = cache.si_cu_err
+        self.__ca_si_dp_err = cache.si_dp_err
         self.__ca_acr_man = ca_acr_man
         self.__skip = skip
         super().__init__()
@@ -210,7 +210,7 @@ class StrainMatch[CT: CultureMatch]:
                 )
             )
             is not None
-            and cul_str[0] not in self.__ca_si_cu_err
+            and cul_str[0] not in self.__ca_si_dp_err
         )
 
     def __find_ccno_relation_overlap(self, cul: CT, /) -> tuple[int, dict[int, int]]:

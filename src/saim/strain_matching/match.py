@@ -60,15 +60,15 @@ def create_update_results[CT: CultureMatch](
     old_cul: CT | None,
     new_cul: CT | None,
     si_id: int,
-    si_cu: int,
+    si_dp: int,
     acr_manager: AcronymManager,
     /,
 ) -> UpdateResults:
     if new_cul is None:
-        return UpdateResults(si_id=si_id, si_cu=si_cu, used_in_update=False)
+        return UpdateResults(si_id=si_id, si_dp=si_dp, used_in_update=False)
     return UpdateResults(
         si_id=si_id,
-        si_cu=si_cu,
+        si_dp=si_dp,
         used_in_update=True,
         cid=(new_cul.brc_id, new_cul.id.pre, new_cul.id.core, new_cul.id.suf),
         add_relations=_create_relation(new_cul, acr_manager),

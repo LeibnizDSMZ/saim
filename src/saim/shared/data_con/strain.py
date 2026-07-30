@@ -9,7 +9,7 @@ from typing import NamedTuple
 
 class StrainCultureId(NamedTuple):
     s: int  # strain id
-    c: int  # culture id
+    d: int  # deposit id
 
 
 def _strip_designation(des: Any) -> Any:

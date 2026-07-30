@@ -12,7 +12,7 @@ from saim.shared.error.warnings import StrainMatchWarn, UpdateCacheWarn
 @dataclass(slots=True, frozen=True, kw_only=True)
 class UpdateResults:
     si_id: int = -1
-    si_cu: int = -1
+    si_dp: int = -1
     used_in_update: bool = False
     cid: tuple[int, str, str, str] = (-1, "", "", "")
     add_relations: Sequence[CCNoDesP] = field(default_factory=list)
@@ -30,7 +30,7 @@ class MatchCache:
         default_factory=dict
     )
     si_id: dict[int, int] = field(default_factory=dict)
-    si_cu_err: set[int] = field(default_factory=set)
+    si_dp_err: set[int] = field(default_factory=set)
     __correct: bool = True
 
     def __detect_negative_ids(
@@ -62,7 +62,7 @@ class MatchCache:
         self.__detect_negative_ids(self.culture_ccno.values())
         self.__detect_negative_ids(self.relation_ccno.values())
         self.__detect_negative_ids(self.si_id.values())
-        self.__detect_negative_ids(self.si_cu_err)
+        self.__detect_negative_ids(self.si_dp_err)
         for str_ids in self.relation_ccno.values():
             for si_id in str_ids:
                 main_id = self.si_id.get(si_id, None)
@@ -75,7 +75,7 @@ class MatchCache:
             main_id = self.si_id.get(si_id, None)
             if main_id is None or main_id != si_id:
                 raise StrainMatchEx(
-                    f"[CA-UPD] [{si_id}] detected a non main SI-ID in culture ccnos"
+                    f"[CA-UPD] [{si_id}] detected a non main SI-ID in deposit ccnos"
                 )
 
     def __add_relation_ccno(self, cid: tuple[str, str, str, str], si_id: int, /) -> None:
@@ -139,17 +139,17 @@ class MatchCache:
 
     def __update_cache(self, upd: UpdateResults, /) -> None:
         self.__add_si_id(upd.si_id)
-        self.culture_ccno[upd.cid] = StrainCultureId(c=upd.si_cu, s=upd.si_id)
+        self.culture_ccno[upd.cid] = StrainCultureId(d=upd.si_dp, s=upd.si_id)
         self.__add_del_relations(upd.si_id, upd.del_relations, False)
         self.__add_del_relations(upd.si_id, upd.add_relations, True)
 
     def update_cache(self, upd: UpdateResults, /) -> None:
-        if upd.si_cu > 0 and upd.si_id > 0 and upd.used_in_update:
+        if upd.si_dp > 0 and upd.si_id > 0 and upd.used_in_update:
             self.__update_cache(upd)
-        if upd.si_cu < 1 or upd.si_id < 1:
+        if upd.si_dp < 1 or upd.si_id < 1:
             warnings.warn(
                 "[CA-UPD] received malformed IDs "
-                + f"[{upd.cid}: SI-DP {upd.si_cu} - SI-ID {upd.si_id}]",
+                + f"[{upd.cid}: SI-DP {upd.si_dp} - SI-ID {upd.si_id}]",
                 StrainMatchWarn,
                 stacklevel=2,
             )

@@ -15,25 +15,25 @@ pytest_plugins = (
 def _verify_ccno_match(mat: CulMatCon[CultureMatch]) -> UpdateResults:
     assert mat.strain_id == 1
     assert mat.culture_id == 1
-    return UpdateResults(si_id=mat.strain_id, si_cu=mat.culture_id)
+    return UpdateResults(si_id=mat.strain_id, si_dp=mat.culture_id)
 
 
 def _verify_strain_match(mat: CulMatCon[CultureMatch]) -> UpdateResults:
     assert mat.strain_id == 1
     assert mat.culture_id == -1
-    return UpdateResults(si_id=mat.strain_id, si_cu=mat.culture_id)
+    return UpdateResults(si_id=mat.strain_id, si_dp=mat.culture_id)
 
 
 def _verify_strain_si_id_match(mat: CulMatCon[CultureMatch]) -> UpdateResults:
     assert mat.strain_id == 2
     assert mat.culture_id == -1
-    return UpdateResults(si_id=mat.strain_id, si_cu=mat.culture_id)
+    return UpdateResults(si_id=mat.strain_id, si_dp=mat.culture_id)
 
 
 def _verify_mis_match(mat: CulMatCon[CultureMatch]) -> UpdateResults:
     assert mat.strain_id == -1
     assert mat.culture_id == -1
-    return UpdateResults(si_id=mat.strain_id, si_cu=mat.culture_id)
+    return UpdateResults(si_id=mat.strain_id, si_dp=mat.culture_id)
 
 
 def test_ccno_match(
