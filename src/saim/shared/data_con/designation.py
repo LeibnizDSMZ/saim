@@ -1,9 +1,10 @@
 from enum import Enum
 import re
-from typing import Annotated, Final, Protocol, final
+from typing import Annotated, Final, Protocol, Self, final
 from dataclasses import asdict, dataclass, field
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
+
 from saim.shared.parse.string import (
     clean_core_id_edges,
     clean_id_edges,
@@ -97,15 +98,15 @@ class CCNoIdM(BaseModel):
         return ccno_id_to_dict(self, trim)
 
     @model_validator(mode="after")
-    def _check_culture_ids_completeness(self) -> "CCNoIdM":
+    def _check_culture_ids_completeness(self) -> Self:
         if self.full == "" or self.core == "":
-            raise ValueError("empty CCNoId detected")
+            raise ValueError("full, core - empty CCNoId detected")
         if self.core not in self.full:
-            raise ValueError("malformed core in CCNoId")
+            raise ValueError("core, full - malformed core in CCNoId")
         if self.pre not in self.full:
-            raise ValueError("malformed pre in CCNoId")
+            raise ValueError("pre, full - malformed pre in CCNoId")
         if self.suf not in self.full:
-            raise ValueError("malformed suf in CCNoId")
+            raise ValueError("suf, full - malformed suf in CCNoId")
         return self
 
 

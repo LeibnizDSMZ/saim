@@ -177,9 +177,9 @@ class Deposit(_DepCore):
     @model_validator(mode="after")
     def _check_sample(self) -> Self:
         if self.sample.source == "":
-            raise ValueError("Source required")
+            raise ValueError("sample, source - Source required")
         if self.sample.date == "":
-            raise ValueError("Date required")
+            raise ValueError("sample, date - Date required")
         return self
 
     def to_dict(
@@ -264,11 +264,13 @@ class DepositCCNo(_DepCore):
             self.__check_known_acr(acr_man)
 
     @model_validator(mode="after")
-    def _check_culture_ids_completeness(self) -> "DepositCCNo":
+    def _check_culture_ids_completeness(self) -> Self:
         if self.acr.lower() not in self.ccno.lower():
-            raise ValueError(f"acronym not in CCNo - {self.ccno} | {self.acr}")
+            raise ValueError(
+                f"acr, ccno - acronym not in CCNo - {self.ccno} | {self.acr}"
+            )
         if self.id.full.lower() not in self.ccno.lower():
-            raise ValueError(f"id not in CCNo - {self.ccno} | {self.id.full}")
+            raise ValueError(f"id, ccno - id not in CCNo - {self.ccno} | {self.id.full}")
         return self
 
     def patch_strain(self) -> None:
