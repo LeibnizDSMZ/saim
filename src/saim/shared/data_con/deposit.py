@@ -59,7 +59,7 @@ class DepositStatus(str, Enum):
 
 
 @final
-class CiDSrc(str, Enum):
+class DCDSrc(str, Enum):
     str = "straininfo archive"
     db_e = "external database"
     db_m = "mirri database"
@@ -89,10 +89,10 @@ def is_dep_erroneous(name: str, /) -> bool:
 
 
 def get_id_src_enum() -> list[str]:
-    return [str(src.value) for src in CiDSrc]
+    return [str(src.value) for src in DCDSrc]
 
 
-_L_SRC: Final[set[str]] = {str(src.value) for src in CiDSrc}
+_L_SRC: Final[set[str]] = {str(src.value) for src in DCDSrc}
 
 
 def is_id_source(name: str, /) -> bool:
@@ -227,7 +227,7 @@ class DepositCCNo(_DepCore):
     )
     brc_id: Annotated[int, Field(ge=1)] = Field(alias="collectionId")
     ccno: Annotated[str, AfterValidator(clean_id_edges), Field(min_length=2)]
-    source: CiDSrc
+    source: DCDSrc
     # optional fields - default
 
     domain: DomainKnownL | None = None
