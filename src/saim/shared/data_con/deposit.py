@@ -36,7 +36,12 @@ from saim.shared.data_ops.clean import detect_empty_dict_keys
 from saim.shared.parse.date import check_date_str, date_to_str
 from saim.taxon_name.manager import TaxonManager
 
-_REQ_KEYS: Final[tuple[str, ...]] = (
+_REQ_KEYS_DEP: Final[tuple[str, ...]] = (
+    "registration",
+    "domain",
+    "designation",
+)
+_REQ_KEYS_DEP_CCNO: Final[tuple[str, ...]] = (
     "acronym",
     "id",
     "collectionId",
@@ -118,7 +123,6 @@ class _DepCore(BaseModel):
     model_config = ConfigDict(frozen=False, extra="forbid", validate_default=False)
 
     # optional fields - default
-    status: DepositStatus | None = None
     dep_id: Annotated[int, Field(ge=1)] | None = Field(default=None, alias="depositId")
     strain: StrainCCNo = Field(default_factory=StrainCCNo)
     sample: Sample = Field(default_factory=Sample)
@@ -144,11 +148,9 @@ class _DepCore(BaseModel):
     ) -> dict[str, Any]:
         dict_res = self.model_dump(
             mode="python",
-            exclude={
-                "strain",
-                "sample",
-                "isolation",
-                "sequence",
+            include={
+                "depositId",
+                "taxonName",
             },
             by_alias=True,
         )
@@ -159,8 +161,7 @@ class _DepCore(BaseModel):
         dict_res["literatureDOI"] = list(set(self.literature))
         if trim:
             for key in detect_empty_dict_keys(dict_res):
-                if key not in _REQ_KEYS:
-                    del dict_res[key]
+                del dict_res[key]
         return dict_res
 
 
@@ -201,7 +202,7 @@ class Deposit(_DepCore):
         dict_res["domain"] = self.domain.value
         if trim:
             for key in detect_empty_dict_keys(dict_res):
-                if key not in _REQ_KEYS:
+                if key not in _REQ_KEYS_DEP:
                     del dict_res[key]
         return dict_res
 
@@ -228,6 +229,8 @@ class DepositCCNo(_DepCore):
     brc_id: Annotated[int, Field(ge=1)] = Field(alias="collectionId")
     ccno: Annotated[str, AfterValidator(clean_id_edges), Field(min_length=2)]
     source: DCDSrc
+    status: DepositStatus
+
     # optional fields - default
 
     domain: DomainKnownL | None = None
@@ -292,7 +295,7 @@ class DepositCCNo(_DepCore):
         )
         dict_res["id"] = self.id.to_dict(True)
         for key in detect_empty_dict_keys(dict_res):
-            if key not in _REQ_KEYS:
+            if key not in _REQ_KEYS_DEP_CCNO:
                 del dict_res[key]
         return dict_res
 
@@ -328,7 +331,7 @@ class DepositCCNo(_DepCore):
             dict_res["url"] = self.url.encoded_string()
         if trim:
             for key in detect_empty_dict_keys(dict_res):
-                if key not in _REQ_KEYS:
+                if key not in _REQ_KEYS_DEP_CCNO:
                     del dict_res[key]
         return dict_res
 
