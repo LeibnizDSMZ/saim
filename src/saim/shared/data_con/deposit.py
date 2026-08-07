@@ -229,11 +229,10 @@ class DepositCCNo(_DepCore):
     brc_id: Annotated[int, Field(ge=1)] = Field(alias="collectionId")
     ccno: Annotated[str, AfterValidator(clean_id_edges), Field(min_length=2)]
     source: DCDSrc
-    status: DepositStatus
 
     # optional fields - default
-
     domain: DomainKnownL | None = None
+    status: DepositStatus | None = None
     url: (
         Annotated[HttpUrl, PlainSerializer(lambda val: str(val), return_type=str)] | None
     ) = None
