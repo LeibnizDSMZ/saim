@@ -123,7 +123,9 @@ class _DepCore(BaseModel):
     model_config = ConfigDict(frozen=False, extra="forbid", validate_default=False)
 
     # optional fields - default
-    dep_id: Annotated[int, Field(ge=1)] | None = Field(default=None, alias="depositId")
+    deposit_id: Annotated[int, Field(ge=1)] | None = Field(
+        default=None, alias="depositId"
+    )
     strain: StrainCCNo = Field(default_factory=StrainCCNo)
     sample: Sample = Field(default_factory=Sample)
     isolation: Isolation = Field(default_factory=Isolation)
