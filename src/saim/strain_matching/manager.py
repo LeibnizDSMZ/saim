@@ -14,7 +14,7 @@ class UpdateResults:
     si_id: int = -1
     si_dp: int = -1
     used_in_update: bool = False
-    cid: tuple[int, str, str, str] = (-1, "", "", "")
+    cid: tuple[int, str, str, str] | None = None
     add_relations: Sequence[CCNoDesP] = field(default_factory=list)
     del_relations: Sequence[CCNoDesP] = field(default_factory=list)
 
@@ -139,7 +139,8 @@ class MatchCache:
 
     def __update_cache(self, upd: UpdateResults, /) -> None:
         self.__add_si_id(upd.si_id)
-        self.culture_ccno[upd.cid] = StrainCultureId(d=upd.si_dp, s=upd.si_id)
+        if upd.cid is not None:
+            self.culture_ccno[upd.cid] = StrainCultureId(d=upd.si_dp, s=upd.si_id)
         self.__add_del_relations(upd.si_id, upd.del_relations, False)
         self.__add_del_relations(upd.si_id, upd.add_relations, True)
 
