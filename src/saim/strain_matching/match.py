@@ -8,6 +8,7 @@ from saim.strain_matching.private.strain_match import StrainMatch
 
 
 type MatchStrain = Callable[[Iterable[str]], set[int]]
+type UpdateCache = Callable[[UpdateResults], None]
 
 
 class _MatchWrapper[CT: CultureMatch]:
@@ -37,6 +38,10 @@ class _MatchWrapper[CT: CultureMatch]:
             cul = mat_str.cul
             self.__cache.update_cache(upd_res)
         return None
+
+    @property
+    def cache_updater(self) -> UpdateCache:
+        return self.__cache.update_cache
 
     @property
     def strain_matcher(self) -> MatchStrain:
@@ -106,15 +111,15 @@ type MatchF[CT] = Callable[
 
 def match_factory[CT: CultureMatch](
     con_type: type[CT], dry_run: bool = False, skip: bool = False, /
-) -> Callable[[AcronymManager, MatchCache], tuple[MatchF[CT], MatchStrain]]:
+) -> Callable[[AcronymManager, MatchCache], tuple[MatchF[CT], MatchStrain, UpdateCache]]:
     print(f"creating matcher for type - {con_type!s}")
     to_update = not dry_run
 
     def wrap_init(
         acr_manager: AcronymManager, cache: MatchCache, /
-    ) -> tuple[MatchF[CT], MatchStrain]:
+    ) -> tuple[MatchF[CT], MatchStrain, UpdateCache]:
         matcher: _MatchWrapper[CT] = _MatchWrapper(acr_manager, cache, to_update, skip)
-        return matcher.run_match, matcher.strain_matcher
+        return matcher.run_match, matcher.strain_matcher, matcher.cache_updater
 
     return wrap_init
 
