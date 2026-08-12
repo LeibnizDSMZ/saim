@@ -18,13 +18,16 @@ class StrainCultureId(NamedTuple):
 class StrainCCNo(BaseModel):
     model_config = ConfigDict(frozen=False, extra="forbid", validate_default=False)
 
-    relation: list[
-        Annotated[
-            str,
-            BeforeValidator(trim_edges),
-            BeforeValidator(strip_designation),
-            Field(min_length=3),
-        ]
+    relation: Annotated[
+        list[
+            Annotated[
+                str,
+                BeforeValidator(trim_edges),
+                BeforeValidator(strip_designation),
+                Field(min_length=3),
+            ]
+        ],
+        Field(min_length=1),
     ] = Field(default_factory=list)
     strain_id: Annotated[int | None, BeforeValidator(pa_int), Field(ge=1)] = Field(
         default=None, alias="strainId"

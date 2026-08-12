@@ -118,12 +118,12 @@ class _DepCore(BaseModel):
     taxon_name: Annotated[
         str | None, AfterValidator(fix_taxa_name), Field(min_length=2)
     ] = Field(default=None, alias="taxonName")
-    sequence: list[Annotated[str, AfterValidator(ch_sequence)]] = Field(
-        default_factory=list, alias="sequenceAccessionNumber"
-    )
-    literature: list[Annotated[str, AfterValidator(ch_doi)]] = Field(
-        default_factory=list, alias="literatureDOI"
-    )
+    sequence: Annotated[
+        list[Annotated[str, AfterValidator(ch_sequence)]], Field(min_length=1)
+    ] = Field(default_factory=list, alias="sequenceAccessionNumber")
+    literature: Annotated[
+        list[Annotated[str, AfterValidator(ch_doi)]], Field(min_length=1)
+    ] = Field(default_factory=list, alias="literatureDOI")
 
     def patch_taxon_name(self, tax_man: TaxonManager | None = None, /) -> None:
         if tax_man is not None and self.taxon_name is not None:

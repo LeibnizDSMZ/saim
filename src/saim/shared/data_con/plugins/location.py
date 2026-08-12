@@ -29,9 +29,9 @@ class Location(BaseModel):
         BeforeValidator(clean_country),
         Field(min_length=1),
     ] = None
-    place: list[Annotated[str, AfterValidator(clean_place_name)]] = Field(
-        default_factory=list
-    )
+    place: Annotated[
+        list[Annotated[str, AfterValidator(clean_place_name)]], Field(min_length=1)
+    ] = Field(default_factory=list)
     long: Annotated[str | None, AfterValidator(lambda val: pa_lat_long(val, ch_long))] = (
         Field(default=None, alias="longitude")
     )

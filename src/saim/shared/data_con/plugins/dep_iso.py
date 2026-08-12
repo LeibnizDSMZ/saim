@@ -13,7 +13,9 @@ from saim.shared.parse.person import ch_person_info
 class Isolation(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", validate_default=False)
 
-    isolator: list[PersonInfo] = Field(default_factory=list)
+    isolator: Annotated[list[PersonInfo], Field(min_length=1)] = Field(
+        default_factory=list
+    )
     location: Location = Field(default_factory=Location)
     year: Annotated[int | None, BeforeValidator(pa_int), Field(ge=1000)] = None
 
@@ -33,7 +35,9 @@ class Isolation(BaseModel):
 class Deposition(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", validate_default=False)
 
-    depositor: list[PersonInfo] = Field(default_factory=list)
+    depositor: Annotated[list[PersonInfo], Field(min_length=1)] = Field(
+        default_factory=list
+    )
     location: Location = Field(default_factory=Location)
     year: Annotated[int | None, BeforeValidator(pa_int), Field(ge=1000)] = None
 
