@@ -11,6 +11,7 @@ from pydantic import (
     ConfigDict,
     Field,
     HttpUrl,
+    PlainSerializer,
     model_validator,
 )
 
@@ -218,7 +219,11 @@ class DepositCCNo(_DepCore):
     # optional fields - default
     domain: DomainKnownL | None = None
     status: DepositStatus | None = None
-    url: Annotated[HttpUrl | None, BeforeValidator(lambda val: pa_str(val))] = None
+    url: Annotated[
+        HttpUrl | None,
+        BeforeValidator(trim_edges),
+        PlainSerializer(lambda val: str(val), return_type=str),
+    ] = None
     history: Annotated[
         str | None, BeforeValidator(clean_text_rm_tags), Field(min_length=2)
     ] = None
