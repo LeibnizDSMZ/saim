@@ -42,6 +42,7 @@ _NAMES_REG: Final[Pattern[str]] = re.compile(
 _MERGED_REG: Final[Pattern[str]] = re.compile(r"^\s*\d+\s*\|\s*\d+\s*(\|.*)?$")
 _DEL_REG: Final[Pattern[str]] = re.compile(r"^\s*\d+\s*(\|.*)?$")
 _NAME_FILTER = re.compile(r"\sspp?\.$|^[a-z]")
+_SYN_TYPE_STRAIN = re.compile(r"\[\[.+\]\]")
 
 _NCBI_NAMES = tuple[
     dict[str, set[int]],
@@ -75,7 +76,7 @@ def read_ncbi_tax_names(
                     syns[name].add(nid_int)
                 case str(_NameClass.eq_nam.value):
                     eq_nam[name].add(nid_int)
-                case str(_NameClass.tst.value):
+                case str(_NameClass.tst.value) if _SYN_TYPE_STRAIN.search(name) is None:
                     t_str[nid_int].add(name)
     return (names, eq_nam, syns, t_str, id2nam)
 
