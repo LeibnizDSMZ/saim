@@ -58,6 +58,6 @@ class StrainCCNo(BaseModel):
 @final
 class StrainFull(BaseModel):
     model_config = ConfigDict(frozen=False, extra="forbid", validate_default=False)
-    strain_id: int = Field(alias="strainId")
-    main_id: int = Field(alias="mainId")
+    strain_id: Annotated[int, Field(ge=1)] = Field(alias="strainId")
+    main_id: Annotated[int, Field(ge=1)] = Field(alias="mainId")
     type_strain: bool = Field(alias="typeStrain")

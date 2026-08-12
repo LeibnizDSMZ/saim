@@ -1,10 +1,11 @@
 from typing import Annotated, Any, final
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, Field
 
 from saim.shared.data_con.plugins.location import Location
 from saim.shared.data_con.plugins.person import PersonInfo
 from saim.shared.data_ops.clean import detect_empty_dict_keys
+from saim.shared.parse.general import pa_int
 
 
 @final
@@ -13,7 +14,7 @@ class Isolation(BaseModel):
 
     isolator: list[PersonInfo] = Field(default_factory=list)
     location: Location = Field(default_factory=Location)
-    year: Annotated[int, Field(ge=1000)] | None = None
+    year: Annotated[int | None, BeforeValidator(pa_int), Field(ge=1000)] = None
 
     def to_dict(self, trim: bool = True, /) -> dict[str, Any]:
         dict_res = self.model_dump(
@@ -33,7 +34,7 @@ class Deposition(BaseModel):
 
     depositor: list[PersonInfo] = Field(default_factory=list)
     location: Location = Field(default_factory=Location)
-    year: Annotated[int, Field(ge=1000)] | None = None
+    year: Annotated[int | None, BeforeValidator(pa_int), Field(ge=1000)] = None
 
     def to_dict(self, trim: bool = True, /) -> dict[str, Any]:
         dict_res = self.model_dump(

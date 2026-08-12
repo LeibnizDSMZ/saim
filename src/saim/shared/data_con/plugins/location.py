@@ -10,13 +10,19 @@ from saim.shared.parse.geo import (
     clean_country,
     parse_lat_long,
 )
+from saim.shared.parse.string import trim_edges
 
 
 @final
 class Location(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", validate_default=False)
 
-    code: Annotated[str | None, AfterValidator(check_country_code)] = None
+    code: Annotated[
+        str | None,
+        BeforeValidator(trim_edges),
+        Field(min_length=2, max_length=2),
+        AfterValidator(check_country_code),
+    ] = None
     country: Annotated[
         str | None,
         BeforeValidator(clean_place_name),
