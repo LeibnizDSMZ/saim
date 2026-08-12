@@ -3,12 +3,12 @@ from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, Fie
 
 from saim.shared.data_ops.clean import detect_empty_dict_keys, filter_duplicates
 from saim.shared.parse.geo import (
-    check_country_code,
-    check_lat,
-    check_long,
+    ch_country_code,
+    ch_lat,
+    ch_long,
     clean_place_name,
     clean_country,
-    parse_lat_long,
+    pa_lat_long,
 )
 from saim.shared.parse.string import trim_edges
 
@@ -21,7 +21,7 @@ class Location(BaseModel):
         str | None,
         BeforeValidator(trim_edges),
         Field(min_length=2, max_length=2),
-        AfterValidator(check_country_code),
+        AfterValidator(ch_country_code),
     ] = None
     country: Annotated[
         str | None,
@@ -32,12 +32,12 @@ class Location(BaseModel):
     place: list[Annotated[str, AfterValidator(clean_place_name)]] = Field(
         default_factory=list
     )
-    long: Annotated[
-        str | None, AfterValidator(lambda val: parse_lat_long(val, check_long))
-    ] = Field(default=None, alias="longitude")
-    lat: Annotated[
-        str | None, AfterValidator(lambda val: parse_lat_long(val, check_lat))
-    ] = Field(default=None, alias="latitude")
+    long: Annotated[str | None, AfterValidator(lambda val: pa_lat_long(val, ch_long))] = (
+        Field(default=None, alias="longitude")
+    )
+    lat: Annotated[str | None, AfterValidator(lambda val: pa_lat_long(val, ch_lat))] = (
+        Field(default=None, alias="latitude")
+    )
 
     def to_dict(self, trim: bool = True, /) -> dict[str, list[str] | str]:
         dict_res: dict[str, list[str] | str] = self.model_dump(

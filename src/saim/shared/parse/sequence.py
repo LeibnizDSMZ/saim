@@ -62,14 +62,14 @@ def _sep_seq_str(acc: str, /) -> set[str]:
     return {mat.group(1) for mat in _ACC_REG.finditer(acc)}
 
 
-def parse_seq_acc(to_parse: str, /) -> set[str]:
+def pa_seq_acc(to_parse: str, /) -> set[str]:
     acc_res = _sep_seq_str(to_parse)
     if len(acc_res) == 0:
         return set()
     return acc_res
 
 
-def check_sequence(acc: str, /) -> str:
+def ch_sequence(acc: str, /) -> str:
     if is_acc(acc):
         return acc
     raise ValueError(f"{acc} is not a valid sequence accession number")

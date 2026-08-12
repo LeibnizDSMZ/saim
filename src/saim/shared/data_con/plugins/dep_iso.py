@@ -6,6 +6,7 @@ from saim.shared.data_con.plugins.location import Location
 from saim.shared.data_con.plugins.person import PersonInfo
 from saim.shared.data_ops.clean import detect_empty_dict_keys
 from saim.shared.parse.general import pa_int
+from saim.shared.parse.person import ch_person_info
 
 
 @final
@@ -48,20 +49,14 @@ class Deposition(BaseModel):
         return dict_res
 
 
-def _validate_person_info(per: PersonInfo) -> PersonInfo:
-    if not per.orcid or not per.name:
-        raise ValueError("ORCID and Name must be provided!")
-    return per
-
-
 @final
 class Registration(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", validate_default=False)
 
-    submitter: Annotated[PersonInfo, AfterValidator(_validate_person_info)] = Field(
+    submitter: Annotated[PersonInfo, AfterValidator(ch_person_info)] = Field(
         default_factory=PersonInfo
     )
-    supervisor: Annotated[PersonInfo, AfterValidator(_validate_person_info)] = Field(
+    supervisor: Annotated[PersonInfo, AfterValidator(ch_person_info)] = Field(
         default_factory=PersonInfo
     )
 

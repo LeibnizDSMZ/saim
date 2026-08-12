@@ -3,7 +3,7 @@ from typing import Callable
 
 from saim.designation.known_acr_db import identify_acr
 
-from saim.shared.parse.string import check_pattern
+from saim.shared.parse.string import ch_pattern
 from saim.shared.data_con.brc import BrcContainer
 from saim.shared.data_con.designation import DesignationType
 from saim.shared.error.exceptions import DesignationEx
@@ -28,7 +28,7 @@ def _verify_regex(
     check_err = 0
     for ccno_reg in all_reg:
         try:
-            check_pattern(to_check, re.compile(ccno_reg))
+            ch_pattern(to_check, re.compile(ccno_reg))
         except DesignationEx:
             check_err += 1
     if len(all_reg) == 0:
@@ -48,7 +48,7 @@ def verify_ccno_id(acr: str, ccno_id: str, brc_con: BrcContainer, /) -> None:
 def verify_specific_ccno(brc_id: int, ccno: str, brc_con: BrcContainer, /) -> None:
     ccno_reg = brc_con.cc_db.get(brc_id, None)
     if not (ccno_reg is None or ccno_reg.deprecated):
-        check_pattern(ccno, re.compile(ccno_reg.regex_ccno))
+        ch_pattern(ccno, re.compile(ccno_reg.regex_ccno))
     else:
         raise DesignationEx(f"collection - {brc_id} has no regex defined")
 
@@ -56,7 +56,7 @@ def verify_specific_ccno(brc_id: int, ccno: str, brc_con: BrcContainer, /) -> No
 def verify_specific_ccno_id(brc_id: int, ccno_id: str, brc_con: BrcContainer, /) -> None:
     ccno_reg = brc_con.cc_db.get(brc_id, None)
     if not (ccno_reg is None or ccno_reg.deprecated):
-        check_pattern(ccno_id, re.compile(ccno_reg.regex_id.full))
+        ch_pattern(ccno_id, re.compile(ccno_reg.regex_id.full))
     else:
         raise DesignationEx(f"collection - {brc_id} has no regex defined")
 

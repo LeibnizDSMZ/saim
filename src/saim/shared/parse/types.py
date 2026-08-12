@@ -5,7 +5,7 @@ from typing import Any, Final
 import datetime
 
 
-def check_str_warn(
+def ch_str_warn(
     to_check: str,
     checker: Callable[[str], bool],
     warn: str,
@@ -18,25 +18,25 @@ def check_str_warn(
     return ""
 
 
-def check_type[T](to_check: Any, typ: type[T], default: T, /) -> T:
+def ch_type[T](to_check: Any, typ: type[T], default: T, /) -> T:
     if isinstance(to_check, typ):
         return to_check
     return default
 
 
-def check_type_strict[T](to_check: Any, typ: type[T], /) -> T:
+def ch_type_strict[T](to_check: Any, typ: type[T], /) -> T:
     if isinstance(to_check, typ):
         return to_check
     raise ValueError(f"invalid type - {to_check}")
 
 
-def check_bool_int(to_check: Any, truth: int, default: bool, /) -> bool:
+def ch_bool_int(to_check: Any, truth: int, default: bool, /) -> bool:
     if isinstance(to_check, int):
         return to_check == truth
     return default
 
 
-def check_value_or[U](
+def ch_value_or[U](
     to_check: Any, checkers: list[Callable[[Any], bool]], parse: Callable[[Any], U], /
 ) -> U:
     for check in checkers:

@@ -146,7 +146,7 @@ def is_reasonable_date(pos_date: str, /) -> bool:
     return get_date(pos_date) is not None
 
 
-def check_date_str(dat: str | datetime | date, /) -> str:
+def ch_date_str(dat: str | datetime | date, /) -> str:
     if isinstance(dat, (datetime, date)):
         return date_to_str(dat, True)
     if not is_reasonable_date(dat):
@@ -206,14 +206,14 @@ def year_to_str(year: int | None, full: bool = False, /) -> str | None:
     return str(year)
 
 
-def check_rkms(date: str, /) -> str:
+def ch_rkms(date: str, /) -> str:
     for reg in get_rkms_regex():
         if reg.match(date) is None:
             raise ValueError(f"wrong rkms date format {date}")
     return date
 
 
-def parse_rkms(date: Any) -> str:
+def pa_rkms(date: Any) -> str:
     if date == "" or not isinstance(date, str):
         return ""
-    return check_rkms(date)
+    return ch_rkms(date)

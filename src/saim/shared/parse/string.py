@@ -71,7 +71,7 @@ def replace_non_word_chars_iter(
         yield new_char, char_p
 
 
-def check_pattern(input_str: str, pattern: Pattern[str], /) -> None:
+def ch_pattern(input_str: str, pattern: Pattern[str], /) -> None:
     if pattern.match(input_str) is None:
         raise DesignationEx(f"String '{input_str}' has an invalid format")
 

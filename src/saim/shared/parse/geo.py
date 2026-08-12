@@ -4,7 +4,7 @@ from typing import Any, Callable, Final
 
 from cafi.container.country import CountryCodes
 
-from saim.shared.verify.types import ch_str_float
+from saim.shared.parse.types import ch_str_float
 from saim.shared.parse.string import clean_string, clean_text_rm_enclosing, trim_edges
 
 _PATTERN_BRACKETS: Final[tuple[Pattern[str], ...]] = (
@@ -23,23 +23,23 @@ _PATTERN_BRACKETS_RL: Final[tuple[Pattern[str], ...]] = (
 _COMMA: Final[Pattern[str]] = re.compile(r"\s*,\s*")
 
 
-def parse_lat_long(lat_long: Any, ch_spec_float: Callable[[str], str]) -> str:
+def pa_lat_long(lat_long: Any, ch_spec_float: Callable[[str], str]) -> str:
     if lat_long == "" or not isinstance(lat_long, str):
         return ""
     return ch_spec_float(lat_long)
 
 
-def check_lat(lat: str, /) -> str:
+def ch_lat(lat: str, /) -> str:
     ch_str_float(lat, 90.0, "Latitude")
     return lat.strip()
 
 
-def check_long(long: str, /) -> str:
+def ch_long(long: str, /) -> str:
     ch_str_float(long, 180.0, "Longitude")
     return long.strip()
 
 
-def check_country_code(code: Any, /) -> str:
+def ch_country_code(code: Any, /) -> str:
     if not isinstance(code, str) or code == "":
         return ""
     if len(code) != 2:

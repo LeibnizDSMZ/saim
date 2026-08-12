@@ -21,8 +21,8 @@ from saim.shared.data_con.plugins.dep_iso import Deposition, Isolation, Registra
 from saim.shared.data_con.taxon import DomainKnownL
 from saim.shared.parse.general import pa_int, pa_str
 from saim.shared.parse.http_url import to_opt_ulr_str
-from saim.shared.parse.sequence import check_sequence
-from saim.shared.parse.doi import check_doi
+from saim.shared.parse.sequence import ch_sequence
+from saim.shared.parse.doi import ch_doi
 from saim.shared.parse.string import (
     clean_edges,
     clean_id_edges,
@@ -32,9 +32,9 @@ from saim.shared.parse.string import (
 from saim.shared.data_con.designation import CCNoIdM
 from saim.shared.data_con.strain import StrainCCNo
 from saim.shared.data_ops.clean import detect_empty_dict_keys
-from saim.shared.parse.date import check_date_str, date_to_str
+from saim.shared.parse.date import ch_date_str, date_to_str
 from saim.shared.parse.taxa import fix_taxa_name
-from saim.shared.verify.types import ch_not_none
+from saim.shared.parse.types import ch_not_none
 from saim.taxon_name.manager import TaxonManager
 
 _REQ_KEYS_DEP: Final[tuple[str, ...]] = (
@@ -118,10 +118,10 @@ class _DepCore(BaseModel):
     taxon_name: Annotated[
         str | None, AfterValidator(fix_taxa_name), Field(min_length=2)
     ] = Field(default=None, alias="taxonName")
-    sequence: list[Annotated[str, AfterValidator(check_sequence)]] = Field(
+    sequence: list[Annotated[str, AfterValidator(ch_sequence)]] = Field(
         default_factory=list, alias="sequenceAccessionNumber"
     )
-    literature: list[Annotated[str, AfterValidator(check_doi)]] = Field(
+    literature: list[Annotated[str, AfterValidator(ch_doi)]] = Field(
         default_factory=list, alias="literatureDOI"
     )
 
@@ -234,9 +234,9 @@ class DepositCCNo(_DepCore):
     )
     deposition: Deposition = Field(default_factory=Deposition)
     # resource acquired date
-    update: Annotated[
-        str, BeforeValidator(trim_edges), AfterValidator(check_date_str)
-    ] = Field(default_factory=lambda: date_to_str(datetime.now(), True))
+    update: Annotated[str, BeforeValidator(trim_edges), AfterValidator(ch_date_str)] = (
+        Field(default_factory=lambda: date_to_str(datetime.now(), True))
+    )
 
     def __check_known_acr(self, acr_man: AcronymManager, /) -> None:
         if self.brc_id not in acr_man.identify_acr(self.acr):
