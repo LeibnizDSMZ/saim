@@ -3,8 +3,16 @@ import re
 from typing import Annotated, Final, Protocol, Self, final
 from dataclasses import asdict, dataclass, field
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    PrivateAttr,
+    model_validator,
+)
 
+from saim.shared.parse.general import pa_str
 from saim.shared.parse.string import (
     clean_core_id_edges,
     clean_id_edges,
@@ -86,26 +94,38 @@ class CCNoIdM(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", validate_default=False)
 
     full: Annotated[
-        str, AfterValidator(clean_id_edges), Field(min_length=1, max_length=32)
-    ] = Field(default="")
-    core: Annotated[str, AfterValidator(clean_core_id_edges), Field(min_length=1)] = (
-        Field(default="")
-    )
-    pre: Annotated[str, AfterValidator(trim_edges)] = Field(default="")
-    suf: Annotated[str, AfterValidator(trim_edges)] = Field(default="")
+        str | None, BeforeValidator(clean_id_edges), Field(min_length=1, max_length=32)
+    ] = None
+    core: Annotated[
+        str | None, BeforeValidator(clean_core_id_edges), Field(min_length=1)
+    ] = None
+    pre: Annotated[str | None, BeforeValidator(trim_edges), Field(min_length=1)] = None
+    suf: Annotated[str | None, BeforeValidator(trim_edges), Field(min_length=1)] = None
+
+    _ccno_id: CCNoId | None = PrivateAttr(default=None)
+
+    def to_ccno_id(self) -> CCNoId:
+        if self._ccno_id is None:
+            self._ccno_id = CCNoId(
+                full=pa_str(self.full),
+                core=pa_str(self.core),
+                pre=pa_str(self.pre),
+                suf=pa_str(self.suf),
+            )
+        return self._ccno_id
 
     def to_dict(self, trim: bool = True, /) -> dict[str, str]:
         return ccno_id_to_dict(self, trim)
 
     @model_validator(mode="after")
     def _check_culture_ids_completeness(self) -> Self:
-        if self.full == "" or self.core == "":
+        if self.full is None or self.core is None:
             raise ValueError("full, core - empty CCNoId detected")
         if self.core not in self.full:
             raise ValueError("core, full - malformed core in CCNoId")
-        if self.pre not in self.full:
+        if self.pre is not None and self.pre not in self.full:
             raise ValueError("pre, full - malformed pre in CCNoId")
-        if self.suf not in self.full:
+        if self.suf is not None and self.suf not in self.full:
             raise ValueError("suf, full - malformed suf in CCNoId")
         return self
 

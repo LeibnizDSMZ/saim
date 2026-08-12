@@ -1,6 +1,8 @@
 from typing import Annotated, Any, Iterable, final
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 
+from saim.shared.parse.designation import strip_designation
+from saim.shared.parse.general import pa_int
 from saim.shared.parse.string import trim_edges
 from saim.shared.data_con.designation import CCNoIdP
 from saim.shared.data_ops.clean import detect_empty_dict_keys
@@ -12,12 +14,6 @@ class StrainCultureId(NamedTuple):
     d: int  # deposit id
 
 
-def _strip_designation(des: Any) -> Any:
-    if isinstance(des, str) and len(des) > 61:
-        return des[:61] + "..."
-    return des
-
-
 @final
 class StrainCCNo(BaseModel):
     model_config = ConfigDict(frozen=False, extra="forbid", validate_default=False)
@@ -25,12 +21,14 @@ class StrainCCNo(BaseModel):
     relation: list[
         Annotated[
             str,
-            AfterValidator(trim_edges),
-            AfterValidator(_strip_designation),
+            BeforeValidator(trim_edges),
+            BeforeValidator(strip_designation),
             Field(min_length=3),
         ]
     ] = Field(default_factory=list)
-    strain_id: int | None = Field(default=None, alias="strainId")
+    strain_id: Annotated[int | None, BeforeValidator(pa_int), Field(ge=1)] = Field(
+        default=None, alias="strainId"
+    )
 
     def __rm_dup_rel(self) -> Iterable[str]:
         buffer = set()

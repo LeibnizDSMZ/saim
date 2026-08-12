@@ -1,5 +1,5 @@
 from typing import Annotated, Any, Iterable, final
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field
 
 from saim.shared.data_ops.clean import detect_empty_dict_keys
 from saim.shared.parse.string import clean_text_rm_tags, trim_edges
@@ -9,15 +9,17 @@ from saim.shared.parse.string import clean_text_rm_tags, trim_edges
 class PersonInfo(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", validate_default=False)
 
-    name: Annotated[str, AfterValidator(clean_text_rm_tags), Field(min_length=1)] = ""
-    institute: Annotated[str, AfterValidator(clean_text_rm_tags), Field(min_length=1)] = (
-        ""
-    )
-    orcid: Annotated[str, AfterValidator(trim_edges), Field(min_length=1)] = ""
-    ror: Annotated[str, AfterValidator(trim_edges), Field(min_length=1)] = ""
+    name: Annotated[
+        str | None, BeforeValidator(clean_text_rm_tags), Field(min_length=1)
+    ] = None
+    institute: Annotated[
+        str | None, BeforeValidator(clean_text_rm_tags), Field(min_length=1)
+    ] = None
+    orcid: Annotated[str | None, BeforeValidator(trim_edges), Field(min_length=1)] = None
+    ror: Annotated[str | None, BeforeValidator(trim_edges), Field(min_length=1)] = None
 
     def to_dict(self, trim: bool = True, /) -> dict[str, Any]:
-        if trim and self.name == "" and self.institute == "":
+        if trim and self.name is None and self.institute is None:
             return {}
         dict_res = self.model_dump(mode="python", by_alias=True)
         if trim:

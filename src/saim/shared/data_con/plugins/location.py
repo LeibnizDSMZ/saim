@@ -1,5 +1,5 @@
 from typing import Annotated, final
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, Field
 
 from saim.shared.data_ops.clean import detect_empty_dict_keys, filter_duplicates
 from saim.shared.parse.geo import (
@@ -16,19 +16,22 @@ from saim.shared.parse.geo import (
 class Location(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", validate_default=False)
 
-    code: Annotated[str, AfterValidator(check_country_code)] = ""
+    code: Annotated[str | None, AfterValidator(check_country_code)] = None
     country: Annotated[
-        str, AfterValidator(clean_place_name), AfterValidator(clean_country)
-    ] = ""
+        str | None,
+        BeforeValidator(clean_place_name),
+        BeforeValidator(clean_country),
+        Field(min_length=1),
+    ] = None
     place: list[Annotated[str, AfterValidator(clean_place_name)]] = Field(
         default_factory=list
     )
-    long: Annotated[str, AfterValidator(lambda val: parse_lat_long(val, check_long))] = (
-        Field(default="", alias="longitude")
-    )
-    lat: Annotated[str, AfterValidator(lambda val: parse_lat_long(val, check_lat))] = (
-        Field(default="", alias="latitude")
-    )
+    long: Annotated[
+        str | None, AfterValidator(lambda val: parse_lat_long(val, check_long))
+    ] = Field(default=None, alias="longitude")
+    lat: Annotated[
+        str | None, AfterValidator(lambda val: parse_lat_long(val, check_lat))
+    ] = Field(default=None, alias="latitude")
 
     def to_dict(self, trim: bool = True, /) -> dict[str, list[str] | str]:
         dict_res: dict[str, list[str] | str] = self.model_dump(
@@ -40,7 +43,7 @@ class Location(BaseModel):
                 ele for con in self.place for ele in con.split(",")
             )
             if len(cl_pla := clean_place_name(pla)) >= 2
-            and cl_pla.lower() != self.country.lower()
+            and (self.country is None or cl_pla.lower() != self.country.lower())
         ]
         if trim:
             for key in detect_empty_dict_keys(dict_res):

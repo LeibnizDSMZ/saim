@@ -1,28 +1,22 @@
 from typing import Annotated, Any, final
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+from pydantic import AfterValidator, BaseModel, BeforeValidator, ConfigDict, Field
 
-from saim.shared.parse.date import parse_rkms
+from saim.shared.parse.date import check_rkms
 from saim.shared.data_con.plugins.location import Location
 from saim.shared.data_ops.clean import detect_empty_dict_keys
-from saim.shared.parse.string import clean_text_rm_tags
-
-
-def _fix_source(source: Any) -> str:
-    if not isinstance(source, str):
-        return ""
-    clean = clean_text_rm_tags(source)
-    if len(clean) > 1:
-        return clean[0].upper() + clean[1:]
-    return clean
+from saim.shared.parse.source import fix_source
+from saim.shared.parse.string import trim_edges
 
 
 @final
 class Sample(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid", validate_default=False)
 
-    source: Annotated[str, AfterValidator(_fix_source), Field(min_length=1)] = ""
+    source: Annotated[str | None, BeforeValidator(fix_source), Field(min_length=1)] = None
     location: Location = Field(default_factory=Location)
-    date: Annotated[str, AfterValidator(parse_rkms)] = ""
+    date: Annotated[
+        str | None, BeforeValidator(trim_edges), AfterValidator(check_rkms)
+    ] = None
 
     def to_dict(self, trim: bool = True, /) -> dict[str, Any]:
         loc = self.location.to_dict(trim)

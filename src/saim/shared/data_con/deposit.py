@@ -1,17 +1,16 @@
 from datetime import datetime
 from enum import Enum
 import json
-import re
 from typing import Annotated, Any, Final, Self, final
 import unicodedata
 
 from pydantic import (
     AfterValidator,
     BaseModel,
+    BeforeValidator,
     ConfigDict,
     Field,
     HttpUrl,
-    PlainSerializer,
     model_validator,
 )
 
@@ -19,14 +18,12 @@ from saim.shared.data_con.plugins.sample import Sample
 from saim.designation.manager import AcronymManager
 from saim.shared.data_con.plugins.dep_iso import Deposition, Isolation, Registration
 from saim.shared.data_con.taxon import DomainKnownL
+from saim.shared.parse.general import pa_int, pa_str
 from saim.shared.parse.sequence import check_sequence
 from saim.shared.parse.doi import check_doi
 from saim.shared.parse.string import (
-    PATTERN_REDUNDANT_SPACE_R,
     clean_edges,
     clean_id_edges,
-    clean_ledge_rm_tags,
-    clean_string,
     clean_text_rm_tags,
     trim_edges,
 )
@@ -34,6 +31,7 @@ from saim.shared.data_con.designation import CCNoIdM
 from saim.shared.data_con.strain import StrainCCNo
 from saim.shared.data_ops.clean import detect_empty_dict_keys
 from saim.shared.parse.date import check_date_str, date_to_str
+from saim.shared.parse.taxa import fix_taxa_name
 from saim.taxon_name.manager import TaxonManager
 
 _REQ_KEYS_DEP: Final[tuple[str, ...]] = (
@@ -104,34 +102,19 @@ def is_id_source(name: str, /) -> bool:
     return name in _L_SRC
 
 
-_UND = re.compile(r"_+")
-
-
-def _fix_name(source: Any) -> str:
-    if not isinstance(source, str):
-        return ""
-    clean = clean_ledge_rm_tags(source)
-    if " " not in clean:
-        clean = _UND.sub(" ", clean)
-    clean = clean_string(clean, PATTERN_REDUNDANT_SPACE_R)
-    if len(clean) > 1:
-        return clean[0].upper() + clean[1:]
-    return clean
-
-
 class _DepCore(BaseModel):
     model_config = ConfigDict(frozen=False, extra="forbid", validate_default=False)
 
     # optional fields - default
-    deposit_id: Annotated[int, Field(ge=1)] | None = Field(
+    deposit_id: Annotated[int | None, BeforeValidator(pa_int), Field(ge=1)] = Field(
         default=None, alias="depositId"
     )
     strain: StrainCCNo = Field(default_factory=StrainCCNo)
     sample: Sample = Field(default_factory=Sample)
     isolation: Isolation = Field(default_factory=Isolation)
-    taxon_name: Annotated[str, AfterValidator(_fix_name), Field(min_length=2)] = Field(
-        default="", alias="taxonName"
-    )
+    taxon_name: Annotated[
+        str | None, AfterValidator(fix_taxa_name), Field(min_length=2)
+    ] = Field(default=None, alias="taxonName")
     sequence: list[Annotated[str, AfterValidator(check_sequence)]] = Field(
         default_factory=list, alias="sequenceAccessionNumber"
     )
@@ -140,7 +123,7 @@ class _DepCore(BaseModel):
     )
 
     def patch_taxon_name(self, tax_man: TaxonManager | None = None, /) -> None:
-        if tax_man is not None:
+        if tax_man is not None and self.taxon_name is not None:
             self.taxon_name = tax_man.get_patched_name(self.taxon_name)
 
     def to_dict_main(
@@ -172,16 +155,16 @@ class Deposit(_DepCore):
     model_config = ConfigDict(frozen=False, extra="forbid", validate_default=False)
 
     # required fields - init
-    designation: Annotated[str, AfterValidator(clean_id_edges), Field(min_length=2)]
+    designation: Annotated[str, BeforeValidator(clean_id_edges), Field(min_length=2)]
     domain: DomainKnownL
 
     registration: Registration
 
     @model_validator(mode="after")
     def _check_sample(self) -> Self:
-        if self.sample.source == "":
+        if self.sample.source is None:
             raise ValueError("sample, source - Source required")
-        if self.sample.date == "":
+        if self.sample.date is None:
             raise ValueError("sample, date - Date required")
         return self
 
@@ -225,28 +208,28 @@ class DepositCCNo(_DepCore):
     # required fields - init
     type_strain: bool = Field(alias="typeStrain")
     id: CCNoIdM
-    acr: Annotated[str, AfterValidator(clean_edges), Field(min_length=2)] = Field(
+    acr: Annotated[str, BeforeValidator(clean_edges), Field(min_length=2)] = Field(
         alias="acronym"
     )
     brc_id: Annotated[int, Field(ge=1)] = Field(alias="collectionId")
-    ccno: Annotated[str, AfterValidator(clean_id_edges), Field(min_length=2)]
+    ccno: Annotated[str, BeforeValidator(clean_id_edges), Field(min_length=2)]
     source: DCDSrc
 
     # optional fields - default
     domain: DomainKnownL | None = None
     status: DepositStatus | None = None
-    url: (
-        Annotated[HttpUrl, PlainSerializer(lambda val: str(val), return_type=str)] | None
-    ) = None
-    history: Annotated[str, AfterValidator(clean_text_rm_tags), Field(min_length=2)] = ""
-    parent: Annotated[str, AfterValidator(trim_edges), Field(min_length=3)] = Field(
-        default="", alias="parentDesignation"
+    url: Annotated[HttpUrl | None, BeforeValidator(lambda val: pa_str(val))] = None
+    history: Annotated[
+        str | None, BeforeValidator(clean_text_rm_tags), Field(min_length=2)
+    ] = None
+    parent: Annotated[str | None, BeforeValidator(trim_edges), Field(min_length=3)] = (
+        Field(default=None, alias="parentDesignation")
     )
     deposition: Deposition = Field(default_factory=Deposition)
     # resource acquired date
-    update: Annotated[str, AfterValidator(trim_edges), AfterValidator(check_date_str)] = (
-        Field(default_factory=lambda: date_to_str(datetime.now(), True))
-    )
+    update: Annotated[
+        str, BeforeValidator(trim_edges), AfterValidator(check_date_str)
+    ] = Field(default_factory=lambda: date_to_str(datetime.now(), True))
 
     def __check_known_acr(self, acr_man: AcronymManager, /) -> None:
         if self.brc_id not in acr_man.identify_acr(self.acr):
@@ -256,11 +239,11 @@ class DepositCCNo(_DepCore):
             raise ValueError(f"could not detect acronym - {self.acr} | {self.brc_id}")
         if kn_acr.acr.lower() != self.acr.lower():
             raise ValueError(f"mismatch acronym - {self.acr} | {kn_acr.acr}")
-        if kn_acr.id.pre.lower() != self.id.pre.lower():
+        if kn_acr.id.pre.lower() != pa_str(self.id.pre).lower():
             raise ValueError(f"mismatch id prefix - {self.id.pre} | {kn_acr.id.pre}")
-        if kn_acr.id.core.lower() != self.id.core.lower():
+        if kn_acr.id.core.lower() != pa_str(self.id.core).lower():
             raise ValueError(f"mismatch id core - {self.id.core} | {kn_acr.id.core}")
-        if kn_acr.id.suf.lower() != self.id.suf.lower():
+        if kn_acr.id.suf.lower() != pa_str(self.id.suf).lower():
             raise ValueError(f"mismatch id suffix - {self.id.suf} | {kn_acr.id.suf}")
 
     def check_known_acr(self, acr_man: AcronymManager | None, /) -> None:
@@ -273,12 +256,12 @@ class DepositCCNo(_DepCore):
             raise ValueError(
                 f"acr, ccno - acronym not in CCNo - {self.ccno} | {self.acr}"
             )
-        if self.id.full.lower() not in self.ccno.lower():
+        if self.id.full is None or self.id.full.lower() not in self.ccno.lower():
             raise ValueError(f"id, ccno - id not in CCNo - {self.ccno} | {self.id.full}")
         return self
 
     def patch_strain(self) -> None:
-        self.strain.patch_relation(self.acr, self.id)
+        self.strain.patch_relation(self.acr, self.id.to_ccno_id())
 
     def to_dict_min(self) -> dict[str, Any]:
         dict_res = self.model_dump(
