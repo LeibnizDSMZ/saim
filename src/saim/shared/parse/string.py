@@ -77,57 +77,57 @@ def check_pattern(input_str: str, pattern: Pattern[str], /) -> None:
 
 
 def clean_id_edges(val: Any) -> str:
-    if type(val) is str:
+    if isinstance(val, str):
         return clean_string(val, PATTERN_ID_EDGE_R)
     return ""
 
 
 def clean_core_id_edges(val: Any) -> str:
-    if type(val) is str:
+    if isinstance(val, str):
         return clean_string(val, PATTERN_CORE_ID_EDGE_R)
     return ""
 
 
 def clean_edges(val: Any) -> str:
-    if type(val) is str:
+    if isinstance(val, str):
         return clean_string(val, PATTERN_EDGE_R)
     return ""
 
 
 def trim_edges(val: Any) -> str:
-    if type(val) is str:
+    if isinstance(val, str):
         return val.strip()
     return ""
 
 
 def clean_edges_rm_tags(val: Any) -> str:
-    if type(val) is str:
+    if isinstance(val, str):
         return clean_string(val, PATTERN_TAG_R, PATTERN_EDGE_R)
     return ""
 
 
 def clean_ledge_rm_tags(val: Any) -> str:
-    if type(val) is str:
+    if isinstance(val, str):
         return clean_string(val, PATTERN_TAG_R, PATTERN_L_EDGE_R)
     return ""
 
 
 def clean_text(val: Any) -> str:
-    if type(val) is str:
+    if isinstance(val, str):
         text = clean_string(val, PATTERN_REDUNDANT_SPACE_R)
         return text.strip()
     return ""
 
 
 def clean_text_rm_tags(val: Any) -> str:
-    if type(val) is str:
+    if isinstance(val, str):
         text = clean_string(val, PATTERN_TAG_R)
         return clean_text(text)
     return ""
 
 
 def clean_text_rm_enclosing(val: Any) -> str:
-    if type(val) is str:
+    if isinstance(val, str):
         text = clean_string(val, PATTERN_TAG_R, *PATTERN_BRACKETS_RL)
         return clean_text(text)
     return ""

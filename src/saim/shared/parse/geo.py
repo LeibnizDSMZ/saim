@@ -24,7 +24,7 @@ _COMMA: Final[Pattern[str]] = re.compile(r"\s*,\s*")
 
 
 def parse_lat_long(lat_long: Any, ch_spec_float: Callable[[str], str]) -> str:
-    if lat_long == "" or type(lat_long) is not str:
+    if lat_long == "" or not isinstance(lat_long, str):
         return ""
     return ch_spec_float(lat_long)
 

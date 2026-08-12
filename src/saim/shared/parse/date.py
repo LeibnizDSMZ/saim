@@ -214,6 +214,6 @@ def check_rkms(date: str, /) -> str:
 
 
 def parse_rkms(date: Any) -> str:
-    if date == "" or type(date) is not str:
+    if date == "" or not isinstance(date, str):
         return ""
     return check_rkms(date)
