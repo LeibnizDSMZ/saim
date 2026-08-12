@@ -34,6 +34,7 @@ from saim.shared.data_con.strain import StrainCCNo
 from saim.shared.data_ops.clean import detect_empty_dict_keys
 from saim.shared.parse.date import check_date_str, date_to_str
 from saim.shared.parse.taxa import fix_taxa_name
+from saim.shared.verify.types import ch_not_none
 from saim.taxon_name.manager import TaxonManager
 
 _REQ_KEYS_DEP: Final[tuple[str, ...]] = (
@@ -218,8 +219,8 @@ class DepositCCNo(_DepCore):
     source: DCDSrc
 
     # optional fields - default
-    domain: DomainKnownL | None = None
-    status: DepositStatus | None = None
+    domain: Annotated[DomainKnownL | None, AfterValidator(ch_not_none)] = None
+    status: Annotated[DepositStatus | None, AfterValidator(ch_not_none)] = None
     url: Annotated[
         HttpUrl | None,
         BeforeValidator(trim_edges),

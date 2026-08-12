@@ -89,3 +89,9 @@ def ch_str_float(num: str, lim: float, msg: str, /) -> None:
     mat = _FLOAT_RE.match(num)
     if mat is None or not isinstance(mat.group(1), str) or float(num) > lim:
         raise ValueError(f"{msg} malformed - {num}")
+
+
+def ch_not_none(val: Any, /) -> Any:
+    if val is not None:
+        return val
+    raise ValueError("Value can not be None")
