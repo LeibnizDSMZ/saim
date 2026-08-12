@@ -132,7 +132,7 @@ class CCNoIdM(BaseModel):
 
 def ccno_id_to_dict(ccno_id: CCNoId | CCNoIdM, trim: bool = True, /) -> dict[str, str]:
     id_dict: dict[str, str] = {}
-    if (trim and ccno_id.core == "") or ccno_id.full == "":
+    if (trim and not ccno_id.core) or not ccno_id.full:
         return id_dict
     if isinstance(ccno_id, CCNoIdM):
         id_dict = ccno_id.model_dump(mode="python", by_alias=True)

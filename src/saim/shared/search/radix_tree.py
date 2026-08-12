@@ -16,18 +16,18 @@ _PATTERN_TWO_CHAR: Final[Pattern[str]] = re.compile(r"^[A-Za-z]{2}$")
 _PATTERN_TWO_NUM: Final[Pattern[str]] = re.compile(r"^[0-9]{2}$")
 
 
-def _merge_lead_string_sep(string: str, /) -> str:
+def _merge_lead_string_sep(in_str: str, /) -> str:
     # string is empty or starts with valid char
-    if string == "" or PATTERN_SINGLE_WORD_CHAR_R.match(string[0]) is not None:
-        return string
+    if in_str == "" or PATTERN_SINGLE_WORD_CHAR_R.match(in_str[0]) is not None:
+        return in_str
     found = 1
-    for pos in range(1, len(string)):
-        if PATTERN_SINGLE_WORD_CHAR_R.match(string[pos]) is not None:
+    for pos in range(1, len(in_str)):
+        if PATTERN_SINGLE_WORD_CHAR_R.match(in_str[pos]) is not None:
             found = pos
             break
-    if string[found:] == "":
+    if in_str[found:] == "":
         return ""
-    return f"{STR_DEFINED_SEP}{string[found:]}"
+    return f"{STR_DEFINED_SEP}{in_str[found:]}"
 
 
 type _RQP[T] = tuple[str, RadixTree[T]]
