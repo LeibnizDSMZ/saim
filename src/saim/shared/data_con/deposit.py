@@ -20,6 +20,7 @@ from saim.designation.manager import AcronymManager
 from saim.shared.data_con.plugins.dep_iso import Deposition, Isolation, Registration
 from saim.shared.data_con.taxon import DomainKnownL
 from saim.shared.parse.general import pa_int, pa_str
+from saim.shared.parse.http_url import to_opt_ulr_str
 from saim.shared.parse.sequence import check_sequence
 from saim.shared.parse.doi import check_doi
 from saim.shared.parse.string import (
@@ -222,7 +223,7 @@ class DepositCCNo(_DepCore):
     url: Annotated[
         HttpUrl | None,
         BeforeValidator(trim_edges),
-        PlainSerializer(lambda val: str(val), return_type=str),
+        PlainSerializer(to_opt_ulr_str, return_type=str | None),
     ] = None
     history: Annotated[
         str | None, BeforeValidator(clean_text_rm_tags), Field(min_length=2)
@@ -316,8 +317,7 @@ class DepositCCNo(_DepCore):
         }
         dict_res["id"] = self.id.to_dict(trim)
         dict_res["deposition"] = self.deposition.to_dict(trim)
-        if self.url is not None:
-            dict_res["url"] = self.url.encoded_string()
+        dict_res["url"] = to_opt_ulr_str(self.url)
         if trim:
             for key in detect_empty_dict_keys(dict_res):
                 if key not in _REQ_KEYS_DEP_CCNO:
