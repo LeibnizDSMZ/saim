@@ -30,7 +30,7 @@ def clean_empty_values_in_dict(dict_con: dict[str, _TD], /) -> dict[str, _TD]:
     def _select_rec(val: Any, /) -> Any:
         if isinstance(val, dict):
             return _rec_clean_dic(val)
-        if isinstance(val, (list, tuple)):
+        if isinstance(val, (list, tuple, set)):
             return _rec_clean_ite(val)
         return val
 
@@ -38,6 +38,8 @@ def clean_empty_values_in_dict(dict_con: dict[str, _TD], /) -> dict[str, _TD]:
         gen = (new_v for val in local_l if not _is_val_empty(new_v := _select_rec(val)))
         if isinstance(local_l, tuple):
             return tuple(gen)
+        if isinstance(local_l, set):
+            return set(gen)
         return list(gen)
 
     def _rec_clean_dic(local_d: dict[str, Any], /) -> dict[str, Any]:
