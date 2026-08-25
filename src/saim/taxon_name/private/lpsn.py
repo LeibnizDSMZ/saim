@@ -127,12 +127,12 @@ def _get_lpsn_correct_name(
 @final
 class LpsnTaxReq:
     __slots__ = (
-        "__correct_name_cache",
+        "__ca_name",
+        "__ca_name_cor",
+        "__ca_org",
         "__exp_days",
         "__first_request_in_window",
         "__kcl",
-        "__name_cache",
-        "__org_cache",
         "__request_count",
         "__session",
         "__work_dir",
@@ -147,9 +147,9 @@ class LpsnTaxReq:
         self.__work_dir = work_dir
         # TODO list in cache only occur because of fetch and possible next, even if it
         # never happens, should be replaced in linkatlas or here at a later time
-        self.__org_cache: dict[int, list[LpsnOrgC]] = {}
-        self.__name_cache: dict[str, list[tuple[str, int]]] = {}
-        self.__correct_name_cache: dict[int, list[tuple[str, int]]] = {}
+        self.__ca_org: dict[int, list[LpsnOrgC]] = {}
+        self.__ca_name: dict[str, list[tuple[str, int]]] = {}
+        self.__ca_name_cor: dict[int, list[tuple[str, int]]] = {}
         # ---
         self.__session, self.__kcl = self.__create_session(user, upw, kurl)
         super().__init__()
@@ -186,20 +186,20 @@ class LpsnTaxReq:
     def __get_org_cache(self, lpsn_id: int, /) -> list[LpsnOrgC]:
         if lpsn_id < 1:
             return []
-        if lpsn_id in self.__org_cache:
-            return self.__org_cache[lpsn_id]
+        if lpsn_id in self.__ca_org:
+            return self.__ca_org[lpsn_id]
 
         org_data = _request_lpsn_org(
             lpsn_id, self.__session, self.__kcl, lambda call: self.__cwt(call)
         )
-        self.__org_cache[lpsn_id] = org_data
+        self.__ca_org[lpsn_id] = org_data
         return org_data
 
     def __get_name_cache(self, name: str, /) -> list[tuple[str, int]]:
         if name == "":
             return []
-        if name in self.__name_cache:
-            return self.__name_cache[name]
+        if name in self.__ca_name:
+            return self.__ca_name[name]
 
         name_id = _request_lpsn_ad(
             name, self.__session, self.__kcl, lambda call: self.__cwt(call)
@@ -213,14 +213,14 @@ class LpsnTaxReq:
                 for res in self.__get_org_cache(lid)
                 if res.full_name == name
             ]
-            self.__name_cache[name] = result
+            self.__ca_name[name] = result
         return result
 
     def __get_correct_name_cache(self, lpsn_id: int, /) -> list[tuple[str, int]]:
         if lpsn_id < 1:
             return []
-        if lpsn_id in self.__correct_name_cache:
-            return self.__correct_name_cache[lpsn_id]
+        if lpsn_id in self.__ca_name_cor:
+            return self.__ca_name_cor[lpsn_id]
         result = [
             name_id_c
             for res in self.__get_org_cache(lpsn_id)
@@ -229,7 +229,7 @@ class LpsnTaxReq:
             )
             if name_id_c[1] > 0
         ]
-        self.__correct_name_cache[lpsn_id] = result
+        self.__ca_name_cor[lpsn_id] = result
         return result
 
     def get_name(self, names: list[str], /) -> list[tuple[str, int]]:
